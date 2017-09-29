@@ -5,3 +5,6 @@
 /GPATH
 /GRTAGS
 /GTAGS
+
+# generated parser
+src/cmm.rs
