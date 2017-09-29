@@ -4,6 +4,9 @@ version = "0.1.0"
 authors = ["Markus Faerevaag <m@frv.ag>"]
 build = "build.rs"
 
+# [lib]
+# name = "cmm"
+
 [build-dependencies]
 lalrpop = "0.13.1"
 

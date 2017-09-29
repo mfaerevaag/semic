@@ -1,10 +1,46 @@
 use std::str::FromStr;
+use ast::{Expr, Op};
+use lalrpop_util::ErrorRecovery;
 
-grammar;
+grammar<'err>(errors: &'err mut Vec<ErrorRecovery<usize, (usize, &'input str), ()>>);
 
-pub Term: i32 = {
-    <n:Num> => n,
-    "(" <t:Term> ")" => t,
+pub Exprs = Comma<Expr>;
+
+Comma<T>: Vec<T> = { // (0)
+    <v:(<T> ",")*> <e:T?> => match e { // (1)
+        None=> v,
+        Some(e) => {
+            let mut v = v;
+            v.push(e);
+            v
+        }
+    }
 };
 
-Num: i32 = <s:r"[0-9]+"> => i32::from_str(s).unwrap();
+Tier<BinOp,NextTier>: Box<Expr> = {
+    Tier<BinOp,NextTier> BinOp NextTier => Box::new(Expr::BinOp(<>)),
+    NextTier
+};
+
+Expr = Tier<ExprBinOp, Factor>;
+Factor = Tier<FactorBinOp, Term>;
+
+ExprBinOp: Op = { // (3)
+    "+" => Op::Add,
+    "-" => Op::Sub,
+};
+
+FactorBinOp: Op = {
+    "*" => Op::Mul,
+    "/" => Op::Div,
+};
+
+Term: Box<Expr> = {
+    Num => Box::new(Expr::Number(<>)),
+    "(" <Expr> ")",
+    ! => { errors.push(<>); Box::new(Expr::Error) },
+};
+
+Num: i32 = {
+    r"[0-9]+" => i32::from_str(<>).unwrap()
+};
