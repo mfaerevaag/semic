@@ -1,0 +1,6 @@
+[package]
+name = "cmm-interp"
+version = "0.1.0"
+authors = ["Markus Faerevaag <m@frv.ag>"]
+
+[dependencies]
