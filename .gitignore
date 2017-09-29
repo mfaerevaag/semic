@@ -1,2 +1,7 @@
 /target/
 **/*.rs.bk
+
+# gtags
+/GPATH
+/GRTAGS
+/GTAGS
