@@ -1,13 +1,25 @@
 use std::str::FromStr;
-use ast::{Expr, Op};
+use ast::{CExpr, COp};
 use lalrpop_util::ErrorRecovery;
 
 grammar<'err>(errors: &'err mut Vec<ErrorRecovery<usize, (usize, &'input str), ()>>);
 
+// top level rule
+
 pub Prog = Comma<Expr>;
 
-Comma<T>: Vec<T> = { // (0)
-    <v:(<T> ",")*> <e:T?> => match e { // (1)
+// util rules
+
+semicolon: () = {
+    ";",
+};
+
+comma: () = {
+    ",",
+};
+
+Comma<T>: Vec<T> = {
+    <v:(<T> comma)*> <e:T?> => match e {
         None=> v,
         Some(e) => {
             let mut v = v;
@@ -17,35 +29,37 @@ Comma<T>: Vec<T> = { // (0)
     }
 };
 
-Tier<BinOp,NextTier>: Box<Expr> = {
-    Tier<BinOp,NextTier> BinOp NextTier => Box::new(Expr::BinOp(<>)),
+Tier<BinOp,NextTier>: Box<CExpr> = {
+    Tier<BinOp,NextTier> BinOp NextTier => Box::new(CExpr::BinOp(<>)),
     NextTier
 };
 
-Expr = Tier<ExprBinOp, Factor>;
+// production rules
+
+Expr = Tier<CExprBinOp, Factor>;
 Factor = Tier<FactorBinOp, Term>;
 
-ExprBinOp: Op = { // (3)
-    "+" => Op::Add,
-    "-" => Op::Sub,
+CExprBinOp: COp = {
+    "+" => COp::Add,
+    "-" => COp::Sub,
 };
 
-FactorBinOp: Op = {
-    "*" => Op::Mul,
-    "/" => Op::Div,
+FactorBinOp: COp = {
+    "*" => COp::Mul,
+    "/" => COp::Div,
 };
 
-Term: Box<Expr> = {
+Term: Box<CExpr> = {
     Num,
     "(" <Expr> ")",
     Ident,
-    ! => { errors.push(<>); Box::new(Expr::Error) },
+    ! => { errors.push(<>); Box::new(CExpr::Error) },
 };
 
-Num: Box<Expr> = {
-    r"\d+" => Box::new(Expr::Number(i32::from_str(<>).unwrap())),
+Num: Box<CExpr> = {
+    r"\d+" => Box::new(CExpr::Number(i32::from_str(<>).unwrap())),
 };
 
-Ident: Box<Expr> = {
-    r"[a-zA-Z][a-zA-Z0-9]*" => Box::new(Expr::Ident(<>.to_string())),
+Ident: Box<CExpr> = {
+    r"[a-zA-Z][a-zA-Z0-9]*" => Box::new(CExpr::Ident(<>.to_string())),
 };
