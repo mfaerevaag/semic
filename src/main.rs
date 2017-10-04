@@ -5,7 +5,10 @@ pub mod parser;
 
 #[cfg(not(test))]
 fn main() {
-    println!("Hello, world!");
+    let mut errors = Vec::new();
+    let res = parser::parse_Prog(&mut errors, "int main ( void ) { int x; x = 7; }").unwrap();
+
+    println!("{:?}", res);
 }
 
 #[test]

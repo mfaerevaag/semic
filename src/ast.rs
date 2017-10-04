@@ -1,8 +1,17 @@
 use std::fmt::{Debug, Formatter, Error};
 
+pub type CFunc = (Option<CType>, CIdent, Vec<CType>, Vec<Box<CDecl>>, Vec<Box<CStmt>>);
+
+pub type CDecl = (CType, Vec<CIdent>);
+
+pub enum CStmt {
+    Assign(CIdent, Box<CExpr>),
+    Error,
+}
+
 pub enum CExpr {
-    Number(i32),
-    Ident(String),
+    Number(CNum),
+    Ident(CIdent),
     BinOp(Box<CExpr>, COp, Box<CExpr>),
     Error,
 }
@@ -13,6 +22,26 @@ pub enum COp {
     Div,
     Add,
     Sub,
+}
+
+#[derive(Copy, Clone)]
+pub enum CType {
+    Char,
+    Int,
+}
+
+pub type CNum = i32;
+
+pub type CIdent = String;
+
+impl Debug for CStmt {
+    fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
+        use self::CStmt::*;
+        match *self {
+            Assign(ref l, ref r) => write!(fmt, "{:?} = {:?}", l, r),
+            Error => write!(fmt, "error"),
+        }
+    }
 }
 
 impl Debug for CExpr {
@@ -35,6 +64,16 @@ impl Debug for COp {
             Div => write!(fmt, "/"),
             Add => write!(fmt, "+"),
             Sub => write!(fmt, "-"),
+        }
+    }
+}
+
+impl Debug for CType {
+    fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
+        use self::CType::*;
+        match *self {
+            Char => write!(fmt, "char"),
+            Int => write!(fmt, "int"),
         }
     }
 }

@@ -1,25 +1,17 @@
 use std::str::FromStr;
-use ast::{CExpr, COp};
+use ast::*;
 use lalrpop_util::ErrorRecovery;
 
 grammar<'err>(errors: &'err mut Vec<ErrorRecovery<usize, (usize, &'input str), ()>>);
 
 // top level rule
 
-pub Prog = Comma<Expr>;
+pub Prog = Func;
 
 // util rules
 
-semicolon: () = {
-    ";",
-};
-
-comma: () = {
-    ",",
-};
-
 Comma<T>: Vec<T> = {
-    <v:(<T> comma)*> <e:T?> => match e {
+    <v:(<T> ",")*> <e:T?> => match e {
         None=> v,
         Some(e) => {
             let mut v = v;
@@ -36,6 +28,30 @@ Tier<BinOp,NextTier>: Box<CExpr> = {
 
 // production rules
 
+Func: Box<CFunc> = {
+    <rt:FuncType> <id:Ident> "(" <pt:ParamTypes> ")" "{" <d:(<Decl> ";")*> <s:(<Stmt> ";")*> "}" =>
+        Box::new((rt, id, pt, d, s)),
+};
+
+FuncType: Option<CType> = {
+    Type => Some(<>),
+    "void" => None,
+};
+
+ParamTypes: Vec<CType> = {
+    Comma<Type>,
+    "void" => Vec::new(),
+};
+
+Decl: Box<CDecl> = {
+    <l:Type> <r:Comma<Ident>> => Box::new((l, r)),
+};
+
+Stmt: Box<CStmt> = {
+    <l:Ident> "=" <r:Expr> => Box::new(CStmt::Assign(l, r)),
+    // ! => { errors.push(<>); Box::new(CStmt::Error) },
+};
+
 Expr = Tier<CExprBinOp, Factor>;
 Factor = Tier<FactorBinOp, Term>;
 
@@ -50,16 +66,21 @@ FactorBinOp: COp = {
 };
 
 Term: Box<CExpr> = {
-    Num,
+    Num => Box::new(CExpr::Number(<>)),
+    Ident => Box::new(CExpr::Ident(<>)),
     "(" <Expr> ")",
-    Ident,
-    ! => { errors.push(<>); Box::new(CExpr::Error) },
+    // ! => { errors.push(<>); Box::new(CExpr::Error) },
 };
 
-Num: Box<CExpr> = {
-    r"\d+" => Box::new(CExpr::Number(i32::from_str(<>).unwrap())),
+Num: i32 = {
+    r"\d+" => i32::from_str(<>).unwrap(),
 };
 
-Ident: Box<CExpr> = {
-    r"[a-zA-Z][a-zA-Z0-9]*" => Box::new(CExpr::Ident(<>.to_string())),
+Ident: String = {
+    r"[a-zA-Z][a-zA-Z0-9]*" => <>.to_string(),
+};
+
+Type: CType = {
+    "int" => CType::Int,
+    "char" => CType::Char,
 };
