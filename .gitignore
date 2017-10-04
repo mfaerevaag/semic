@@ -7,4 +7,4 @@
 /GTAGS
 
 # generated parser
-src/cmm.rs
+src/parser.rs
