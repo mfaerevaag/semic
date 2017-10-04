@@ -36,11 +36,16 @@ FactorBinOp: Op = {
 };
 
 Term: Box<Expr> = {
-    Num => Box::new(Expr::Number(<>)),
+    Num,
     "(" <Expr> ")",
+    Ident,
     ! => { errors.push(<>); Box::new(Expr::Error) },
 };
 
-Num: i32 = {
-    r"[0-9]+" => i32::from_str(<>).unwrap()
+Num: Box<Expr> = {
+    r"\d+" => Box::new(Expr::Number(i32::from_str(<>).unwrap())),
+};
+
+Ident: Box<Expr> = {
+    r"[a-zA-Z][a-zA-Z0-9]*" => Box::new(Expr::Ident(<>.to_string())),
 };

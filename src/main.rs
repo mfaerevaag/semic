@@ -14,14 +14,14 @@ fn parse_prog() {
 
     assert_eq!(&format!("{:?}", cmm::parse_Prog(&mut errors, "").unwrap()),
                "[]");
-    assert_eq!(&format!("{:?}", cmm::parse_Prog(&mut errors, "22 * 44 + 66").unwrap()),
-               "[((22 * 44) + 66)]");
-    assert_eq!(&format!("{:?}", cmm::parse_Prog(&mut errors, "22 * 44 + 66,").unwrap()),
-               "[((22 * 44) + 66)]");
-    assert_eq!(&format!("{:?}", cmm::parse_Prog(&mut errors, "22 * 44 + 66, 13*3").unwrap()),
-               "[((22 * 44) + 66), (13 * 3)]");
-    assert_eq!(&format!("{:?}", cmm::parse_Prog(&mut errors, "22 + 44 * 66, 13*3,").unwrap()),
-               "[(22 + (44 * 66)), (13 * 3)]");
+    assert_eq!(&format!("{:?}", cmm::parse_Prog(&mut errors, "22 * x + 66").unwrap()),
+               "[((22 * x) + 66)]");
+    assert_eq!(&format!("{:?}", cmm::parse_Prog(&mut errors, "22 * x + 66,").unwrap()),
+               "[((22 * x) + 66)]");
+    assert_eq!(&format!("{:?}", cmm::parse_Prog(&mut errors, "22 * x + 66, 13*3").unwrap()),
+               "[((22 * x) + 66), (13 * 3)]");
+    assert_eq!(&format!("{:?}", cmm::parse_Prog(&mut errors, "22 + x * 66, 13*3,").unwrap()),
+               "[(22 + (x * 66)), (13 * 3)]");
 }
 
 #[test]
