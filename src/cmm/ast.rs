@@ -1,6 +1,8 @@
 use std::fmt::{Debug, Formatter, Error};
 
-pub type CFunc = (Option<CType>, CIdent, Vec<CType>, Vec<Box<CDecl>>, Vec<Box<CStmt>>);
+pub type CFunc = (Option<CType>, CIdent, Vec<Box<CParam>>, Vec<Box<CDecl>>, Vec<Box<CStmt>>);
+
+pub type CParam = (CType, CIdent);
 
 pub type CDecl = (CType, Vec<CIdent>);
 

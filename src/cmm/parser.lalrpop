@@ -29,7 +29,7 @@ Tier<BinOp,NextTier>: Box<CExpr> = {
 // production rules
 
 Func: Box<CFunc> = {
-    <rt:FuncType> <id:Ident> "(" <pt:ParamTypes> ")" "{" <d:(<Decl> ";")*> <s:(<Stmt> ";")*> "}" =>
+    <rt:FuncType> <id:Ident> "(" <pt:ParamDecl> ")" "{" <d:(<Decl> ";")*> <s:(<Stmt> ";")*> "}" =>
         Box::new((rt, id, pt, d, s)),
 };
 
@@ -38,9 +38,13 @@ FuncType: Option<CType> = {
     "void" => None,
 };
 
-ParamTypes: Vec<CType> = {
-    Comma<Type>,
+ParamDecl: Vec<Box<CParam>> = {
+    Comma<Param>,
     "void" => Vec::new(),
+};
+
+Param: Box<CParam> = {
+    <l:Type> <r:Ident> => Box::new((l, r)),
 };
 
 Decl: Box<CDecl> = {
