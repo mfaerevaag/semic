@@ -1,28 +1,28 @@
 use std::fmt::{Debug, Formatter, Error};
 
 #[derive(Debug)]
-pub struct CFunc {
+pub struct CFunc<'input> {
     pub ret_type: Option<CType>,
-    pub name: CIdent,
-    pub params: Vec<Box<CParam>>,
-    pub decls: Vec<Box<CDecl>>,
-    pub stmts: Vec<Box<CStmt>>,
+    pub name: CIdent<'input>,
+    pub params: Vec<Box<CParam<'input>>>,
+    pub decls: Vec<Box<CDecl<'input>>>,
+    pub stmts: Vec<Box<CStmt<'input>>>,
 }
 
-pub type CParam = (CType, CIdent);
+pub type CParam<'input> = (CType, CIdent<'input>);
 
-pub type CDecl = (CType, Vec<CIdent>);
+pub type CDecl<'input> = (CType, Vec<CIdent<'input>>);
 
-pub enum CStmt {
-    Assign(CIdent, Box<CExpr>),
-    Return(Option<Box<CExpr>>),
+pub enum CStmt<'input> {
+    Assign(CIdent<'input>, Box<CExpr<'input>>),
+    Return(Option<Box<CExpr<'input>>>),
     Error,
 }
 
-pub enum CExpr {
+pub enum CExpr<'input> {
     Number(CNum),
-    Ident(CIdent),
-    BinOp(Box<CExpr>, COp, Box<CExpr>),
+    Ident(CIdent<'input>),
+    BinOp(Box<CExpr<'input>>, COp, Box<CExpr<'input>>),
     Error,
 }
 
@@ -42,11 +42,11 @@ pub enum CType {
 
 pub type CNum = i32;
 
-pub type CIdent = String;
+pub type CIdent<'input> = &'input str;
 
 
 // debug trait
-impl Debug for CStmt {
+impl<'input> Debug for CStmt<'input> {
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
         use self::CStmt::*;
         match *self {
@@ -60,7 +60,7 @@ impl Debug for CStmt {
     }
 }
 
-impl Debug for CExpr {
+impl<'input> Debug for CExpr<'input> {
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
         use self::CExpr::*;
         match *self {

@@ -18,7 +18,7 @@ Comma<T>: Vec<T> = {
 
 // production rules
 
-Func: Box<CFunc> = {
+Func: Box<CFunc<'input>> = {
     <rt:FuncType> <id:Ident> "(" <pt:ParamDecl> ")" "{" <d:(<Decl> ";")*> <s:(<Stmt> ";")*> "}" =>
         Box::new(CFunc {
             ret_type: rt,
@@ -34,32 +34,32 @@ FuncType: Option<CType> = {
     "void" => None,
 };
 
-ParamDecl: Vec<Box<CParam>> = {
+ParamDecl: Vec<Box<CParam<'input>>> = {
     Comma<Param>,
     "void" => Vec::new(),
 };
 
-Param: Box<CParam> = {
+Param: Box<CParam<'input>> = {
     Type Ident => Box::new((<>)),
 };
 
-Decl: Box<CDecl> = {
+Decl: Box<CDecl<'input>> = {
     Type Comma<Ident> => Box::new((<>)),
 };
 
-Stmt: Box<CStmt> = {
+Stmt: Box<CStmt<'input>> = {
     <l:Ident> "=" <r:Expr> => Box::new(CStmt::Assign(l, r)),
     "return" <r:Expr> => Box::new(CStmt::Return(Some(r))),
     "return" => Box::new(CStmt::Return(None)),
     // ! => { errors.push(<>); Box::new(CStmt::Error) },
 };
 
-Expr: Box<CExpr> = {
+Expr: Box<CExpr<'input>> = {
     Expr ExprOp Factor => Box::new(CExpr::BinOp(<>)),
     Factor,
 };
 
-Factor: Box<CExpr> = {
+Factor: Box<CExpr<'input>> = {
     Factor FactorOp Term => Box::new(CExpr::BinOp(<>)),
     Term,
 };
@@ -74,7 +74,7 @@ FactorOp: COp = {
     "/" => COp::Div,
 };
 
-Term: Box<CExpr> = {
+Term: Box<CExpr<'input>> = {
     Num => Box::new(CExpr::Number(<>)),
     Ident => Box::new(CExpr::Ident(<>)),
     "(" <Expr> ")",
@@ -85,8 +85,8 @@ Num: i32 = {
     r"\d+" => i32::from_str(<>).unwrap(),
 };
 
-Ident: String = {
-    r"[a-zA-Z][a-zA-Z0-9]*" => <>.to_string(),
+Ident: &'input str = {
+    r"[a-zA-Z][a-zA-Z0-9]*" => <>
 };
 
 Type: CType = {
