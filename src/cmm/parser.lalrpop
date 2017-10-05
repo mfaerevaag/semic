@@ -48,9 +48,9 @@ Decl: Box<CDecl<'input>> = {
 };
 
 Stmt: Box<CStmt<'input>> = {
-    <l:Ident> "=" <r:Expr> => Box::new(CStmt::Assign(l, r)),
-    "return" <r:Expr> => Box::new(CStmt::Return(Some(r))),
-    "return" => Box::new(CStmt::Return(None)),
+    <l:@L> <i:Ident> "=" <e:Expr> <r:@R> => Box::new(CStmt::Assign((l, r), i, e)),
+    <l:@L> "return" <e:Expr> <r:@R> => Box::new(CStmt::Return((l, r), Some(e))),
+    <l:@L> "return" <r:@R> => Box::new(CStmt::Return((l, r), None)),
     // ! => { errors.push(<>); Box::new(CStmt::Error) },
 };
 

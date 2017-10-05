@@ -14,8 +14,8 @@ pub type CParam<'input> = (CType, CIdent<'input>);
 pub type CDecl<'input> = (CType, Vec<CIdent<'input>>);
 
 pub enum CStmt<'input> {
-    Assign(CIdent<'input>, Box<CExpr<'input>>),
-    Return(Option<Box<CExpr<'input>>>),
+    Assign(CLoc, CIdent<'input>, Box<CExpr<'input>>),
+    Return(CLoc, Option<Box<CExpr<'input>>>),
     Error,
 }
 
@@ -40,6 +40,8 @@ pub enum CType {
     Int,
 }
 
+pub type CLoc = (usize, usize);
+
 pub type CNum = i32;
 
 pub type CIdent<'input> = &'input str;
@@ -50,8 +52,8 @@ impl<'input> Debug for CStmt<'input> {
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
         use self::CStmt::*;
         match *self {
-            Assign(ref l, ref r) => write!(fmt, "{:?} = {:?}", l, r),
-            Return(ref o) => match *o {
+            Assign(_, ref l, ref r) => write!(fmt, "{:?} = {:?}", l, r),
+            Return(_, ref o) => match *o {
                 Some(ref e) => write!(fmt, "return {:?}", e),
                 None => write!(fmt, "return"),
             },
