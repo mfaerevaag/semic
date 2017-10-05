@@ -1,6 +1,13 @@
 use std::fmt::{Debug, Formatter, Error};
 
-pub type CFunc = (Option<CType>, CIdent, Vec<Box<CParam>>, Vec<Box<CDecl>>, Vec<Box<CStmt>>);
+#[derive(Debug)]
+pub struct CFunc {
+    pub ret_type: Option<CType>,
+    pub name: CIdent,
+    pub params: Vec<Box<CParam>>,
+    pub decls: Vec<Box<CDecl>>,
+    pub stmts: Vec<Box<CStmt>>,
+}
 
 pub type CParam = (CType, CIdent);
 
@@ -37,6 +44,8 @@ pub type CNum = i32;
 
 pub type CIdent = String;
 
+
+// debug trait
 impl Debug for CStmt {
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
         use self::CStmt::*;

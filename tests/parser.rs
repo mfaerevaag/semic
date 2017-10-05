@@ -1,152 +1,251 @@
 extern crate cmm;
 
+use cmm::ast::*;
+
 #[test]
 fn parser_empty() {
     let mut errors = Vec::new();
 
-    let prog = r#"
-void main ( void ) {}
-"#;
-    let res = cmm::parse(&mut errors, prog).unwrap();
+    let actual = cmm::parse(&mut errors, r#"
+        void main (void) {}
+    "#).unwrap();
 
-    assert_eq!(r#"(None, "main", [], [], [])"#, format!("{:?}", res));
+    let expected = CFunc {
+        ret_type: None,
+        name: "main".to_string(),
+        params: vec![],
+        decls: vec![],
+        stmts: vec![],
+    };
+
+    assert_eq!(0, errors.len());
+    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
 fn parser_return_type() {
     let mut errors = Vec::new();
 
-    let prog = r#"
-int main ( void ) {}
-"#;
-    let res = cmm::parse(&mut errors, prog).unwrap();
+    let actual = cmm::parse(&mut errors, r#"
+        int main (void) {}
+    "#).unwrap();
 
-    assert_eq!(r#"(Some(int), "main", [], [], [])"#, format!("{:?}", res));
+    let expected = CFunc {
+        ret_type: Some(CType::Int),
+        name: "main".to_string(),
+        params: vec![],
+        decls: vec![],
+        stmts: vec![],
+    };
+
+    assert_eq!(0, errors.len());
+    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
 fn parser_param_type_single() {
     let mut errors = Vec::new();
 
-    let prog = r#"
-int main ( int a ) {}
-"#;
-    let res = cmm::parse(&mut errors, prog).unwrap();
+    let actual = cmm::parse(&mut errors, r#"
+        int main (int a) {}
+    "#).unwrap();
 
-    assert_eq!(r#"(Some(int), "main", [(int, "a")], [], [])"#, format!("{:?}", res));
+    let expected = CFunc {
+        ret_type: Some(CType::Int),
+        name: "main".to_string(),
+        params: vec![Box::new((CType::Int, "a".to_string()))],
+        decls: vec![],
+        stmts: vec![],
+    };
+
+    assert_eq!(0, errors.len());
+    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
 fn parser_param_type_mult() {
     let mut errors = Vec::new();
 
-    let prog = r#"
-int main ( int a, char b ) {}
-"#;
-    let res = cmm::parse(&mut errors, prog).unwrap();
+    let actual = cmm::parse(&mut errors, r#"
+        int main (int a, char b) {}
+    "#).unwrap();
 
-    assert_eq!(r#"(Some(int), "main", [(int, "a"), (char, "b")], [], [])"#, format!("{:?}", res));
+    let expected = CFunc {
+        ret_type: Some(CType::Int),
+        name: "main".to_string(),
+        params: vec![Box::new((CType::Int, "a".to_string())),
+                     Box::new((CType::Char, "b".to_string()))],
+        decls: vec![],
+        stmts: vec![],
+    };
+
+    assert_eq!(0, errors.len());
+    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
 fn parser_decl_single_type_single_ident() {
     let mut errors = Vec::new();
 
-    let prog = r#"
-int main ( void ) {
-    int x;
-}
-"#;
-    let res = cmm::parse(&mut errors, prog).unwrap();
+    let actual = cmm::parse(&mut errors, r#"
+        int main (void) {
+            int x;
+        }
+    "#).unwrap();
 
-    assert_eq!(r#"(Some(int), "main", [], [(int, ["x"])], [])"#, format!("{:?}", res));
+    let expected = CFunc {
+        ret_type: Some(CType::Int),
+        name: "main".to_string(),
+        params: vec![],
+        decls: vec![Box::new((CType::Int, vec!["x".to_string()]))],
+        stmts: vec![],
+    };
+
+    assert_eq!(0, errors.len());
+    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
 fn parser_decl_single_type_mult_ident() {
     let mut errors = Vec::new();
 
-    let prog = r#"
-int main ( void ) {
-    int x, y;
-}
-"#;
-    let res = cmm::parse(&mut errors, prog).unwrap();
+    let actual = cmm::parse(&mut errors, r#"
+        int main (void) {
+            int x, y;
+        }
+    "#).unwrap();
 
-    assert_eq!(r#"(Some(int), "main", [], [(int, ["x", "y"])], [])"#, format!("{:?}", res));
+    let expected = CFunc {
+        ret_type: Some(CType::Int),
+        name: "main".to_string(),
+        params: vec![],
+        decls: vec![Box::new((CType::Int, vec!["x".to_string(), "y".to_string()]))],
+        stmts: vec![],
+    };
+
+    assert_eq!(0, errors.len());
+    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
 fn parser_decl_mult_type_single_ident() {
     let mut errors = Vec::new();
 
-    let prog = r#"
-int main ( void ) {
-    int x;
-    char y;
-}
-"#;
-    let res = cmm::parse(&mut errors, prog).unwrap();
+    let actual = cmm::parse(&mut errors, r#"
+        int main (void) {
+            int x;
+            char y;
+        }
+    "#).unwrap();
 
-    assert_eq!(r#"(Some(int), "main", [], [(int, ["x"]), (char, ["y"])], [])"#, format!("{:?}", res));
+    let expected = CFunc {
+        ret_type: Some(CType::Int),
+        name: "main".to_string(),
+        params: vec![],
+        decls: vec![Box::new((CType::Int, vec!["x".to_string()])),
+                    Box::new((CType::Char, vec!["y".to_string()]))],
+        stmts: vec![],
+    };
+
+    assert_eq!(0, errors.len());
+    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
 fn parser_decl_mult_type_mult_ident() {
     let mut errors = Vec::new();
 
-    let prog = r#"
-int main ( void ) {
-    int x, y;
-    char a, b;
-}
-"#;
-    let res = cmm::parse(&mut errors, prog).unwrap();
+    let actual = cmm::parse(&mut errors, r#"
+        int main (void) {
+            int x, y;
+            char a, b;
+        }
+    "#).unwrap();
 
-    assert_eq!(r#"(Some(int), "main", [], [(int, ["x", "y"]), (char, ["a", "b"])], [])"#, format!("{:?}", res));
+    let expected = CFunc {
+        ret_type: Some(CType::Int),
+        name: "main".to_string(),
+        params: vec![],
+        decls: vec![Box::new((CType::Int, vec!["x".to_string(), "y".to_string()])),
+                    Box::new((CType::Char, vec!["a".to_string(), "b".to_string()]))],
+        stmts: vec![],
+    };
+
+    assert_eq!(0, errors.len());
+    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
 fn parser_no_decl_single_stmt() {
     let mut errors = Vec::new();
 
-    let prog = r#"
-int main ( void ) {
-    x = 1;
-}
-"#;
-    let res = cmm::parse(&mut errors, prog).unwrap();
+    let actual = cmm::parse(&mut errors, r#"
+        int main (void) {
+            return 0;
+        }
+    "#).unwrap();
 
-    assert_eq!(r#"(Some(int), "main", [], [], ["x" = 1])"#, format!("{:?}", res));
+    let expected = CFunc {
+        ret_type: Some(CType::Int),
+        name: "main".to_string(),
+        params: vec![],
+        decls: vec![],
+        stmts: vec![Box::new(CStmt::Return(Some(Box::new(CExpr::Number(0)))))],
+    };
+
+    assert_eq!(0, errors.len());
+    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
 fn parser_single_decl_single_stmt() {
     let mut errors = Vec::new();
 
-    let prog = r#"
-int main ( void ) {
-    int x;
-    x = 1;
-}
-"#;
-    let res = cmm::parse(&mut errors, prog).unwrap();
+    let actual = cmm::parse(&mut errors, r#"
+        int main (void) {
+            int x;
+            x = 1;
+        }
+    "#).unwrap();
 
-    assert_eq!(r#"(Some(int), "main", [], [(int, ["x"])], ["x" = 1])"#, format!("{:?}", res));
+    let expected = CFunc {
+        ret_type: Some(CType::Int),
+        name: "main".to_string(),
+        params: vec![],
+        decls: vec![Box::new((CType::Int, vec!["x".to_string()]))],
+        stmts: vec![Box::new(CStmt::Assign("x".to_string(), Box::new(CExpr::Number(1))))],
+    };
+
+    assert_eq!(0, errors.len());
+    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
 fn parser_stmt_mult() {
     let mut errors = Vec::new();
 
-    let prog = r#"
-int main ( void ) {
-    int x, y;
-    x = 1;
-    y = 2;
-}
-"#;
-    let res = cmm::parse(&mut errors, prog).unwrap();
+    let actual = cmm::parse(&mut errors, r#"
+        int main (void) {
+            int x, y;
+            x = 1;
+            y = 2;
+            return x + y;
+        }
+    "#).unwrap();
 
-    assert_eq!(r#"(Some(int), "main", [], [(int, ["x", "y"])], ["x" = 1, "y" = 2])"#, format!("{:?}", res));
+    let expected = CFunc {
+        ret_type: Some(CType::Int),
+        name: "main".to_string(),
+        params: vec![],
+        decls: vec![Box::new((CType::Int, vec!["x".to_string(), "y".to_string()]))],
+        stmts: vec![Box::new(CStmt::Assign("x".to_string(), Box::new(CExpr::Number(1)))),
+                    Box::new(CStmt::Assign("y".to_string(), Box::new(CExpr::Number(2)))),
+                    Box::new(CStmt::Return(Some(Box::new(CExpr::BinOp(
+                        Box::new(CExpr::Ident("x".to_string())),
+                        COp::Add,
+                        Box::new(CExpr::Ident("y".to_string())))))))],
+    };
+
+    assert_eq!(0, errors.len());
+    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }

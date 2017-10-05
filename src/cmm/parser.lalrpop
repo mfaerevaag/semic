@@ -30,7 +30,13 @@ Tier<BinOp,NextTier>: Box<CExpr> = {
 
 Func: Box<CFunc> = {
     <rt:FuncType> <id:Ident> "(" <pt:ParamDecl> ")" "{" <d:(<Decl> ";")*> <s:(<Stmt> ";")*> "}" =>
-        Box::new((rt, id, pt, d, s)),
+        Box::new(CFunc {
+            ret_type: rt,
+            name: id,
+            params: pt,
+            decls: d,
+            stmts: s
+        }),
 };
 
 FuncType: Option<CType> = {
