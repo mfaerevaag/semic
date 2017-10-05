@@ -40,11 +40,11 @@ ParamDecl: Vec<Box<CParam>> = {
 };
 
 Param: Box<CParam> = {
-    <l:Type> <r:Ident> => Box::new((l, r)),
+    Type Ident => Box::new((<>)),
 };
 
 Decl: Box<CDecl> = {
-    <l:Type> <r:Comma<Ident>> => Box::new((l, r)),
+    Type Comma<Ident> => Box::new((<>)),
 };
 
 Stmt: Box<CStmt> = {
