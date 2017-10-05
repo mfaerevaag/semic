@@ -53,6 +53,8 @@ Decl: Box<CDecl> = {
 
 Stmt: Box<CStmt> = {
     <l:Ident> "=" <r:Expr> => Box::new(CStmt::Assign(l, r)),
+    "return" <r:Expr> => Box::new(CStmt::Return(Some(r))),
+    "return" => Box::new(CStmt::Return(None)),
     // ! => { errors.push(<>); Box::new(CStmt::Error) },
 };
 

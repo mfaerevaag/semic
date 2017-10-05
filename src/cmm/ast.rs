@@ -8,6 +8,7 @@ pub type CDecl = (CType, Vec<CIdent>);
 
 pub enum CStmt {
     Assign(CIdent, Box<CExpr>),
+    Return(Option<Box<CExpr>>),
     Error,
 }
 
@@ -41,6 +42,10 @@ impl Debug for CStmt {
         use self::CStmt::*;
         match *self {
             Assign(ref l, ref r) => write!(fmt, "{:?} = {:?}", l, r),
+            Return(ref o) => match *o {
+                Some(ref e) => write!(fmt, "return {:?}", e),
+                None => write!(fmt, "return"),
+            },
             Error => write!(fmt, "error"),
         }
     }
