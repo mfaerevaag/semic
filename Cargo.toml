@@ -4,8 +4,13 @@ version = "0.1.0"
 authors = ["Markus Faerevaag <m@frv.ag>"]
 build = "build.rs"
 
-# [lib]
-# name = "cmm"
+[lib]
+name = "cmm"
+path = "src/cmm/lib.rs"
+
+[[bin]]
+name = "cmm-interp"
+path = "src/main.rs"
 
 [build-dependencies]
 lalrpop = "0.13.1"
