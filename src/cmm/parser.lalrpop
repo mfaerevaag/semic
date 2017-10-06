@@ -4,11 +4,8 @@ use lalrpop_util::ErrorRecovery;
 
 grammar<'err>(errors: &'err mut Vec<ErrorRecovery<usize, (usize, &'input str), ()>>);
 
-// top level rule
 
-pub Prog = Func;
-
-// util rules
+// macros
 
 Comma<T>: Vec<T> = {
     <h:(<T> ",")*> <t:T?> =>
@@ -18,15 +15,32 @@ Comma<T>: Vec<T> = {
 
 // production rules
 
+pub Prog: CProg<'input> = <(<ProgElem>)*>;
+
+ProgElem: Box<CProgElem<'input>> = {
+    // VarDecl => Box::new(<>), // TODO
+    <l:Proto> ";" => Box::new(CProgElem::Proto(l)),
+    // "extern" <p:ProtoDecl> => Box::new(p), // TODO
+    Func => Box::new(CProgElem::Func(<>)),
+};
+
+Proto: Box<CProto<'input>> = {
+    FuncType Comma<FuncDecl> => Box::new((<>)),
+};
+
 Func: Box<CFunc<'input>> = {
-    <rt:FuncType> <id:Ident> "(" <pt:ParamDecl> ")" "{" <d:(<Decl> ";")*> <s:(<Stmt> ";")*> "}" =>
+    <ret:FuncType> <id:Ident> "(" <param:FuncParam> ")" "{" <decl:(<VarDecl> ";")*> <stmt:(<Stmt> ";")*> "}" =>
         Box::new(CFunc {
-            ret_type: rt,
+            ret_type: ret,
             name: id,
-            params: pt,
-            decls: d,
-            stmts: s
+            params: param,
+            decls: decl,
+            stmts: stmt,
         }),
+};
+
+FuncDecl: Box<(CIdent<'input>, Vec<Box<CParam<'input>>>)> = {
+    <id:Ident> "(" <param:FuncParam> ")" => Box::new((id, param)),
 };
 
 FuncType: Option<CType> = {
@@ -34,7 +48,7 @@ FuncType: Option<CType> = {
     "void" => None,
 };
 
-ParamDecl: Vec<Box<CParam<'input>>> = {
+FuncParam: Vec<Box<CParam<'input>>> = {
     Comma<Param>,
     "void" => Vec::new(),
 };
@@ -43,7 +57,7 @@ Param: Box<CParam<'input>> = {
     Type Ident => Box::new((<>)),
 };
 
-Decl: Box<CDecl<'input>> = {
+VarDecl: Box<CVarDecl<'input>> = {
     Type Comma<Ident> => Box::new((<>)),
 };
 
@@ -56,6 +70,7 @@ Stmt: Box<CStmt<'input>> = {
 
 Expr: Box<CExpr<'input>> = {
     Expr ExprOp Factor => Box::new(CExpr::BinOp(<>)),
+    <i:Ident> "(" <p:Comma<Expr>> ")" => Box::new(CExpr::Call(i, p)),
     Factor,
 };
 
@@ -93,3 +108,17 @@ Type: CType = {
     "int" => CType::Int,
     "char" => CType::Char,
 };
+
+match {
+    "void",
+    "return",
+    "extern",
+    "if",
+    "else",
+    "while",
+    "for",
+    "continue",
+    "break",
+} else {
+    _
+}
