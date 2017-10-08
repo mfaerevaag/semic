@@ -30,7 +30,7 @@ match {
     "char",
 
 } else {
-    r"-?[0-9]+" => TInt,
+    r"[0-9]+" => TInt,
 
 } else {
     r"[a-zA-Z][a-zA-Z0-9_]*" => TIdent,
@@ -59,14 +59,19 @@ FuncDecl: Box<(CIdent<'input>, Vec<Box<CParam<'input>>>)> = {
 };
 
 Func: Box<CFunc<'input>> = {
-    <ret:FuncType> <id:Ident> "(" <param:FuncParam> ")" "{" <decl:(<VarDecl> ";")*> <stmt:(<Stmt> ";")*> "}" =>
-        Box::new(CFunc {
-            ret_type: ret,
-            name: id,
-            params: param,
-            decls: decl,
-            stmts: stmt,
-        }),
+    <ret:FuncType> <id:Ident> "(" <param:FuncParam> ")" "{"
+        <decl:(<VarDecl> ";")*>
+        <stmt:(<Stmt> ";")*> "}"
+        => {
+            let flat_decl = decl.into_iter().flat_map(|x| x.to_vec()).collect();
+            Box::new(CFunc {
+                ret_type: ret,
+                name: id,
+                params: param,
+                decls: flat_decl,
+                stmts: stmt,
+            })
+        },
 };
 
 FuncType: Option<CType> = {
@@ -80,23 +85,42 @@ FuncParam: Vec<Box<CParam<'input>>> = {
 };
 
 Param: Box<CParam<'input>> = {
-    Type Ident => Box::new((<>)),
+    <t:Type> <r:Ident> "[" "]" => Box::new((CType::Array(Box::new(t)), r)),
+    <t:Type> <r:Ident> => Box::new((<>)),
 };
 
-VarDecl: Box<CVarDecl<'input>> = {
-    Type Comma<Ident> => Box::new((<>)),
+VarDecl: Vec<Box<CVarDecl<'input>>> = {
+    <t:Type> <r:Comma<VarArray>> => {
+        let mut xs = vec![];
+        for x in Vec::from(r).into_iter() {
+            let var = match x {
+                (id, None) => Box::new((t.clone(), id, None)),
+                (id, s) => Box::new((CType::Array(Box::new(t.clone())), id, s)),
+            };
+            xs.push(var);
+        };
+        xs
+    },
+};
+
+VarArray: (CIdent<'input>, Option<usize>) = {
+    <l:Ident> "[" <r:TInt> "]" => (l, Some(usize::from_str(r).unwrap())),
+    Ident => (<>, None),
 };
 
 Stmt: Box<CStmt<'input>> = {
+    // assignment
     <l:@L> <i:Ident> "=" <e:Expr> <r:@R> => Box::new(CStmt::Assign((l, r), i, e)),
+    // return
     <l:@L> "return" <e:Expr> <r:@R> => Box::new(CStmt::Return((l, r), Some(e))),
     <l:@L> "return" <r:@R> => Box::new(CStmt::Return((l, r), None)),
+    // error
     // ! => { errors.push(<>); Box::new(CStmt::Error) },
 };
 
 Expr: Box<CExpr<'input>> = {
+    // "-" <r:Expr> => Box::new(CExpr::UnOp(r)), // TODO
     Expr ExprOp Factor => Box::new(CExpr::BinOp(<>)),
-    <i:Ident> "(" <p:Comma<Expr>> ")" => Box::new(CExpr::Call(i, p)),
     Factor,
 };
 
@@ -118,6 +142,10 @@ FactorOp: COp = {
 Term: Box<CExpr<'input>> = {
     Num => Box::new(CExpr::Number(<>)),
     Ident => Box::new(CExpr::Ident(<>)),
+    // call
+    <i:Ident> "(" <p:Comma<Expr>> ")" => Box::new(CExpr::Call(i, p)),
+    // array index
+    <i:Ident> "[" <r:Expr> "]" => Box::new(CExpr::Index(i, r)),
     "(" <Expr> ")",
     // ! => { errors.push(<>); Box::new(CExpr::Error) },
 };
@@ -127,7 +155,7 @@ Num: i32 = {
 };
 
 Ident: &'input str = {
-    TIdent => <>
+    TIdent => <>,
 };
 
 Type: CType = {

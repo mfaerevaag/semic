@@ -4,7 +4,7 @@ use std::fmt::{Debug, Formatter, Error};
 pub type CProg<'input> = Vec<Box<CProgElem<'input>>>;
 
 pub enum CProgElem<'input> {
-    VarDecl(Box<CVarDecl<'input>>),
+    // VarDecl(Box<CVarDecl<'input>>),
     Proto(Box<CProto<'input>>),
     Func(Box<CFunc<'input>>),
     Error,
@@ -23,7 +23,7 @@ pub struct CFunc<'input> {
 
 pub type CParam<'input> = (CType, CIdent<'input>);
 
-pub type CVarDecl<'input> = (CType, Vec<CIdent<'input>>);
+pub type CVarDecl<'input> = (CType, CIdent<'input>, Option<usize>);
 
 pub enum CStmt<'input> {
     Assign(CLoc, CIdent<'input>, Box<CExpr<'input>>),
@@ -36,6 +36,7 @@ pub enum CExpr<'input> {
     Ident(CIdent<'input>),
     BinOp(Box<CExpr<'input>>, COp, Box<CExpr<'input>>),
     Call(CIdent<'input>, Vec<Box<CExpr<'input>>>),
+    Index(CIdent<'input>, Box<CExpr<'input>>),
     Error,
 }
 
@@ -47,10 +48,11 @@ pub enum COp {
     Sub,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 pub enum CType {
     Char,
     Int,
+    Array(Box<CType>),
 }
 
 pub type CLoc = (usize, usize);
@@ -66,7 +68,7 @@ impl<'input> Debug for CProgElem<'input> {
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
         use self::CProgElem::*;
         match *self {
-            VarDecl(ref x) => write!(fmt, "{:?}", x),
+            // VarDecl(ref x) => write!(fmt, "{:?}", x),
             Proto(ref x) => write!(fmt, "{:?}", x),
             Func(ref x) => write!(fmt, "{:?}", x),
             Error => write!(fmt, "error"),
@@ -104,6 +106,9 @@ impl<'input> Debug for CExpr<'input> {
                 }
                 write!(fmt, "{}({})", i, s)
             },
+            Index(ref i, ref e) => {
+                write!(fmt, "{}[{:?}]", i, e)
+            },
             Error => write!(fmt, "error"),
         }
     }
@@ -127,6 +132,7 @@ impl Debug for CType {
         match *self {
             Char => write!(fmt, "char"),
             Int => write!(fmt, "int"),
+            Array(ref t) => write!(fmt, "{:?}[]", t),
         }
     }
 }
