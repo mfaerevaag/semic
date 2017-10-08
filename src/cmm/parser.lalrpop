@@ -30,7 +30,7 @@ match {
     "char",
 
 } else {
-    r"[0-9]+" => TInt,
+    r"-?[0-9]+" => TInt,
 
 } else {
     r"[a-zA-Z][a-zA-Z0-9]*" => TIdent,
