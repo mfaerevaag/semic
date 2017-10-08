@@ -34,7 +34,8 @@ pub enum CStmt<'input> {
 pub enum CExpr<'input> {
     Number(CNum),
     Ident(CIdent<'input>),
-    BinOp(Box<CExpr<'input>>, COp, Box<CExpr<'input>>),
+    UnOp(COp, Box<CExpr<'input>>),
+    BinOp(COp, Box<CExpr<'input>>, Box<CExpr<'input>>),
     Call(CIdent<'input>, Vec<Box<CExpr<'input>>>),
     Index(CIdent<'input>, Box<CExpr<'input>>),
     Error,
@@ -46,6 +47,9 @@ pub enum COp {
     Div,
     Add,
     Sub,
+
+    Neg,
+    Not,
 }
 
 #[derive(Clone)]
@@ -98,7 +102,8 @@ impl<'input> Debug for CExpr<'input> {
         match *self {
             Number(n) => write!(fmt, "{:?}", n),
             Ident(ref s) => write!(fmt, "{}", &s),
-            BinOp(ref l, op, ref r) => write!(fmt, "({:?} {:?} {:?})", l, op, r),
+            UnOp(op, ref l) => write!(fmt, "({:?} {:?})", op, l),
+            BinOp(op, ref l, ref r) => write!(fmt, "({:?} {:?} {:?})", l, op, r),
             Call(ref i, ref p) => {
                 let mut s: String = format!("{:?}", p[0]);
                 for e in p[1..].iter() {
@@ -122,6 +127,8 @@ impl Debug for COp {
             Div => write!(fmt, "/"),
             Add => write!(fmt, "+"),
             Sub => write!(fmt, "-"),
+            Neg => write!(fmt, "-"),
+            Not => write!(fmt, "!"),
         }
     }
 }

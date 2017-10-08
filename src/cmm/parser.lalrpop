@@ -120,13 +120,28 @@ Stmt: Box<CStmt<'input>> = {
 
 Expr: Box<CExpr<'input>> = {
     // "-" <r:Expr> => Box::new(CExpr::UnOp(r)), // TODO
-    Expr ExprOp Factor => Box::new(CExpr::BinOp(<>)),
+    <l:Expr> <op:ExprOp> <r:Factor> => Box::new(CExpr::BinOp(op, l, r)),
     Factor,
 };
 
 Factor: Box<CExpr<'input>> = {
-    Factor FactorOp Term => Box::new(CExpr::BinOp(<>)),
+    <l:Factor> <op:FactorOp> <r:Term> => Box::new(CExpr::BinOp(op, l, r)),
     Term,
+};
+
+Term: Box<CExpr<'input>> = {
+    Num => Box::new(CExpr::Number(<>)),
+    Ident => Box::new(CExpr::Ident(<>)),
+
+    <op:TermOp> <r:Term> => Box::new(CExpr::UnOp(op, r)),
+
+    // call
+    <i:Ident> "(" <p:Comma<Expr>> ")" => Box::new(CExpr::Call(i, p)),
+    // array index
+    <i:Ident> "[" <r:Expr> "]" => Box::new(CExpr::Index(i, r)),
+    "(" <Expr> ")",
+
+    // ! => { errors.push(<>); Box::new(CExpr::Error) },
 };
 
 ExprOp: COp = {
@@ -139,15 +154,9 @@ FactorOp: COp = {
     "/" => COp::Div,
 };
 
-Term: Box<CExpr<'input>> = {
-    Num => Box::new(CExpr::Number(<>)),
-    Ident => Box::new(CExpr::Ident(<>)),
-    // call
-    <i:Ident> "(" <p:Comma<Expr>> ")" => Box::new(CExpr::Call(i, p)),
-    // array index
-    <i:Ident> "[" <r:Expr> "]" => Box::new(CExpr::Index(i, r)),
-    "(" <Expr> ")",
-    // ! => { errors.push(<>); Box::new(CExpr::Error) },
+TermOp: COp = {
+    "-" => COp::Neg,
+    "!" => COp::Not,
 };
 
 Num: i32 = {
