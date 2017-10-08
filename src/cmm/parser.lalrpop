@@ -13,12 +13,38 @@ Comma<T>: Vec<T> = {
 };
 
 
+// token precedence
+
+match {
+    "void",
+    "return",
+    "extern",
+    "if",
+    "else",
+    "while",
+    "for",
+    "continue",
+    "break",
+
+    "int",
+    "char",
+
+} else {
+    r"[0-9]+" => TInt,
+
+} else {
+    r"[a-zA-Z][a-zA-Z0-9]*" => TIdent,
+
+    _
+}
+
+
 // production rules
 
 pub Prog: CProg<'input> = <(<ProgElem>)*>;
 
 ProgElem: Box<CProgElem<'input>> = {
-    // VarDecl => Box::new(<>), // TODO
+    // <l:VarDecl> ";" => Box::new(CProgElem::VarDecl(l)), // TODO
     <l:Proto> ";" => Box::new(CProgElem::Proto(l)),
     // "extern" <p:ProtoDecl> => Box::new(p), // TODO
     Func => Box::new(CProgElem::Func(<>)),
@@ -26,6 +52,10 @@ ProgElem: Box<CProgElem<'input>> = {
 
 Proto: Box<CProto<'input>> = {
     FuncType Comma<FuncDecl> => Box::new((<>)),
+};
+
+FuncDecl: Box<(CIdent<'input>, Vec<Box<CParam<'input>>>)> = {
+    <id:Ident> "(" <param:FuncParam> ")" => Box::new((id, param)),
 };
 
 Func: Box<CFunc<'input>> = {
@@ -37,10 +67,6 @@ Func: Box<CFunc<'input>> = {
             decls: decl,
             stmts: stmt,
         }),
-};
-
-FuncDecl: Box<(CIdent<'input>, Vec<Box<CParam<'input>>>)> = {
-    <id:Ident> "(" <param:FuncParam> ")" => Box::new((id, param)),
 };
 
 FuncType: Option<CType> = {
@@ -97,28 +123,14 @@ Term: Box<CExpr<'input>> = {
 };
 
 Num: i32 = {
-    r"\d+" => i32::from_str(<>).unwrap(),
+    TInt => i32::from_str(<>).unwrap(),
 };
 
 Ident: &'input str = {
-    r"[a-zA-Z][a-zA-Z0-9]*" => <>
+    TIdent => <>
 };
 
 Type: CType = {
     "int" => CType::Int,
     "char" => CType::Char,
 };
-
-match {
-    "void",
-    "return",
-    "extern",
-    "if",
-    "else",
-    "while",
-    "for",
-    "continue",
-    "break",
-} else {
-    _
-}
