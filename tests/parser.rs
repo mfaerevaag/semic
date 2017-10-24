@@ -106,6 +106,28 @@ fn parser_decl_single_type_single_ident() {
 }
 
 #[test]
+fn parser_decl_single_type_single_array() {
+    let mut errors = Vec::new();
+
+    let actual = cmm::parse(&mut errors, r#"
+        int main (void) {
+            int x[7];
+        }
+    "#).unwrap();
+
+    let expected = CFunc {
+        ret_type: Some(CType::Int),
+        name: "main",
+        params: vec![],
+        decls: vec![Box::new((CType::Array(Box::new(CType::Int)), "x", Some(7)))],
+        stmts: vec![],
+    };
+
+    assert_eq!(0, errors.len());
+    assert_eq!(format!("{:?}", vec![expected]), format!("{:?}", actual));
+}
+
+#[test]
 fn parser_decl_single_type_mult_ident() {
     let mut errors = Vec::new();
 
@@ -119,7 +141,31 @@ fn parser_decl_single_type_mult_ident() {
         ret_type: Some(CType::Int),
         name: "main",
         params: vec![],
-        decls: vec![Box::new((CType::Int, "x", None)), Box::new((CType::Int, "y", None))],
+        decls: vec![Box::new((CType::Int, "x", None)),
+                    Box::new((CType::Int, "y", None))],
+        stmts: vec![],
+    };
+
+    assert_eq!(0, errors.len());
+    assert_eq!(format!("{:?}", vec![expected]), format!("{:?}", actual));
+}
+
+#[test]
+fn parser_decl_single_type_mult_array() {
+    let mut errors = Vec::new();
+
+    let actual = cmm::parse(&mut errors, r#"
+        int main (void) {
+            int x[7], y[8];
+        }
+    "#).unwrap();
+
+    let expected = CFunc {
+        ret_type: Some(CType::Int),
+        name: "main",
+        params: vec![],
+        decls: vec![Box::new((CType::Array(Box::new(CType::Int)), "x", Some(7))),
+                    Box::new((CType::Array(Box::new(CType::Int)), "y", Some(8)))],
         stmts: vec![],
     };
 
