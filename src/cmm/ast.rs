@@ -3,6 +3,7 @@ use std::fmt::{Debug, Formatter, Error};
 
 pub type CProg<'input> = Vec<Box<CProgElem<'input>>>;
 
+#[derive(Clone)]
 pub enum CProgElem<'input> {
     // VarDecl(Box<CVarDecl<'input>>),
     Proto(Box<CProto<'input>>),
@@ -10,13 +11,16 @@ pub enum CProgElem<'input> {
     Error,
 }
 
-pub type CProto<'input> = (Option<CType>, Vec<Box<(CIdent<'input>, Vec<Box<CParam<'input>>>)>>);
+#[derive(Clone, Debug)]
+pub struct CProto<'input> {
+    pub ret: Option<CType>,
+    pub name: CIdent<'input>,
+    pub params: Vec<Box<CParam<'input>>>,
+}
 
 #[derive(Clone, Debug)]
 pub struct CFunc<'input> {
-    pub ret_type: Option<CType>,
-    pub name: CIdent<'input>,
-    pub params: Vec<Box<CParam<'input>>>,
+    pub proto: Box<CProto<'input>>,
     pub decls: Vec<Box<CVarDecl<'input>>>,
     pub stmts: Vec<Box<CStmt<'input>>>,
 }

@@ -41,37 +41,54 @@ match {
 
 // production rules
 
-pub Prog: CProg<'input> = <(<ProgElem>)*>;
+pub Prog: CProg<'input> = <l:(<ProgElem>)*> => {
+    l.into_iter().flat_map(|x| x.to_vec()).collect()
+};
 
-ProgElem: Box<CProgElem<'input>> = {
-    // <l:VarDecl> ";" => Box::new(CProgElem::VarDecl(l)), // TODO
-    <l:Proto> ";" => Box::new(CProgElem::Proto(l)),
+ProgElem: Vec<Box<CProgElem<'input>>> = {
     // "extern" <p:ProtoDecl> => Box::new(p), // TODO
-    Func => Box::new(CProgElem::Func(<>)),
-};
+    // <l:VarDecl> ";" => Box::new(CProgElem::VarDecl(l)), // TODO
 
-Proto: Box<CProto<'input>> = {
-    FuncType Comma<FuncDecl> => Box::new((<>)),
-};
+    // proto
+    <l:FuncType> <r:Comma<FuncDecl>> ";" => {
+        let mut xs = vec![];
+        for x in Vec::from(r).into_iter() {
+            xs.push(match x {
+                (id, ps) => Box::new(CProgElem::Proto(Box::new(CProto {
+                    ret: l.clone(),
+                    name: id,
+                    params: ps,
+                }))),
+            });
+        };
+        xs
+    },
 
-FuncDecl: Box<(CIdent<'input>, Vec<Box<CParam<'input>>>)> = {
-    <id:Ident> "(" <param:FuncParam> ")" => Box::new((id, param)),
+    // function
+    Func => vec![Box::new(CProgElem::Func(<>))],
 };
 
 Func: Box<CFunc<'input>> = {
-    <ret:FuncType> <id:Ident> "(" <param:FuncParam> ")" "{"
+    <l:FuncType> <r:FuncDecl> "{"
         <decl:(<VarDecl> ";")*>
-        <stmt:(<Stmt> ";")*> "}"
-        => {
-            let flat_decl = decl.into_iter().flat_map(|x| x.to_vec()).collect();
-            Box::new(CFunc {
-                ret_type: ret,
+        <stmt:(<Stmt> ";")*> "}" =>
+    {
+        let flat_decl = decl.into_iter().flat_map(|x| x.to_vec()).collect();
+        let (id, param) = r;
+        Box::new(CFunc {
+            proto: Box::new(CProto {
+                ret: l,
                 name: id,
                 params: param,
-                decls: flat_decl,
-                stmts: stmt,
-            })
-        },
+            }),
+            decls: flat_decl,
+            stmts: stmt,
+        })
+    },
+};
+
+FuncDecl: (CIdent<'input>, Vec<Box<CParam<'input>>>) = {
+    <id:Ident> "(" <param:FuncParam> ")" => (id, param),
 };
 
 FuncType: Option<CType> = {
@@ -93,11 +110,10 @@ VarDecl: Vec<Box<CVarDecl<'input>>> = {
     <t:Type> <r:Comma<VarArray>> => {
         let mut xs = vec![];
         for x in Vec::from(r).into_iter() {
-            let var = match x {
+            xs.push(match x {
                 (id, None) => Box::new((t.clone(), id, None)),
                 (id, s) => Box::new((CType::Array(Box::new(t.clone())), id, s)),
-            };
-            xs.push(var);
+            });
         };
         xs
     },

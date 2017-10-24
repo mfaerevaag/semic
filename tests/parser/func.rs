@@ -16,9 +16,11 @@ fn func_empty() {
     "#).unwrap();
 
     let expected = CFunc {
-        ret_type: None,
-        name: "main",
-        params: vec![],
+        proto: Box::new(CProto {
+            ret: None,
+            name: "main",
+            params: vec![],
+        }),
         decls: vec![],
         stmts: vec![],
     };
@@ -38,9 +40,11 @@ fn func_return_type() {
     "#).unwrap();
 
     let expected = CFunc {
-        ret_type: Some(CType::Int),
-        name: "main",
-        params: vec![],
+        proto: Box::new(CProto {
+            ret: Some(CType::Int),
+            name: "main",
+            params: vec![],
+        }),
         decls: vec![],
         stmts: vec![],
     };
@@ -58,9 +62,11 @@ fn func_param_type_single() {
     "#).unwrap();
 
     let expected = CFunc {
-        ret_type: Some(CType::Int),
-        name: "main",
-        params: vec![Box::new((CType::Int, "a"))],
+        proto: Box::new(CProto {
+            ret: Some(CType::Int),
+            name: "main",
+            params: vec![Box::new((CType::Int, "a"))],
+        }),
         decls: vec![],
         stmts: vec![],
     };
@@ -78,10 +84,12 @@ fn func_param_type_mult() {
     "#).unwrap();
 
     let expected = CFunc {
-        ret_type: Some(CType::Int),
-        name: "main",
-        params: vec![Box::new((CType::Int, "a")),
-                     Box::new((CType::Char, "b"))],
+        proto: Box::new(CProto {
+            ret: Some(CType::Int),
+            name: "main",
+            params: vec![Box::new((CType::Int, "a")),
+                         Box::new((CType::Char, "b"))],
+        }),
         decls: vec![],
         stmts: vec![],
     };
@@ -101,9 +109,11 @@ fn func_decl_single_type_single_ident() {
     "#).unwrap();
 
     let expected = CFunc {
-        ret_type: Some(CType::Int),
-        name: "main",
-        params: vec![],
+        proto: Box::new(CProto {
+            ret: Some(CType::Int),
+            name: "main",
+            params: vec![],
+        }),
         decls: vec![Box::new((CType::Int, "x", None))],
         stmts: vec![],
     };
@@ -123,9 +133,11 @@ fn func_decl_single_type_single_array() {
     "#).unwrap();
 
     let expected = CFunc {
-        ret_type: Some(CType::Int),
-        name: "main",
-        params: vec![],
+        proto: Box::new(CProto {
+            ret: Some(CType::Int),
+            name: "main",
+            params: vec![],
+        }),
         decls: vec![Box::new((CType::Array(Box::new(CType::Int)), "x", Some(7)))],
         stmts: vec![],
     };
@@ -145,9 +157,11 @@ fn func_decl_single_type_mult_ident() {
     "#).unwrap();
 
     let expected = CFunc {
-        ret_type: Some(CType::Int),
-        name: "main",
-        params: vec![],
+        proto: Box::new(CProto {
+            ret: Some(CType::Int),
+            name: "main",
+            params: vec![],
+        }),
         decls: vec![Box::new((CType::Int, "x", None)),
                     Box::new((CType::Int, "y", None))],
         stmts: vec![],
@@ -168,9 +182,11 @@ fn func_decl_single_type_mult_array() {
     "#).unwrap();
 
     let expected = CFunc {
-        ret_type: Some(CType::Int),
-        name: "main",
-        params: vec![],
+        proto: Box::new(CProto {
+            ret: Some(CType::Int),
+            name: "main",
+            params: vec![],
+        }),
         decls: vec![Box::new((CType::Array(Box::new(CType::Int)), "x", Some(7))),
                     Box::new((CType::Array(Box::new(CType::Int)), "y", Some(8)))],
         stmts: vec![],
@@ -192,9 +208,11 @@ fn func_decl_mult_type_single_ident() {
     "#).unwrap();
 
     let expected = CFunc {
-        ret_type: Some(CType::Int),
-        name: "main",
-        params: vec![],
+        proto: Box::new(CProto {
+            ret: Some(CType::Int),
+            name: "main",
+            params: vec![],
+        }),
         decls: vec![Box::new((CType::Int, "x", None)),
                     Box::new((CType::Char, "y", None))],
         stmts: vec![],
@@ -216,9 +234,11 @@ fn func_decl_mult_type_mult_ident() {
     "#).unwrap();
 
     let expected = CFunc {
-        ret_type: Some(CType::Int),
-        name: "main",
-        params: vec![],
+        proto: Box::new(CProto {
+            ret: Some(CType::Int),
+            name: "main",
+            params: vec![],
+        }),
         decls: vec![Box::new((CType::Int, "x", None)), Box::new((CType::Int, "y", None)),
                     Box::new((CType::Char, "a", None)), Box::new((CType::Char, "b", None))],
         stmts: vec![],
@@ -239,9 +259,11 @@ fn func_no_decl_single_stmt() {
     "#).unwrap();
 
     let expected = CFunc {
-        ret_type: Some(CType::Int),
-        name: "main",
-        params: vec![],
+        proto: Box::new(CProto {
+            ret: Some(CType::Int),
+            name: "main",
+            params: vec![],
+        }),
         decls: vec![],
         stmts: vec![Box::new(CStmt::Return((0, 0), Some(Box::new(CExpr::Number(0)))))],
     };
@@ -262,9 +284,11 @@ fn func_single_decl_single_stmt() {
     "#).unwrap();
 
     let expected = CFunc {
-        ret_type: Some(CType::Int),
-        name: "main",
-        params: vec![],
+        proto: Box::new(CProto {
+            ret: Some(CType::Int),
+            name: "main",
+            params: vec![],
+        }),
         decls: vec![Box::new((CType::Int, "x", None))],
         stmts: vec![Box::new(CStmt::Assign((0, 0), "x", Box::new(CExpr::Number(1))))],
     };
@@ -287,9 +311,11 @@ fn func_stmt_mult() {
     "#).unwrap();
 
     let expected = CFunc {
-        ret_type: Some(CType::Int),
-        name: "main",
-        params: vec![],
+        proto: Box::new(CProto {
+            ret: Some(CType::Int),
+            name: "main",
+            params: vec![],
+        }),
         decls: vec![Box::new((CType::Int, "x", None)),
                     Box::new((CType::Int, "y", None))],
         stmts: vec![Box::new(CStmt::Assign((0, 0), "x", Box::new(CExpr::Number(1)))),

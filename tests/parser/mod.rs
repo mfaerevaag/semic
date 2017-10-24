@@ -1,5 +1,4 @@
 extern crate cmm;
 
-use cmm::ast::*;
-
+mod prog;
 mod func;
