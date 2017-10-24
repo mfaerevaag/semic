@@ -51,17 +51,13 @@ ProgElem: Vec<Box<CProgElem<'input>>> = {
 
     // proto
     <l:FuncType> <r:Comma<FuncDecl>> ";" => {
-        let mut xs = vec![];
-        for x in Vec::from(r).into_iter() {
-            xs.push(match x {
-                (id, ps) => Box::new(CProgElem::Proto(Box::new(CProto {
-                    ret: l.clone(),
-                    name: id,
-                    params: ps,
-                }))),
-            });
-        };
-        xs
+        Vec::from(r).into_iter().map(|x| match x {
+            (id, ps) => Box::new(CProgElem::Proto(Box::new(CProto {
+                ret: l.clone(),
+                name: id,
+                params: ps,
+            }))),
+        }).collect()
     },
 
     // function
@@ -108,14 +104,10 @@ Param: Box<CParam<'input>> = {
 
 VarDecl: Vec<Box<CVarDecl<'input>>> = {
     <t:Type> <r:Comma<VarArray>> => {
-        let mut xs = vec![];
-        for x in Vec::from(r).into_iter() {
-            xs.push(match x {
-                (id, None) => Box::new((t.clone(), id, None)),
-                (id, s) => Box::new((CType::Array(Box::new(t.clone())), id, s)),
-            });
-        };
-        xs
+        Vec::from(r).into_iter().map(|x| match x {
+            (id, None) => Box::new((t.clone(), id, None)),
+            (id, s) => Box::new((CType::Array(Box::new(t.clone())), id, s)),
+        }).collect()
     },
 };
 
