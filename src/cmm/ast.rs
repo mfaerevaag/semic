@@ -12,7 +12,7 @@ pub enum CProgElem<'input> {
 
 pub type CProto<'input> = (Option<CType>, Vec<Box<(CIdent<'input>, Vec<Box<CParam<'input>>>)>>);
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct CFunc<'input> {
     pub ret_type: Option<CType>,
     pub name: CIdent<'input>,
@@ -25,12 +25,14 @@ pub type CParam<'input> = (CType, CIdent<'input>);
 
 pub type CVarDecl<'input> = (CType, CIdent<'input>, Option<usize>);
 
+#[derive(Clone)]
 pub enum CStmt<'input> {
     Assign(CLoc, CIdent<'input>, Box<CExpr<'input>>),
     Return(CLoc, Option<Box<CExpr<'input>>>),
     Error,
 }
 
+#[derive(Clone)]
 pub enum CExpr<'input> {
     Number(CNum),
     Ident(CIdent<'input>),

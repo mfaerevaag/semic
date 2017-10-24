@@ -3,11 +3,16 @@ extern crate cmm;
 use cmm::ast::*;
 
 #[test]
-fn parser_empty() {
+fn func_empty() {
     let mut errors = Vec::new();
+    let mut errors2 = Vec::new();
 
     let actual = cmm::parse(&mut errors, r#"
         void main (void) {}
+    "#).unwrap();
+
+    let actual2 = cmm::parse(&mut errors2, r#"
+        void main () {}
     "#).unwrap();
 
     let expected = CFunc {
@@ -19,11 +24,13 @@ fn parser_empty() {
     };
 
     assert_eq!(0, errors.len());
-    assert_eq!(format!("{:?}", vec![expected]), format!("{:?}", actual));
+    assert_eq!(0, errors2.len());
+    assert_eq!(format!("{:?}", vec![expected.clone()]), format!("{:?}", actual));
+    assert_eq!(format!("{:?}", vec![expected.clone()]), format!("{:?}", actual2));
 }
 
 #[test]
-fn parser_return_type() {
+fn func_return_type() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse(&mut errors, r#"
@@ -43,7 +50,7 @@ fn parser_return_type() {
 }
 
 #[test]
-fn parser_param_type_single() {
+fn func_param_type_single() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse(&mut errors, r#"
@@ -63,7 +70,7 @@ fn parser_param_type_single() {
 }
 
 #[test]
-fn parser_param_type_mult() {
+fn func_param_type_mult() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse(&mut errors, r#"
@@ -84,7 +91,7 @@ fn parser_param_type_mult() {
 }
 
 #[test]
-fn parser_decl_single_type_single_ident() {
+fn func_decl_single_type_single_ident() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse(&mut errors, r#"
@@ -106,7 +113,7 @@ fn parser_decl_single_type_single_ident() {
 }
 
 #[test]
-fn parser_decl_single_type_single_array() {
+fn func_decl_single_type_single_array() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse(&mut errors, r#"
@@ -128,7 +135,7 @@ fn parser_decl_single_type_single_array() {
 }
 
 #[test]
-fn parser_decl_single_type_mult_ident() {
+fn func_decl_single_type_mult_ident() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse(&mut errors, r#"
@@ -151,7 +158,7 @@ fn parser_decl_single_type_mult_ident() {
 }
 
 #[test]
-fn parser_decl_single_type_mult_array() {
+fn func_decl_single_type_mult_array() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse(&mut errors, r#"
@@ -174,7 +181,7 @@ fn parser_decl_single_type_mult_array() {
 }
 
 #[test]
-fn parser_decl_mult_type_single_ident() {
+fn func_decl_mult_type_single_ident() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse(&mut errors, r#"
@@ -198,7 +205,7 @@ fn parser_decl_mult_type_single_ident() {
 }
 
 #[test]
-fn parser_decl_mult_type_mult_ident() {
+fn func_decl_mult_type_mult_ident() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse(&mut errors, r#"
@@ -222,7 +229,7 @@ fn parser_decl_mult_type_mult_ident() {
 }
 
 #[test]
-fn parser_no_decl_single_stmt() {
+fn func_no_decl_single_stmt() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse(&mut errors, r#"
@@ -244,7 +251,7 @@ fn parser_no_decl_single_stmt() {
 }
 
 #[test]
-fn parser_single_decl_single_stmt() {
+fn func_single_decl_single_stmt() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse(&mut errors, r#"
@@ -267,7 +274,7 @@ fn parser_single_decl_single_stmt() {
 }
 
 #[test]
-fn parser_stmt_mult() {
+fn func_stmt_mult() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse(&mut errors, r#"
