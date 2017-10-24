@@ -19,7 +19,7 @@ fn parser_empty() {
     };
 
     assert_eq!(0, errors.len());
-    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
+    assert_eq!(format!("{:?}", vec![expected]), format!("{:?}", actual));
 }
 
 #[test]
@@ -39,7 +39,7 @@ fn parser_return_type() {
     };
 
     assert_eq!(0, errors.len());
-    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
+    assert_eq!(format!("{:?}", vec![expected]), format!("{:?}", actual));
 }
 
 #[test]
@@ -59,7 +59,7 @@ fn parser_param_type_single() {
     };
 
     assert_eq!(0, errors.len());
-    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
+    assert_eq!(format!("{:?}", vec![expected]), format!("{:?}", actual));
 }
 
 #[test]
@@ -80,7 +80,7 @@ fn parser_param_type_mult() {
     };
 
     assert_eq!(0, errors.len());
-    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
+    assert_eq!(format!("{:?}", vec![expected]), format!("{:?}", actual));
 }
 
 #[test]
@@ -97,12 +97,12 @@ fn parser_decl_single_type_single_ident() {
         ret_type: Some(CType::Int),
         name: "main",
         params: vec![],
-        decls: vec![Box::new((CType::Int, vec!["x"]))],
+        decls: vec![Box::new((CType::Int, "x", None))],
         stmts: vec![],
     };
 
     assert_eq!(0, errors.len());
-    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
+    assert_eq!(format!("{:?}", vec![expected]), format!("{:?}", actual));
 }
 
 #[test]
@@ -119,12 +119,12 @@ fn parser_decl_single_type_mult_ident() {
         ret_type: Some(CType::Int),
         name: "main",
         params: vec![],
-        decls: vec![Box::new((CType::Int, vec!["x", "y"]))],
+        decls: vec![Box::new((CType::Int, "x", None)), Box::new((CType::Int, "y", None))],
         stmts: vec![],
     };
 
     assert_eq!(0, errors.len());
-    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
+    assert_eq!(format!("{:?}", vec![expected]), format!("{:?}", actual));
 }
 
 #[test]
@@ -142,13 +142,13 @@ fn parser_decl_mult_type_single_ident() {
         ret_type: Some(CType::Int),
         name: "main",
         params: vec![],
-        decls: vec![Box::new((CType::Int, vec!["x"])),
-                    Box::new((CType::Char, vec!["y"]))],
+        decls: vec![Box::new((CType::Int, "x", None)),
+                    Box::new((CType::Char, "y", None))],
         stmts: vec![],
     };
 
     assert_eq!(0, errors.len());
-    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
+    assert_eq!(format!("{:?}", vec![expected]), format!("{:?}", actual));
 }
 
 #[test]
@@ -166,13 +166,13 @@ fn parser_decl_mult_type_mult_ident() {
         ret_type: Some(CType::Int),
         name: "main",
         params: vec![],
-        decls: vec![Box::new((CType::Int, vec!["x", "y"])),
-                    Box::new((CType::Char, vec!["a", "b"]))],
+        decls: vec![Box::new((CType::Int, "x", None)), Box::new((CType::Int, "y", None)),
+                    Box::new((CType::Char, "a", None)), Box::new((CType::Char, "b", None))],
         stmts: vec![],
     };
 
     assert_eq!(0, errors.len());
-    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
+    assert_eq!(format!("{:?}", vec![expected]), format!("{:?}", actual));
 }
 
 #[test]
@@ -190,11 +190,11 @@ fn parser_no_decl_single_stmt() {
         name: "main",
         params: vec![],
         decls: vec![],
-        stmts: vec![Box::new(CStmt::Return(Some(Box::new(CExpr::Number(0)))))],
+        stmts: vec![Box::new(CStmt::Return((0, 0), Some(Box::new(CExpr::Number(0)))))],
     };
 
     assert_eq!(0, errors.len());
-    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
+    assert_eq!(format!("{:?}", vec![expected]), format!("{:?}", actual));
 }
 
 #[test]
@@ -212,12 +212,12 @@ fn parser_single_decl_single_stmt() {
         ret_type: Some(CType::Int),
         name: "main",
         params: vec![],
-        decls: vec![Box::new((CType::Int, vec!["x"]))],
-        stmts: vec![Box::new(CStmt::Assign("x", Box::new(CExpr::Number(1))))],
+        decls: vec![Box::new((CType::Int, "x", None))],
+        stmts: vec![Box::new(CStmt::Assign((0, 0), "x", Box::new(CExpr::Number(1))))],
     };
 
     assert_eq!(0, errors.len());
-    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
+    assert_eq!(format!("{:?}", vec![expected]), format!("{:?}", actual));
 }
 
 #[test]
@@ -237,15 +237,16 @@ fn parser_stmt_mult() {
         ret_type: Some(CType::Int),
         name: "main",
         params: vec![],
-        decls: vec![Box::new((CType::Int, vec!["x", "y"]))],
-        stmts: vec![Box::new(CStmt::Assign("x", Box::new(CExpr::Number(1)))),
-                    Box::new(CStmt::Assign("y", Box::new(CExpr::Number(2)))),
-                    Box::new(CStmt::Return(Some(Box::new(CExpr::BinOp(
-                        Box::new(CExpr::Ident("x")),
+        decls: vec![Box::new((CType::Int, "x", None)),
+                    Box::new((CType::Int, "y", None))],
+        stmts: vec![Box::new(CStmt::Assign((0, 0), "x", Box::new(CExpr::Number(1)))),
+                    Box::new(CStmt::Assign((0, 0), "y", Box::new(CExpr::Number(2)))),
+                    Box::new(CStmt::Return((0, 0), Some(Box::new(CExpr::BinOp(
                         COp::Add,
+                        Box::new(CExpr::Ident("x")),
                         Box::new(CExpr::Ident("y")))))))],
     };
 
     assert_eq!(0, errors.len());
-    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
+    assert_eq!(format!("{:?}", vec![expected]), format!("{:?}", actual));
 }
