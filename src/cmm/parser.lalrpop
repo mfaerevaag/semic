@@ -47,7 +47,12 @@ pub Prog: CProg<'input> = <l:(<ProgElem>)*> => {
 
 ProgElem: Vec<Box<CProgElem<'input>>> = {
     // "extern" <p:ProtoDecl> => Box::new(p), // TODO
-    // <l:VarDecl> ";" => Box::new(CProgElem::VarDecl(l)), // TODO
+
+    // vardecl // TODO
+    // <l:VarDecl> ";" => {
+    //     Vec::from(l).into_iter()
+    //         .map(|x| Box::new(CProgElem::VarDecl(x))).collect()
+    // },
 
     // proto
     <l:FuncType> <r:Comma<FuncDecl>> ";" => {

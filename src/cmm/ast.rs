@@ -5,7 +5,7 @@ pub type CProg<'input> = Vec<Box<CProgElem<'input>>>;
 
 #[derive(Clone)]
 pub enum CProgElem<'input> {
-    // VarDecl(Box<CVarDecl<'input>>),
+    VarDecl(Box<CVarDecl<'input>>),
     Proto(Box<CProto<'input>>),
     Func(Box<CFunc<'input>>),
     Error,
@@ -78,7 +78,7 @@ impl<'input> Debug for CProgElem<'input> {
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
         use self::CProgElem::*;
         match *self {
-            // VarDecl(ref x) => write!(fmt, "{:?}", x),
+            VarDecl(ref x) => write!(fmt, "{:?}", x),
             Proto(ref x) => write!(fmt, "{:?}", x),
             Func(ref x) => write!(fmt, "{:?}", x),
             Error => write!(fmt, "error"),
