@@ -121,7 +121,7 @@ VarArray: (CIdent<'input>, Option<usize>) = {
     Ident => (<>, None),
 };
 
-Stmt: Box<CStmt<'input>> = {
+pub Stmt: Box<CStmt<'input>> = {
     // assignment
     <l:@L> <i:Ident> "=" <e:Expr> ";" <r:@R> => Box::new(CStmt::Assign((l, r), i, e)),
     // return
