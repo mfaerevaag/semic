@@ -4,7 +4,7 @@ pub mod ast;
 pub mod parser;
 
 use lalrpop_util::ErrorRecovery;
-use ast::{CProg, CStmt};
+use ast::{CProg, CFunc, CStmt};
 
 
 pub fn parse<'input, 'err,>(
@@ -13,6 +13,14 @@ pub fn parse<'input, 'err,>(
 ) -> Result<CProg<'input>, lalrpop_util::ParseError<usize, (usize, &'input str), ()>>
 {
     return parser::parse_Prog(errors, input);
+}
+
+pub fn parse_func<'input, 'err,>(
+    errors: &'err mut Vec<ErrorRecovery<usize, (usize, &'input str), ()>>,
+    input: &'input str,
+) -> Result<Box<CFunc<'input>>, lalrpop_util::ParseError<usize, (usize, &'input str), ()>>
+{
+    return parser::parse_Func(errors, input);
 }
 
 pub fn parse_stmt<'input, 'err,>(

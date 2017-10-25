@@ -69,7 +69,7 @@ ProgElem: Vec<Box<CProgElem<'input>>> = {
     Func => vec![Box::new(CProgElem::Func(<>))],
 };
 
-Func: Box<CFunc<'input>> = {
+pub Func: Box<CFunc<'input>> = {
     <l:FuncType> <r:FuncDecl> "{"
         <decl:(<VarDecl> ";")*>
         <stmt:(<Stmt>)*> "}" =>
