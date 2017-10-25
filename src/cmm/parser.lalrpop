@@ -72,7 +72,7 @@ ProgElem: Vec<Box<CProgElem<'input>>> = {
 Func: Box<CFunc<'input>> = {
     <l:FuncType> <r:FuncDecl> "{"
         <decl:(<VarDecl> ";")*>
-        <stmt:(<Stmt> ";")*> "}" =>
+        <stmt:(<Stmt>)*> "}" =>
     {
         let flat_decl = decl.into_iter().flat_map(|x| x.to_vec()).collect();
         let (id, param) = r;
@@ -123,10 +123,12 @@ VarArray: (CIdent<'input>, Option<usize>) = {
 
 Stmt: Box<CStmt<'input>> = {
     // assignment
-    <l:@L> <i:Ident> "=" <e:Expr> <r:@R> => Box::new(CStmt::Assign((l, r), i, e)),
+    <l:@L> <i:Ident> "=" <e:Expr> ";" <r:@R> => Box::new(CStmt::Assign((l, r), i, e)),
     // return
-    <l:@L> "return" <e:Expr> <r:@R> => Box::new(CStmt::Return((l, r), Some(e))),
-    <l:@L> "return" <r:@R> => Box::new(CStmt::Return((l, r), None)),
+    <l:@L> "return" <e:Expr> ";" <r:@R> => Box::new(CStmt::Return((l, r), Some(e))),
+    <l:@L> "return" ";" <r:@R> => Box::new(CStmt::Return((l, r), None)),
+    // block
+    <l:@L> "{" <s:(<Stmt>)*> "}" <r:@R> => Box::new(CStmt::Block((l, r), s)),
     // error
     // ! => { errors.push(<>); Box::new(CStmt::Error) },
 };

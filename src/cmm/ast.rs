@@ -33,6 +33,7 @@ pub type CVarDecl<'input> = (CType, CIdent<'input>, Option<usize>);
 pub enum CStmt<'input> {
     Assign(CLoc, CIdent<'input>, Box<CExpr<'input>>),
     Return(CLoc, Option<Box<CExpr<'input>>>),
+    Block(CLoc, Vec<Box<CStmt<'input>>>),
     Error,
 }
 
@@ -97,6 +98,7 @@ impl<'input> Debug for CStmt<'input> {
                     None => write!(fmt, "return"),
                 }
             }
+            Block(_, ref stmts) => write!(fmt, "{:?}", stmts),
             Error => write!(fmt, "error"),
         }
     }
