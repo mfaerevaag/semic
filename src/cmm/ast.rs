@@ -62,7 +62,7 @@ pub enum COp {
 pub enum CType {
     Char,
     Int,
-    Array(Box<CType>),
+    Ref(Box<CType>),
 }
 
 pub type CLoc = (usize, usize);
@@ -145,7 +145,7 @@ impl Debug for CType {
         match *self {
             Char => write!(fmt, "char"),
             Int => write!(fmt, "int"),
-            Array(ref t) => write!(fmt, "{:?}[]", t),
+            Ref(ref t) => write!(fmt, "{:?}[]", t),
         }
     }
 }

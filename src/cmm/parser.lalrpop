@@ -103,7 +103,7 @@ FuncParam: Vec<Box<CParam<'input>>> = {
 };
 
 Param: Box<CParam<'input>> = {
-    <t:Type> <r:Ident> "[" "]" => Box::new((CType::Array(Box::new(t)), r)),
+    <t:Type> <r:Ident> "[" "]" => Box::new((CType::Ref(Box::new(t)), r)),
     <t:Type> <r:Ident> => Box::new((<>)),
 };
 
@@ -111,7 +111,7 @@ VarDecl: Vec<Box<CVarDecl<'input>>> = {
     <t:Type> <r:Comma<VarArray>> => {
         Vec::from(r).into_iter().map(|x| match x {
             (id, None) => Box::new((t.clone(), id, None)),
-            (id, s) => Box::new((CType::Array(Box::new(t.clone())), id, s)),
+            (id, s) => Box::new((CType::Ref(Box::new(t.clone())), id, s)),
         }).collect()
     },
 };

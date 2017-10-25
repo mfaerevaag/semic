@@ -138,7 +138,7 @@ fn func_decl_single_type_single_array() {
             name: "main",
             params: vec![],
         }),
-        decls: vec![Box::new((CType::Array(Box::new(CType::Int)), "x", Some(7)))],
+        decls: vec![Box::new((CType::Ref(Box::new(CType::Int)), "x", Some(7)))],
         stmts: vec![],
     };
 
@@ -187,8 +187,8 @@ fn func_decl_single_type_mult_array() {
             name: "main",
             params: vec![],
         }),
-        decls: vec![Box::new((CType::Array(Box::new(CType::Int)), "x", Some(7))),
-                    Box::new((CType::Array(Box::new(CType::Int)), "y", Some(8)))],
+        decls: vec![Box::new((CType::Ref(Box::new(CType::Int)), "x", Some(7))),
+                    Box::new((CType::Ref(Box::new(CType::Int)), "y", Some(8)))],
         stmts: vec![],
     };
 
