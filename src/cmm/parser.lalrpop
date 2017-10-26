@@ -159,6 +159,10 @@ Stmt2: Box<CStmt<'input>> = {
     // block
     <l:@L> "{" <s:(<Stmt>)*> "}" <r:@R> => Box::new(CStmt::Block((l, r), s)),
 
+    // while
+    <l:@L> "while" "(" <cond:Expr> ")" <stmt:If> <r:@R> =>
+        Box::new(CStmt::While((l, r), cond, stmt)),
+
     // error
     // ! => { errors.push(<>); Box::new(CStmt::Error) },
 };
