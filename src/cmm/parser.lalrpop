@@ -150,18 +150,25 @@ pub Stmt: Box<CStmt<'input>> = {
 
 Stmt2: Box<CStmt<'input>> = {
     // assignment
-    <l:@L> <i:Ident> "=" <e:Expr> ";" <r:@R> => Box::new(CStmt::Assign((l, r), i, e)),
+    <StmtAssign> ";",
 
     // return
-    <l:@L> "return" <e:Expr> ";" <r:@R> => Box::new(CStmt::Return((l, r), Some(e))),
-    <l:@L> "return" ";" <r:@R> => Box::new(CStmt::Return((l, r), None)),
+    <l:@L> "return" <e:Expr> ";" <r:@R> =>
+        Box::new(CStmt::Return((l, r), Some(e))),
+    <l:@L> "return" ";" <r:@R> =>
+        Box::new(CStmt::Return((l, r), None)),
 
     // block
-    <l:@L> "{" <s:(<Stmt>)*> "}" <r:@R> => Box::new(CStmt::Block((l, r), s)),
+    <l:@L> "{" <s:(<Stmt>)*> "}" <r:@R> =>
+        Box::new(CStmt::Block((l, r), s)),
 
     // while
     <l:@L> "while" "(" <cond:Expr> ")" <stmt:If> <r:@R> =>
         Box::new(CStmt::While((l, r), cond, stmt)),
+
+    // for
+    <l:@L> "for" "(" <init:StmtAssign?> ";" <cond:Expr?> ";" <inc:StmtAssign?> ")" <stmt:If> <r:@R> =>
+        Box::new(CStmt::For((l, r), init, cond, inc, stmt)),
 
     // error
     // ! => { errors.push(<>); Box::new(CStmt::Error) },
@@ -178,6 +185,11 @@ If2: Box<CStmt<'input>> = {
         Box::new(CStmt::If((l, r), cond, stmt, None)),
     <l:@L> "if" "(" <cond:Expr> ")" <stmt:If> "else" <stmt2:If2> <r:@R> =>
         Box::new(CStmt::If((l, r), cond, stmt, Some(stmt2))),
+};
+
+StmtAssign: Box<CStmt<'input>> = {
+    <l:@L> <i:Ident> "=" <e:Expr> <r:@R> =>
+        Box::new(CStmt::Assign((l, r), i, e)),
 };
 
 Expr: Box<CExpr<'input>> = {

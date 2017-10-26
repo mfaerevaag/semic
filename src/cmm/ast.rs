@@ -36,6 +36,8 @@ pub enum CStmt<'input> {
     Block(CLoc, Vec<Box<CStmt<'input>>>),
     If(CLoc, Box<CExpr<'input>>, Box<CStmt<'input>>, Option<Box<CStmt<'input>>>),
     While(CLoc, Box<CExpr<'input>>, Box<CStmt<'input>>),
+    For(CLoc, Option<Box<CStmt<'input>>>, Option<Box<CExpr<'input>>>,
+        Option<Box<CStmt<'input>>>, Box<CStmt<'input>>),
     Error,
 }
 
@@ -107,6 +109,8 @@ impl<'input> Debug for CStmt<'input> {
             },
             While(_, ref cond, ref stmt) =>
                 write!(fmt, "while ({:?}) {:?}", cond, stmt),
+            For(_, ref init, ref cond, ref inc, ref stmt) =>
+                write!(fmt, "for ({:?};{:?};{:?}) {:?}", init, cond, inc, stmt),
             Error => write!(fmt, "error"),
         }
     }

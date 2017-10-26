@@ -166,10 +166,109 @@ fn stmt_else_block() {
     let actual = cmm::parse_stmt(&mut errors, r#"while (1) { return; }"#).unwrap();
 
     let expected = CStmt::While((0,0),
-                             Box::new(CExpr::Number(1)),
-                             Box::new(CStmt::Block(
-                                 (0,0),
-                                 vec![Box::new(CStmt::Return((0,0), None))])));
+                                Box::new(CExpr::Number(1)),
+                                Box::new(CStmt::Block(
+                                    (0,0),
+                                    vec![Box::new(CStmt::Return((0,0), None))])));
+
+    assert_eq!(0, errors.len());
+    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
+}
+
+#[test]
+fn stmt_for_single() {
+    let mut errors = Vec::new();
+
+    let actual = cmm::parse_stmt(&mut errors, r#"for (;;) return;"#).unwrap();
+
+    let expected = CStmt::For((0,0), None, None, None,
+                              Box::new(CStmt::Return((0,0), None)));
+
+    assert_eq!(0, errors.len());
+    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
+}
+
+#[test]
+fn stmt_for_block() {
+    let mut errors = Vec::new();
+
+    let actual = cmm::parse_stmt(&mut errors, r#"for (;;) { return; }"#).unwrap();
+
+    let expected = CStmt::For((0,0), None, None, None,
+                              Box::new(CStmt::Block(
+                                  (0,0),
+                                  vec![Box::new(CStmt::Return((0,0), None))])));
+
+    assert_eq!(0, errors.len());
+    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
+}
+
+#[test]
+fn stmt_for_init() {
+    let mut errors = Vec::new();
+
+    let actual = cmm::parse_stmt(&mut errors, r#"for (i = 0;;) return;"#).unwrap();
+
+    let expected = CStmt::For((0,0),
+                              Some(Box::new(CStmt::Assign((0,0), "i", Box::new(CExpr::Number(0))))),
+                              None, None,
+                              Box::new(CStmt::Return((0,0), None)));
+
+    assert_eq!(0, errors.len());
+    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
+}
+
+#[test]
+fn stmt_for_cond() {
+    let mut errors = Vec::new();
+
+    let actual = cmm::parse_stmt(&mut errors, r#"for (;1;) return;"#).unwrap();
+
+    let expected = CStmt::For((0,0), None,
+                              Some(Box::new(CExpr::Number(1))),
+                              None,
+                              Box::new(CStmt::Return((0,0), None)));
+
+    assert_eq!(0, errors.len());
+    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
+}
+
+#[test]
+fn stmt_for_inc() {
+    let mut errors = Vec::new();
+
+    let actual = cmm::parse_stmt(&mut errors, r#"for (;;i = i + 1) return;"#).unwrap();
+
+    let expected = CStmt::For((0,0), None,
+                              None,
+                              Some(Box::new(CStmt::Assign(
+                                  (0,0), "i",
+                                  Box::new(CExpr::BinOp(
+                                      COp::Add,
+                                      Box::new(CExpr::Ident("i")),
+                                      Box::new(CExpr::Number(1))))))),
+                              Box::new(CStmt::Return((0,0), None)));
+
+    assert_eq!(0, errors.len());
+    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
+}
+
+#[test]
+fn stmt_for_all() {
+    let mut errors = Vec::new();
+
+    let actual = cmm::parse_stmt(&mut errors, r#"for (i = 0;1;i = i + 1) return;"#).unwrap();
+
+    let expected = CStmt::For((0,0),
+                              Some(Box::new(CStmt::Assign((0,0), "i", Box::new(CExpr::Number(0))))),
+                              Some(Box::new(CExpr::Number(1))),
+                              Some(Box::new(CStmt::Assign(
+                                  (0,0), "i",
+                                  Box::new(CExpr::BinOp(
+                                      COp::Add,
+                                      Box::new(CExpr::Ident("i")),
+                                      Box::new(CExpr::Number(1))))))),
+                              Box::new(CStmt::Return((0,0), None)));
 
     assert_eq!(0, errors.len());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
