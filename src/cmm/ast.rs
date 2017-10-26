@@ -34,6 +34,7 @@ pub enum CStmt<'input> {
     Assign(CLoc, CIdent<'input>, Box<CExpr<'input>>),
     Return(CLoc, Option<Box<CExpr<'input>>>),
     Block(CLoc, Vec<Box<CStmt<'input>>>),
+    If(CLoc, Box<CExpr<'input>>, Box<CStmt<'input>>, Option<Box<CStmt<'input>>>),
     Error,
 }
 
@@ -99,6 +100,10 @@ impl<'input> Debug for CStmt<'input> {
                 }
             }
             Block(_, ref stmts) => write!(fmt, "{:?}", stmts),
+            If(_, ref cond, ref stmt, ref opt) => match opt.clone() {
+                Some(ref stmt2) => write!(fmt, "if ({:?}) {:?} else {:?}", cond, stmt, stmt2),
+                None => write!(fmt, "if ({:?}) {:?}", cond, stmt),
+            },
             Error => write!(fmt, "error"),
         }
     }
