@@ -5,8 +5,9 @@ fn main() {
 
     let ast = cmm::parse(&mut errors, r#"
 
+int main();
 
-int main (void)
+int main(void)
 {
     int x[2];
     return - 1 + - x[1];
