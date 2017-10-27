@@ -12,7 +12,6 @@ Comma<T>: Vec<T> = {
         h.into_iter().chain(t).collect()
 };
 
-
 // token precedence
 
 match {
@@ -37,7 +36,6 @@ match {
 
     _
 }
-
 
 // production rules
 
@@ -129,6 +127,8 @@ Param: Box<CParam<'input>> = {
     <t:Type> <r:Ident> => Box::new((<>)),
 };
 
+// variable declaration
+
 VarDecl: Vec<Box<CVarDecl<'input>>> = {
     <t:Type> <r:Comma<VarArray>> => {
         Vec::from(r).into_iter().map(|x| match x {
@@ -143,12 +143,27 @@ VarArray: (CIdent<'input>, Option<usize>) = {
     Ident => (<>, None),
 };
 
+// statements
+
 pub Stmt: Box<CStmt<'input>> = {
-    If,
-    If2,
+    StmtIfMatching,
+    StmtIfUnmatching,
 };
 
-Stmt2: Box<CStmt<'input>> = {
+StmtIfMatching: Box<CStmt<'input>> = {
+    <l:@L> "if" "(" <cond:Expr> ")" <stmt:StmtIfMatching> "else" <stmt2:StmtIfMatching> <r:@R> =>
+        Box::new(CStmt::If((l, r), cond, stmt, Some(stmt2))),
+    StmtOther,
+};
+
+StmtIfUnmatching: Box<CStmt<'input>> = {
+    <l:@L> "if" "(" <cond:Expr> ")" <stmt:StmtIfMatching> <r:@R> =>
+        Box::new(CStmt::If((l, r), cond, stmt, None)),
+    <l:@L> "if" "(" <cond:Expr> ")" <stmt:StmtIfMatching> "else" <stmt2:StmtIfUnmatching> <r:@R> =>
+        Box::new(CStmt::If((l, r), cond, stmt, Some(stmt2))),
+};
+
+StmtOther: Box<CStmt<'input>> = {
     // assignment
     <StmtAssign> ";",
 
@@ -163,34 +178,23 @@ Stmt2: Box<CStmt<'input>> = {
         Box::new(CStmt::Block((l, r), s)),
 
     // while
-    <l:@L> "while" "(" <cond:Expr> ")" <stmt:If> <r:@R> =>
+    <l:@L> "while" "(" <cond:Expr> ")" <stmt:StmtIfMatching> <r:@R> =>
         Box::new(CStmt::While((l, r), cond, stmt)),
 
     // for
-    <l:@L> "for" "(" <init:StmtAssign?> ";" <cond:Expr?> ";" <inc:StmtAssign?> ")" <stmt:If> <r:@R> =>
+    <l:@L> "for" "(" <init:StmtAssign?> ";" <cond:Expr?> ";" <inc:StmtAssign?> ")" <stmt:StmtIfMatching> <r:@R> =>
         Box::new(CStmt::For((l, r), init, cond, inc, stmt)),
 
     // error
     // ! => { errors.push(<>); Box::new(CStmt::Error) },
 };
 
-If: Box<CStmt<'input>> = {
-    <l:@L> "if" "(" <cond:Expr> ")" <stmt:If> "else" <stmt2:If> <r:@R> =>
-        Box::new(CStmt::If((l, r), cond, stmt, Some(stmt2))),
-    Stmt2,
-};
-
-If2: Box<CStmt<'input>> = {
-    <l:@L> "if" "(" <cond:Expr> ")" <stmt:If> <r:@R> =>
-        Box::new(CStmt::If((l, r), cond, stmt, None)),
-    <l:@L> "if" "(" <cond:Expr> ")" <stmt:If> "else" <stmt2:If2> <r:@R> =>
-        Box::new(CStmt::If((l, r), cond, stmt, Some(stmt2))),
-};
-
 StmtAssign: Box<CStmt<'input>> = {
     <l:@L> <i:Ident> "=" <e:Expr> <r:@R> =>
         Box::new(CStmt::Assign((l, r), i, e)),
 };
+
+// expression
 
 Expr: Box<CExpr<'input>> = {
     // "-" <r:Expr> => Box::new(CExpr::UnOp(r)), // TODO
@@ -232,6 +236,8 @@ TermOp: COp = {
     "-" => COp::Neg,
     "!" => COp::Not,
 };
+
+// simple stuff
 
 Num: i32 = {
     TInt => i32::from_str(<>).unwrap(),
