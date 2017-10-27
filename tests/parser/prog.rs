@@ -48,8 +48,7 @@ fn prog_proto_types() {
     let expected = CProto {
         ret: Some(CType::Int),
         name: "foo",
-        params: vec![Box::new((CType::Int, "a")),
-                     Box::new((CType::Char, "b"))],
+        params: vec![(CType::Int, "a"), (CType::Char, "b")],
     };
 
     assert_eq!(0, errors.len());
@@ -117,11 +116,11 @@ fn prog_proto_mult() {
     let expected = vec![CProto {
         ret: Some(CType::Int),
         name: "foo",
-        params: vec![Box::new((CType::Int, "a"))],
+        params: vec![(CType::Int, "a")],
     }, CProto {
         ret: Some(CType::Int),
         name: "bar",
-        params: vec![Box::new((CType::Char, "b"))],
+        params: vec![(CType::Char, "b")],
     }];
 
     assert_eq!(0, errors.len());

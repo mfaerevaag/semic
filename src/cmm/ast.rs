@@ -1,13 +1,13 @@
 use std::fmt::{Debug, Formatter, Error};
 
 
-pub type CProg<'input> = Vec<Box<CProgElem<'input>>>;
+pub type CProg<'input> = Vec<CProgElem<'input>>;
 
 #[derive(Clone)]
 pub enum CProgElem<'input> {
-    VarDecl(Box<CVarDecl<'input>>),
-    Proto(Box<CProto<'input>>),
-    Func(Box<CFunc<'input>>),
+    VarDecl(CVarDecl<'input>),
+    Proto(CProto<'input>),
+    Func(CFunc<'input>),
     Error,
 }
 
@@ -15,14 +15,14 @@ pub enum CProgElem<'input> {
 pub struct CProto<'input> {
     pub ret: Option<CType>,
     pub name: CIdent<'input>,
-    pub params: Vec<Box<CParam<'input>>>,
+    pub params: Vec<CParam<'input>>,
 }
 
 #[derive(Clone, Debug)]
 pub struct CFunc<'input> {
-    pub proto: Box<CProto<'input>>,
-    pub decls: Vec<Box<CVarDecl<'input>>>,
-    pub stmts: Vec<Box<CStmt<'input>>>,
+    pub proto: CProto<'input>,
+    pub decls: Vec<CVarDecl<'input>>,
+    pub stmts: Vec<CStmt<'input>>,
 }
 
 pub type CParam<'input> = (CType, CIdent<'input>);
@@ -31,12 +31,12 @@ pub type CVarDecl<'input> = (CType, CIdent<'input>, Option<usize>);
 
 #[derive(Clone)]
 pub enum CStmt<'input> {
-    Assign(CLoc, CIdent<'input>, Box<CExpr<'input>>),
-    Return(CLoc, Option<Box<CExpr<'input>>>),
+    Assign(CLoc, CIdent<'input>, CExpr<'input>),
+    Return(CLoc, Option<CExpr<'input>>),
     Block(CLoc, Vec<Box<CStmt<'input>>>),
-    If(CLoc, Box<CExpr<'input>>, Box<CStmt<'input>>, Option<Box<CStmt<'input>>>),
-    While(CLoc, Box<CExpr<'input>>, Box<CStmt<'input>>),
-    For(CLoc, Option<Box<CStmt<'input>>>, Option<Box<CExpr<'input>>>,
+    If(CLoc, CExpr<'input>, Box<CStmt<'input>>, Option<Box<CStmt<'input>>>),
+    While(CLoc, CExpr<'input>, Box<CStmt<'input>>),
+    For(CLoc, Option<Box<CStmt<'input>>>, Option<CExpr<'input>>,
         Option<Box<CStmt<'input>>>, Box<CStmt<'input>>),
     Error,
 }

@@ -43,97 +43,94 @@ pub Prog: CProg<'input> = <l:(<ProgElem>)*> => {
     l.into_iter().flat_map(|x| x.to_vec()).collect()
 };
 
-ProgElem: Vec<Box<CProgElem<'input>>> = {
-    // "extern" <p:ProtoDecl> => Box::new(p),
+ProgElem: Vec<CProgElem<'input>> = {
     // VarDecl
     <l:Type> <m:VarArray> <r:("," <VarArray>)*> ";" => {
         vec![m].into_iter().chain(r).map(|(id, s)| {
-            Box::new(CProgElem::VarDecl(Box::new((l.clone(), id, s))))
+            CProgElem::VarDecl((l.clone(), id, s))
         }).collect()
     },
     // Proto
     Proto,
     // Func
-    Func => vec![Box::new(CProgElem::Func(<>))],
+    Func => vec![CProgElem::Func(<>)],
 };
 
-Proto: Vec<Box<CProgElem<'input>>> = {
+Proto: Vec<CProgElem<'input>> = {
     "void" <m:FuncDecl> <r:("," <FuncDecl>)*> ";" => {
         vec![m].into_iter().chain(r).map(|(id, ps)| {
-            Box::new(CProgElem::Proto(Box::new(CProto {
+            CProgElem::Proto(CProto {
                 ret: None,
                 name: id,
                 params: ps,
-            })))
+            })
         }).collect()
     },
     <l:Type> <m:FuncDecl> <r:("," <FuncDecl>)*> ";" => {
         vec![m].into_iter().chain(r).map(|(id, ps)| {
-            Box::new(CProgElem::Proto(Box::new(CProto {
+            CProgElem::Proto(CProto {
                 ret: Some(l.clone()),
                 name: id,
                 params: ps,
-            })))
+            })
         }).collect()
     },
 };
 
-pub Func: Box<CFunc<'input>> = {
+pub Func: CFunc<'input> = {
     "void" <r:FuncDecl> "{"
         <decl:(<VarDecl> ";")*>
         <stmt:(<Stmt>)*> "}" =>
     {
-        let flat_decl = decl.into_iter().flat_map(|x| x.to_vec()).collect();
         let (id, param) = r;
-        Box::new(CFunc {
-            proto: Box::new(CProto {
+        CFunc {
+            proto: CProto {
                 ret: None,
                 name: id,
                 params: param,
-            }),
-            decls: flat_decl,
+            },
+            decls: decl.into_iter().flat_map(|x| x.to_vec()).collect(),
             stmts: stmt,
-        })
+        }
     },
     <l:Type> <r:FuncDecl> "{"
         <decl:(<VarDecl> ";")*>
         <stmt:(<Stmt>)*> "}" =>
     {
-        let flat_decl = decl.into_iter().flat_map(|x| x.to_vec()).collect();
         let (id, param) = r;
-        Box::new(CFunc {
-            proto: Box::new(CProto {
+        CFunc {
+            proto: CProto {
                 ret: Some(l),
                 name: id,
                 params: param,
-            }),
-            decls: flat_decl,
+            },
+            decls: decl.into_iter().flat_map(|x| x.to_vec()).collect(),
             stmts: stmt,
-        })
+        }
     },
 };
 
-FuncDecl: (CIdent<'input>, Vec<Box<CParam<'input>>>) = {
+FuncDecl: (CIdent<'input>, Vec<CParam<'input>>) = {
     <id:Ident> "(" <param:FuncParam> ")" => (id, param),
 };
 
-FuncParam: Vec<Box<CParam<'input>>> = {
+FuncParam: Vec<CParam<'input>> = {
     Comma<Param>,
     "void" => Vec::new(),
 };
 
-Param: Box<CParam<'input>> = {
-    <t:Type> <r:Ident> "[" "]" => Box::new((CType::Ref(Box::new(t)), r)),
-    <t:Type> <r:Ident> => Box::new((<>)),
+Param: CParam<'input> = {
+    <t:Type> <r:Ident> "[" "]" => (CType::Ref(Box::new(t)), r),
+    <t:Type> <r:Ident> => (<>),
 };
 
 // variable declaration
 
-VarDecl: Vec<Box<CVarDecl<'input>>> = {
+VarDecl: Vec<CVarDecl<'input>> = {
     <t:Type> <r:Comma<VarArray>> => {
         Vec::from(r).into_iter().map(|x| match x {
-            (id, None) => Box::new((t.clone(), id, None)),
-            (id, s) => Box::new((CType::Ref(Box::new(t.clone())), id, s)),
+            (id, None) => ((t.clone(), id, None)),
+            (id, s) => (CType::Ref(Box::new(t.clone())), id, s),
         }).collect()
     },
 };
@@ -145,22 +142,26 @@ VarArray: (CIdent<'input>, Option<usize>) = {
 
 // statements
 
-pub Stmt: Box<CStmt<'input>> = {
+pub Stmt: CStmt<'input> = {
+    Stmt_ => *<>,
+};
+
+Stmt_: Box<CStmt<'input>> = {
     StmtIfMatching,
     StmtIfUnmatching,
 };
 
 StmtIfMatching: Box<CStmt<'input>> = {
     <l:@L> "if" "(" <cond:Expr> ")" <stmt:StmtIfMatching> "else" <stmt2:StmtIfMatching> <r:@R> =>
-        Box::new(CStmt::If((l, r), cond, stmt, Some(stmt2))),
+        Box::new(CStmt::If((l, r), *cond, stmt, Some(stmt2))),
     StmtOther,
 };
 
 StmtIfUnmatching: Box<CStmt<'input>> = {
     <l:@L> "if" "(" <cond:Expr> ")" <stmt:StmtIfMatching> <r:@R> =>
-        Box::new(CStmt::If((l, r), cond, stmt, None)),
+        Box::new(CStmt::If((l, r), *cond, stmt, None)),
     <l:@L> "if" "(" <cond:Expr> ")" <stmt:StmtIfMatching> "else" <stmt2:StmtIfUnmatching> <r:@R> =>
-        Box::new(CStmt::If((l, r), cond, stmt, Some(stmt2))),
+        Box::new(CStmt::If((l, r), *cond, stmt, Some(stmt2))),
 };
 
 StmtOther: Box<CStmt<'input>> = {
@@ -169,21 +170,26 @@ StmtOther: Box<CStmt<'input>> = {
 
     // return
     <l:@L> "return" <e:Expr> ";" <r:@R> =>
-        Box::new(CStmt::Return((l, r), Some(e))),
+        Box::new(CStmt::Return((l, r), Some(*e))),
     <l:@L> "return" ";" <r:@R> =>
         Box::new(CStmt::Return((l, r), None)),
 
     // block
-    <l:@L> "{" <s:(<Stmt>)*> "}" <r:@R> =>
+    <l:@L> "{" <s:(<Stmt_>)*> "}" <r:@R> =>
         Box::new(CStmt::Block((l, r), s)),
 
     // while
     <l:@L> "while" "(" <cond:Expr> ")" <stmt:StmtIfMatching> <r:@R> =>
-        Box::new(CStmt::While((l, r), cond, stmt)),
+        Box::new(CStmt::While((l, r), *cond, stmt)),
 
     // for
-    <l:@L> "for" "(" <init:StmtAssign?> ";" <cond:Expr?> ";" <inc:StmtAssign?> ")" <stmt:StmtIfMatching> <r:@R> =>
-        Box::new(CStmt::For((l, r), init, cond, inc, stmt)),
+    <l:@L> "for" "(" <init:StmtAssign?> ";" <cond:Expr?> ";" <inc:StmtAssign?> ")" <stmt:StmtIfMatching> <r:@R> => {
+        let cond = match cond {
+            Some(e) => Some(*e),
+            None => None,
+        };
+        Box::new(CStmt::For((l, r), init, cond, inc, stmt))
+    },
 
     // error
     // ! => { errors.push(<>); Box::new(CStmt::Error) },
@@ -191,13 +197,12 @@ StmtOther: Box<CStmt<'input>> = {
 
 StmtAssign: Box<CStmt<'input>> = {
     <l:@L> <i:Ident> "=" <e:Expr> <r:@R> =>
-        Box::new(CStmt::Assign((l, r), i, e)),
+        Box::new(CStmt::Assign((l, r), i, *e)),
 };
 
 // expression
 
 Expr: Box<CExpr<'input>> = {
-    // "-" <r:Expr> => Box::new(CExpr::UnOp(r)), // TODO
     <l:Expr> <op:ExprOp> <r:Factor> => Box::new(CExpr::BinOp(op, l, r)),
     Factor,
 };

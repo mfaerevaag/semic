@@ -12,21 +12,21 @@ pub fn parse<'input, 'err,>(
     input: &'input str,
 ) -> Result<CProg<'input>, lalrpop_util::ParseError<usize, (usize, &'input str), ()>>
 {
-    return parser::parse_Prog(errors, input);
+    parser::parse_Prog(errors, input)
 }
 
 pub fn parse_func<'input, 'err,>(
     errors: &'err mut Vec<ErrorRecovery<usize, (usize, &'input str), ()>>,
     input: &'input str,
-) -> Result<Box<CFunc<'input>>, lalrpop_util::ParseError<usize, (usize, &'input str), ()>>
+) -> Result<CFunc<'input>, lalrpop_util::ParseError<usize, (usize, &'input str), ()>>
 {
-    return parser::parse_Func(errors, input);
+    parser::parse_Func(errors, input)
 }
 
 pub fn parse_stmt<'input, 'err,>(
     errors: &'err mut Vec<ErrorRecovery<usize, (usize, &'input str), ()>>,
     input: &'input str,
-) -> Result<Box<CStmt<'input>>, lalrpop_util::ParseError<usize, (usize, &'input str), ()>>
+) -> Result<CStmt<'input>, lalrpop_util::ParseError<usize, (usize, &'input str), ()>>
 {
-    return parser::parse_Stmt(errors, input);
+    parser::parse_Stmt(errors, input)
 }
