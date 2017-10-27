@@ -85,7 +85,7 @@ impl<'input> Debug for CProgElem<'input> {
         match *self {
             VarDecl(ref x) => write!(fmt, "{:?}", x),
             Proto(ref x) => write!(fmt, "{:?}", x),
-            Func(ref x) => write!(fmt, "{:?}", x),
+            Func(ref x) => write!(fmt, "{:#?}", x),
             Error => write!(fmt, "error"),
         }
     }

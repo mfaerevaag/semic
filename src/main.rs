@@ -3,7 +3,8 @@ extern crate cmm;
 fn main() {
     let mut errors = Vec::new();
 
-    let res = cmm::parse(&mut errors, r#"
+    let ast = cmm::parse(&mut errors, r#"
+
 
 int main (void)
 {
@@ -13,6 +14,10 @@ int main (void)
 
 "#).unwrap();
 
-    println!("{:?}", res);
-}
+    println!("AST: {:#?}", &ast);
 
+    match cmm::analyzer::check(&ast) {
+        Ok(()) => println!("Check OK"),
+        Err(s) => println!("Check Error: {:?}", s),
+    };
+}
