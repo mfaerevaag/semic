@@ -6,12 +6,12 @@ fn main() {
 
     let ast = cmm::parse(&mut parser_errors, r#"
 
-int main();
-
 int main(void)
 {
-    int x[2];
-    return - 1 + - x[1];
+    char c, s[2];
+    c = 'a';
+    s = "a";
+    return 0;
 }
 
 "#).unwrap();

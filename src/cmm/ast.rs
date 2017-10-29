@@ -43,7 +43,9 @@ pub enum CStmt<'input> {
 
 #[derive(Clone)]
 pub enum CExpr<'input> {
-    Number(CNum),
+    Num(CInt),
+    Str(CString),
+    Char(CChar),
     Ident(CIdent<'input>),
     UnOp(COp, Box<CExpr<'input>>),
     BinOp(COp, Box<CExpr<'input>>, Box<CExpr<'input>>),
@@ -72,7 +74,9 @@ pub enum CType {
 
 pub type CLoc = (usize, usize);
 
-pub type CNum = i32;
+pub type CInt = i32;
+pub type CString = String;
+pub type CChar = char;
 
 pub type CIdent<'input> = &'input str;
 
@@ -120,7 +124,9 @@ impl<'input> Debug for CExpr<'input> {
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
         use self::CExpr::*;
         match *self {
-            Number(n) => write!(fmt, "{:?}", n),
+            Num(n) => write!(fmt, "{:?}", n),
+            Str(ref s) => write!(fmt, "{:?}", s),
+            Char(n) => write!(fmt, "{:?}", n),
             Ident(ref s) => write!(fmt, "{}", &s),
             UnOp(op, ref l) => write!(fmt, "({:?} {:?})", op, l),
             BinOp(op, ref l, ref r) => write!(fmt, "({:?} {:?} {:?})", l, op, r),

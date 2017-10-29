@@ -23,9 +23,9 @@ fn return_expr() {
     let expected = CStmt::Return
         ((0,0),
          Some(CExpr::BinOp(COp::Add,
-                           Box::new(CExpr::Number(1)),
+                           Box::new(CExpr::Num(1)),
                            Box::new(CExpr::UnOp(COp::Sub,
-                                                Box::new(CExpr::Number(2)))))));
+                                                Box::new(CExpr::Num(2)))))));
 
     assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
@@ -38,7 +38,7 @@ fn if_single() {
     let actual = cmm::parse_stmt(&mut errors, r#"if (1) return;"#).unwrap();
 
     let expected = CStmt::If((0,0),
-                             CExpr::Number(1),
+                             CExpr::Num(1),
                              Box::new(CStmt::Return((0,0), None)),
                              None);
 
@@ -53,7 +53,7 @@ fn if_block() {
     let actual = cmm::parse_stmt(&mut errors, r#"if (1) { return; }"#).unwrap();
 
     let expected = CStmt::If((0,0),
-                             CExpr::Number(1),
+                             CExpr::Num(1),
                              Box::new(CStmt::Block(
                                  (0,0),
                                  vec![Box::new(CStmt::Return((0,0), None))])),
@@ -70,7 +70,7 @@ fn if_else_single() {
     let actual = cmm::parse_stmt(&mut errors, r#"if (1) return; else return;"#).unwrap();
 
     let expected = CStmt::If((0,0),
-                             CExpr::Number(1),
+                             CExpr::Num(1),
                              Box::new(CStmt::Return((0,0), None)),
                              Some(Box::new(CStmt::Return((0,0), None))));
 
@@ -85,7 +85,7 @@ fn if_else_block() {
     let actual = cmm::parse_stmt(&mut errors, r#"if (1) { return; } else { return; }"#).unwrap();
 
     let expected = CStmt::If((0,0),
-                             CExpr::Number(1),
+                             CExpr::Num(1),
                              Box::new(CStmt::Block(
                                  (0,0),
                                  vec![Box::new(CStmt::Return((0,0), None))])),
@@ -106,14 +106,14 @@ fn if_else_mixed() {
     let actual2 = cmm::parse_stmt(&mut errors2, r#"if (1) { return; } else return;"#).unwrap();
 
     let expected = CStmt::If((0,0),
-                             CExpr::Number(1),
+                             CExpr::Num(1),
                              Box::new(CStmt::Return((0,0), None)),
                              Some(Box::new(CStmt::Block(
                                  (0,0),
                                  vec![Box::new(CStmt::Return((0,0), None))]))));
 
     let expected2 = CStmt::If((0,0),
-                             CExpr::Number(1),
+                             CExpr::Num(1),
                              Box::new(CStmt::Block(
                                  (0,0),
                                  vec![Box::new(CStmt::Return((0,0), None))])),
@@ -132,11 +132,11 @@ fn if_else_nested() {
     let actual = cmm::parse_stmt(&mut errors, r#"if (1) { if (1) return; else return; }"#).unwrap();
 
     let expected = CStmt::If((0,0),
-                             CExpr::Number(1),
+                             CExpr::Num(1),
                              Box::new(CStmt::Block(
                                  (0,0),
                                  vec![Box::new(CStmt::If((0,0),
-                                                         CExpr::Number(1),
+                                                         CExpr::Num(1),
                                                          Box::new(CStmt::Return((0,0), None)),
                                                          Some(Box::new(CStmt::Return((0,0), None)))))])),
                              None);
@@ -152,7 +152,7 @@ fn else_single() {
     let actual = cmm::parse_stmt(&mut errors, r#"while (1) return;"#).unwrap();
 
     let expected = CStmt::While((0,0),
-                                CExpr::Number(1),
+                                CExpr::Num(1),
                                 Box::new(CStmt::Return((0,0), None)));
 
     assert!(errors.is_empty());
@@ -166,7 +166,7 @@ fn else_block() {
     let actual = cmm::parse_stmt(&mut errors, r#"while (1) { return; }"#).unwrap();
 
     let expected = CStmt::While((0,0),
-                                CExpr::Number(1),
+                                CExpr::Num(1),
                                 Box::new(CStmt::Block(
                                     (0,0),
                                     vec![Box::new(CStmt::Return((0,0), None))])));
@@ -210,7 +210,7 @@ fn for_init() {
     let actual = cmm::parse_stmt(&mut errors, r#"for (i = 0;;) return;"#).unwrap();
 
     let expected = CStmt::For((0,0),
-                              Some(Box::new(CStmt::Assign((0,0), "i", CExpr::Number(0)))),
+                              Some(Box::new(CStmt::Assign((0,0), "i", CExpr::Num(0)))),
                               None, None,
                               Box::new(CStmt::Return((0,0), None)));
 
@@ -225,7 +225,7 @@ fn for_cond() {
     let actual = cmm::parse_stmt(&mut errors, r#"for (;1;) return;"#).unwrap();
 
     let expected = CStmt::For((0,0), None,
-                              Some(CExpr::Number(1)),
+                              Some(CExpr::Num(1)),
                               None,
                               Box::new(CStmt::Return((0,0), None)));
 
@@ -246,7 +246,7 @@ fn for_inc() {
                                   CExpr::BinOp(
                                       COp::Add,
                                       Box::new(CExpr::Ident("i")),
-                                      Box::new(CExpr::Number(1)))))),
+                                      Box::new(CExpr::Num(1)))))),
                               Box::new(CStmt::Return((0,0), None)));
 
     assert!(errors.is_empty());
@@ -260,14 +260,14 @@ fn for_all() {
     let actual = cmm::parse_stmt(&mut errors, r#"for (i = 0;1;i = i + 1) return;"#).unwrap();
 
     let expected = CStmt::For((0,0),
-                              Some(Box::new(CStmt::Assign((0,0), "i", CExpr::Number(0)))),
-                              Some(CExpr::Number(1)),
+                              Some(Box::new(CStmt::Assign((0,0), "i", CExpr::Num(0)))),
+                              Some(CExpr::Num(1)),
                               Some(Box::new(CStmt::Assign(
                                   (0,0), "i",
                                   CExpr::BinOp(
                                       COp::Add,
                                       Box::new(CExpr::Ident("i")),
-                                      Box::new(CExpr::Number(1)))))),
+                                      Box::new(CExpr::Num(1)))))),
                               Box::new(CStmt::Return((0,0), None)));
 
     assert!(errors.is_empty());

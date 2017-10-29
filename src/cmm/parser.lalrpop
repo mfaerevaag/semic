@@ -30,6 +30,8 @@ match {
 
 } else {
     r"[0-9]+" => TInt,
+    r#""[\w]""# => TString,
+    r#"'\w'"# => TChar,
 
 } else {
     r"[a-zA-Z][a-zA-Z0-9_]*" => TIdent,
@@ -213,7 +215,10 @@ Factor: Box<CExpr<'input>> = {
 };
 
 Term: Box<CExpr<'input>> = {
-    Num => Box::new(CExpr::Number(<>)),
+    Num => Box::new(CExpr::Num(<>)),
+    Str => Box::new(CExpr::Str(<>)),
+    Char => Box::new(CExpr::Char(<>)),
+
     Ident => Box::new(CExpr::Ident(<>)),
 
     <op:TermOp> <r:Term> => Box::new(CExpr::UnOp(op, r)),
@@ -244,8 +249,20 @@ TermOp: COp = {
 
 // simple stuff
 
-Num: i32 = {
+Num: CInt = {
     TInt => i32::from_str(<>).unwrap(),
+};
+
+Str: CString = {
+    TString => {
+        let mut s = String::from(<>.get(1..).unwrap());
+        s.pop();
+        s
+    },
+};
+
+Char: CChar = {
+    TChar => <>.chars().nth(1).unwrap(),
 };
 
 Ident: &'input str = {

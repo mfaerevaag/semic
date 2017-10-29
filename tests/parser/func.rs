@@ -262,7 +262,7 @@ fn no_decl_single_stmt() {
             params: vec![],
         },
         decls: vec![],
-        stmts: vec![CStmt::Return((0, 0), Some(CExpr::Number(0)))],
+        stmts: vec![CStmt::Return((0, 0), Some(CExpr::Num(0)))],
     };
 
     assert!(errors.is_empty());
@@ -287,7 +287,7 @@ fn single_decl_single_stmt() {
             params: vec![],
         },
         decls: vec![(CType::Int, "x", None)],
-        stmts: vec![CStmt::Assign((0, 0), "x", CExpr::Number(1))],
+        stmts: vec![CStmt::Assign((0, 0), "x", CExpr::Num(1))],
     };
 
     assert!(errors.is_empty());
@@ -315,8 +315,8 @@ fn stmt_mult() {
         },
         decls: vec![(CType::Int, "x", None),
                     (CType::Int, "y", None)],
-        stmts: vec![CStmt::Assign((0, 0), "x", CExpr::Number(1)),
-                    CStmt::Assign((0, 0), "y", CExpr::Number(2)),
+        stmts: vec![CStmt::Assign((0, 0), "x", CExpr::Num(1)),
+                    CStmt::Assign((0, 0), "y", CExpr::Num(2)),
                     CStmt::Return((0, 0), Some(CExpr::BinOp(
                         COp::Add,
                         Box::new(CExpr::Ident("x")),
