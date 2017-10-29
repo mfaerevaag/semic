@@ -1,7 +1,41 @@
+use std::error::Error;
+use std::fmt;
+
 use ast::*;
 use env::{FuncTab, SymTab};
 
-pub fn check(ast: &CProg) -> Result<(), String> {
+// error type
+
+#[derive(Debug)]
+pub struct CheckErr {
+    message: String,
+}
+
+impl CheckErr {
+    pub fn new (message: String) -> CheckErr {
+        CheckErr { message }
+    }
+}
+
+impl Error for CheckErr {
+    fn description(&self) -> &str {
+        &self.message
+    }
+}
+
+impl fmt::Display for CheckErr {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        write!(fmt, "{}", &self.message)
+    }
+}
+
+// checker functions
+
+pub fn check_prog<'input, 'err>(
+    errors: &'err mut Vec<CheckErr>,
+    ast: &'input CProg
+) -> Result<(), ()>
+{
     // global function table
     let mut funcs = FuncTab::new();
     funcs.push_frame();
@@ -17,7 +51,10 @@ pub fn check(ast: &CProg) -> Result<(), String> {
                 let val = (decl, None);
 
                 match syms.insert(*name, val) {
-                    Ok(Some(_)) => return Err(format!("variable {:?} already declared", name)),
+                    Ok(Some(_)) => {
+                        let msg = format!("variable {:?} already declared", name);
+                        errors.push(CheckErr::new(msg));
+                    },
                     Ok(None) => (),
                     Err(_) => panic!("symbol table empty"),
                 };
@@ -31,7 +68,10 @@ pub fn check(ast: &CProg) -> Result<(), String> {
                 match funcs.insert(*name, val) {
                     Ok(Some(x)) => match x {
                         (_, None) => (),
-                        (_, Some(_)) => return Err(format!("function {:?} already declared", name)),
+                        (_, Some(_)) => {
+                            let msg = format!("function {:?} already declared", name);
+                            errors.push(CheckErr::new(msg));
+                        },
                     },
                     Ok(None) => (),
                     Err(_) => panic!("function table empty"),
@@ -43,17 +83,21 @@ pub fn check(ast: &CProg) -> Result<(), String> {
                 let val = (proto, None);
 
                 match funcs.insert(*name, val) {
-                    Ok(Some(_)) => return Err(format!("function {:?} already defined", name)),
+                    Ok(Some(_)) => {
+                        let msg = format!("function {:?} already defined", name);
+                        errors.push(CheckErr::new(msg));
+                    },
                     Ok(None) => (),
                     Err(_) => panic!("function table empty"),
                 };
             },
 
-            CProgElem::Error => {
-                return Err(format!("TODO: check Error"));
-            },
+            CProgElem::Error => (),
         };
     };
 
-    Ok(())
+    match errors.len() {
+        0 => Ok(()),
+        _ => Err(()),
+    }
 }

@@ -1,9 +1,10 @@
 extern crate cmm;
 
 fn main() {
-    let mut errors = Vec::new();
+    let mut parser_errors = Vec::new();
+    let mut checker_errors = Vec::new();
 
-    let ast = cmm::parse(&mut errors, r#"
+    let ast = cmm::parse(&mut parser_errors, r#"
 
 int main();
 
@@ -17,8 +18,8 @@ int main(void)
 
     println!("AST: {:#?}", &ast);
 
-    match cmm::checker::check(&ast) {
-        Ok(()) => println!("Check OK"),
-        Err(s) => println!("Check Error: {:?}", s),
+    match cmm::check(&mut checker_errors, &ast) {
+        Ok(()) => println!("Checker: OK"),
+        Err(()) => println!("Checker: Failed"),
     };
 }

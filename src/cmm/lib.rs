@@ -46,3 +46,27 @@ pub fn parse_stmt<'input, 'err,>(
 {
     parser::parse_Stmt(errors, input)
 }
+
+// checker functions
+
+/// Check validity of AST
+///
+/// # Examples
+///
+/// ```
+/// let mut err = Vec::new();
+/// let ast = cmm::parse(&mut vec![], r#"void main () {}"#).unwrap();
+/// assert!(cmm::check(&mut err, &ast).is_ok());
+/// ```
+///
+/// ```
+/// let mut err = Vec::new();
+/// let ast = cmm::parse(&mut vec![], r#"int x, x;"#).unwrap();
+/// assert!(cmm::check(&mut err, &ast).is_err());
+/// ```
+pub fn check<'input, 'err>(
+    errors: &'err mut Vec<checker::CheckErr>,
+    ast: &'input CProg
+) -> Result<(), ()> {
+    checker::check_prog(errors, ast)
+}
