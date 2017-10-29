@@ -4,9 +4,16 @@ pub mod ast;
 pub mod parser;
 pub mod checker;
 pub mod env;
+pub mod engine;
 
 use lalrpop_util::ErrorRecovery;
 use ast::{CProg, CFunc, CStmt, CExpr};
+
+// engine functions
+
+pub fn run<'input>(prog: &'input str) -> Result<(), ()> {
+    engine::run(prog)
+}
 
 // parser functions
 
