@@ -3,7 +3,7 @@ extern crate cmm;
 use cmm::ast::*;
 
 #[test]
-fn empty() {
+fn func_empty() {
     let mut errors = Vec::new();
     let mut errors2 = Vec::new();
 
@@ -32,7 +32,7 @@ fn empty() {
 }
 
 #[test]
-fn return_type() {
+fn func_return_type() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_func(&mut errors, r#"
@@ -54,7 +54,7 @@ fn return_type() {
 }
 
 #[test]
-fn param_type_single() {
+fn func_param_type_single() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_func(&mut errors, r#"
@@ -76,7 +76,7 @@ fn param_type_single() {
 }
 
 #[test]
-fn param_type_mult() {
+fn func_param_type_mult() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_func(&mut errors, r#"
@@ -98,7 +98,7 @@ fn param_type_mult() {
 }
 
 #[test]
-fn decl_single_type_single_ident() {
+fn func_decl_single_type_single_ident() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_func(&mut errors, r#"
@@ -122,7 +122,7 @@ fn decl_single_type_single_ident() {
 }
 
 #[test]
-fn decl_single_type_single_array() {
+fn func_decl_single_type_single_array() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_func(&mut errors, r#"
@@ -146,7 +146,7 @@ fn decl_single_type_single_array() {
 }
 
 #[test]
-fn decl_single_type_mult_ident() {
+fn func_decl_single_type_mult_ident() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_func(&mut errors, r#"
@@ -170,7 +170,7 @@ fn decl_single_type_mult_ident() {
 }
 
 #[test]
-fn decl_single_type_mult_array() {
+fn func_decl_single_type_mult_array() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_func(&mut errors, r#"
@@ -195,7 +195,7 @@ fn decl_single_type_mult_array() {
 }
 
 #[test]
-fn decl_mult_type_single_ident() {
+fn func_decl_mult_type_single_ident() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_func(&mut errors, r#"
@@ -220,7 +220,7 @@ fn decl_mult_type_single_ident() {
 }
 
 #[test]
-fn decl_mult_type_mult_ident() {
+fn func_decl_mult_type_mult_ident() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_func(&mut errors, r#"
@@ -246,7 +246,7 @@ fn decl_mult_type_mult_ident() {
 }
 
 #[test]
-fn no_decl_single_stmt() {
+fn func_no_decl_single_stmt() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_func(&mut errors, r#"
@@ -270,7 +270,7 @@ fn no_decl_single_stmt() {
 }
 
 #[test]
-fn single_decl_single_stmt() {
+fn func_single_decl_single_stmt() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_func(&mut errors, r#"
@@ -295,7 +295,7 @@ fn single_decl_single_stmt() {
 }
 
 #[test]
-fn stmt_mult() {
+fn func_stmt_mult() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_func(&mut errors, r#"

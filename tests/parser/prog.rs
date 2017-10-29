@@ -3,7 +3,7 @@ extern crate cmm;
 use cmm::ast::*;
 
 #[test]
-fn empty() {
+fn prog_empty() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse(&mut errors, r#""#).unwrap();
@@ -13,7 +13,7 @@ fn empty() {
 }
 
 #[test]
-fn proto_void() {
+fn prog_proto_void() {
     let mut errors = Vec::new();
     let mut errors2 = Vec::new();
 
@@ -38,7 +38,7 @@ fn proto_void() {
 }
 
 #[test]
-fn proto_types() {
+fn prog_proto_types() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse(&mut errors, r#"
@@ -56,7 +56,7 @@ fn proto_types() {
 }
 
 #[test]
-fn proto_names_good() {
+fn prog_proto_names_good() {
     let mut errors = Vec::new();
     let mut errors2 = Vec::new();
 
@@ -87,7 +87,7 @@ fn proto_names_good() {
 }
 
 #[test]
-fn proto_names_bad() {
+fn prog_proto_names_bad() {
     let mut errors = Vec::new();
     let mut errors2 = Vec::new();
 
@@ -106,7 +106,7 @@ fn proto_names_bad() {
 }
 
 #[test]
-fn proto_mult() {
+fn prog_proto_mult() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse(&mut errors, r#"

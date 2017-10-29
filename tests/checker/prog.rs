@@ -3,7 +3,7 @@ extern crate cmm;
 use cmm::ast::*;
 
 #[test]
-fn empty() {
+fn prog_empty() {
     let mut errors = Vec::new();
 
     let ast = cmm::parse(&mut vec![], r#""#).unwrap();

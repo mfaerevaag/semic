@@ -3,7 +3,7 @@ extern crate cmm;
 use cmm::ast::*;
 
 #[test]
-fn return_empty() {
+fn stmt_return_empty() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_stmt(&mut errors, r#"return;"#).unwrap();
@@ -15,7 +15,7 @@ fn return_empty() {
 }
 
 #[test]
-fn return_expr() {
+fn stmt_return_expr() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_stmt(&mut errors, r#"return 1 + - 2;"#).unwrap();
@@ -32,7 +32,7 @@ fn return_expr() {
 }
 
 #[test]
-fn if_single() {
+fn stmt_if_single() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_stmt(&mut errors, r#"if (1) return;"#).unwrap();
@@ -47,7 +47,7 @@ fn if_single() {
 }
 
 #[test]
-fn if_block() {
+fn stmt_if_block() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_stmt(&mut errors, r#"if (1) { return; }"#).unwrap();
@@ -64,7 +64,7 @@ fn if_block() {
 }
 
 #[test]
-fn if_else_single() {
+fn stmt_if_else_single() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_stmt(&mut errors, r#"if (1) return; else return;"#).unwrap();
@@ -79,7 +79,7 @@ fn if_else_single() {
 }
 
 #[test]
-fn if_else_block() {
+fn stmt_if_else_block() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_stmt(&mut errors, r#"if (1) { return; } else { return; }"#).unwrap();
@@ -98,7 +98,7 @@ fn if_else_block() {
 }
 
 #[test]
-fn if_else_mixed() {
+fn stmt_if_else_mixed() {
     let mut errors = Vec::new();
     let mut errors2 = Vec::new();
 
@@ -126,7 +126,7 @@ fn if_else_mixed() {
 }
 
 #[test]
-fn if_else_nested() {
+fn stmt_if_else_nested() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_stmt(&mut errors, r#"if (1) { if (1) return; else return; }"#).unwrap();
@@ -146,7 +146,7 @@ fn if_else_nested() {
 }
 
 #[test]
-fn else_single() {
+fn stmt_else_single() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_stmt(&mut errors, r#"while (1) return;"#).unwrap();
@@ -160,7 +160,7 @@ fn else_single() {
 }
 
 #[test]
-fn else_block() {
+fn stmt_else_block() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_stmt(&mut errors, r#"while (1) { return; }"#).unwrap();
@@ -176,7 +176,7 @@ fn else_block() {
 }
 
 #[test]
-fn for_single() {
+fn stmt_for_single() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_stmt(&mut errors, r#"for (;;) return;"#).unwrap();
@@ -189,7 +189,7 @@ fn for_single() {
 }
 
 #[test]
-fn for_block() {
+fn stmt_for_block() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_stmt(&mut errors, r#"for (;;) { return; }"#).unwrap();
@@ -204,7 +204,7 @@ fn for_block() {
 }
 
 #[test]
-fn for_init() {
+fn stmt_for_init() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_stmt(&mut errors, r#"for (i = 0;;) return;"#).unwrap();
@@ -219,7 +219,7 @@ fn for_init() {
 }
 
 #[test]
-fn for_cond() {
+fn stmt_for_cond() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_stmt(&mut errors, r#"for (;1;) return;"#).unwrap();
@@ -234,7 +234,7 @@ fn for_cond() {
 }
 
 #[test]
-fn for_inc() {
+fn stmt_for_inc() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_stmt(&mut errors, r#"for (;;i = i + 1) return;"#).unwrap();
@@ -254,7 +254,7 @@ fn for_inc() {
 }
 
 #[test]
-fn for_all() {
+fn stmt_for_all() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_stmt(&mut errors, r#"for (i = 0;1;i = i + 1) return;"#).unwrap();
