@@ -10,6 +10,19 @@ use ast::{CProg, CFunc, CStmt};
 
 // parser functions
 
+/// Parse program
+///
+/// # Examples
+///
+/// ```
+/// let mut err = Vec::new();
+/// assert!(cmm::parse(&mut err, r#"int main () {}"#).is_ok());
+/// ```
+///
+/// ```
+/// let mut err = Vec::new();
+/// assert!(cmm::parse(&mut err, r#"main () {}"#).is_err());
+/// ```
 pub fn parse<'input, 'err,>(
     errors: &'err mut Vec<ErrorRecovery<usize, (usize, &'input str), ()>>,
     input: &'input str,
