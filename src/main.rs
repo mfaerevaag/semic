@@ -11,7 +11,7 @@ int main(void)
     char c, s[2];
     c = 'a';
     s = "a";
-    return 0;
+    return (s == "foo");
 }
 
 "#).unwrap();

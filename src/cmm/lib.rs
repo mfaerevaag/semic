@@ -6,7 +6,7 @@ pub mod checker;
 pub mod env;
 
 use lalrpop_util::ErrorRecovery;
-use ast::{CProg, CFunc, CStmt};
+use ast::{CProg, CFunc, CStmt, CExpr};
 
 // parser functions
 
@@ -45,6 +45,14 @@ pub fn parse_stmt<'input, 'err,>(
 ) -> Result<CStmt<'input>, lalrpop_util::ParseError<usize, (usize, &'input str), ()>>
 {
     parser::parse_Stmt(errors, input)
+}
+
+pub fn parse_expr<'input, 'err,>(
+    errors: &'err mut Vec<ErrorRecovery<usize, (usize, &'input str), ()>>,
+    input: &'input str,
+) -> Result<CExpr<'input>, lalrpop_util::ParseError<usize, (usize, &'input str), ()>>
+{
+    parser::parse_Expr(errors, input)
 }
 
 // checker functions

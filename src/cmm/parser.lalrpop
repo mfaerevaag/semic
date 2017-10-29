@@ -155,15 +155,15 @@ Stmt_: Box<CStmt<'input>> = {
 
 StmtIfMatching: Box<CStmt<'input>> = {
     <l:@L> "if" "(" <cond:Expr> ")" <stmt:StmtIfMatching> "else" <stmt2:StmtIfMatching> <r:@R> =>
-        Box::new(CStmt::If((l, r), *cond, stmt, Some(stmt2))),
+        Box::new(CStmt::If((l, r), cond, stmt, Some(stmt2))),
     StmtOther,
 };
 
 StmtIfUnmatching: Box<CStmt<'input>> = {
     <l:@L> "if" "(" <cond:Expr> ")" <stmt:StmtIfMatching> <r:@R> =>
-        Box::new(CStmt::If((l, r), *cond, stmt, None)),
+        Box::new(CStmt::If((l, r), cond, stmt, None)),
     <l:@L> "if" "(" <cond:Expr> ")" <stmt:StmtIfMatching> "else" <stmt2:StmtIfUnmatching> <r:@R> =>
-        Box::new(CStmt::If((l, r), *cond, stmt, Some(stmt2))),
+        Box::new(CStmt::If((l, r), cond, stmt, Some(stmt2))),
 };
 
 StmtOther: Box<CStmt<'input>> = {
@@ -172,7 +172,7 @@ StmtOther: Box<CStmt<'input>> = {
 
     // return
     <l:@L> "return" <e:Expr> ";" <r:@R> =>
-        Box::new(CStmt::Return((l, r), Some(*e))),
+        Box::new(CStmt::Return((l, r), Some(e))),
     <l:@L> "return" ";" <r:@R> =>
         Box::new(CStmt::Return((l, r), None)),
 
@@ -182,14 +182,10 @@ StmtOther: Box<CStmt<'input>> = {
 
     // while
     <l:@L> "while" "(" <cond:Expr> ")" <stmt:StmtIfMatching> <r:@R> =>
-        Box::new(CStmt::While((l, r), *cond, stmt)),
+        Box::new(CStmt::While((l, r), cond, stmt)),
 
     // for
     <l:@L> "for" "(" <init:StmtAssign?> ";" <cond:Expr?> ";" <inc:StmtAssign?> ")" <stmt:StmtIfMatching> <r:@R> => {
-        let cond = match cond {
-            Some(e) => Some(*e),
-            None => None,
-        };
         Box::new(CStmt::For((l, r), init, cond, inc, stmt))
     },
 
@@ -199,13 +195,37 @@ StmtOther: Box<CStmt<'input>> = {
 
 StmtAssign: Box<CStmt<'input>> = {
     <l:@L> <i:Ident> "=" <e:Expr> <r:@R> =>
-        Box::new(CStmt::Assign((l, r), i, *e)),
+        Box::new(CStmt::Assign((l, r), i, e)),
 };
 
 // expression
 
-Expr: Box<CExpr<'input>> = {
-    <l:Expr> <op:ExprOp> <r:Factor> => Box::new(CExpr::BinOp(op, l, r)),
+pub Expr: CExpr<'input> = {
+    Expr1 => *<>,
+};
+
+Expr1: Box<CExpr<'input>> = {
+    <l:Expr1> "||" <r:Expr2> => Box::new(CExpr::LogOp(COp::Or, l, r)),
+    Expr2,
+};
+
+Expr2: Box<CExpr<'input>> = {
+    <l:Expr2> "&&" <r:Expr3> => Box::new(CExpr::LogOp(COp::Eq, l, r)),
+    Expr3,
+};
+
+Expr3: Box<CExpr<'input>> = {
+    <l:Expr3> <op:ExprOpRel2> <r:Expr4> => Box::new(CExpr::RelOp(op, l, r)),
+    Expr4,
+};
+
+Expr4: Box<CExpr<'input>> = {
+    <l:Expr4> <op:ExprOpRel> <r:Expr5> => Box::new(CExpr::RelOp(op, l, r)),
+    Expr5,
+};
+
+Expr5: Box<CExpr<'input>> = {
+    <l:Expr5> <op:ExprOp> <r:Factor> => Box::new(CExpr::BinOp(op, l, r)),
     Factor,
 };
 
@@ -219,15 +239,18 @@ Term: Box<CExpr<'input>> = {
     Str => Box::new(CExpr::Str(<>)),
     Char => Box::new(CExpr::Char(<>)),
 
+    // variable
     Ident => Box::new(CExpr::Ident(<>)),
 
+    // unary op
     <op:TermOp> <r:Term> => Box::new(CExpr::UnOp(op, r)),
 
     // call
-    <i:Ident> "(" <p:Comma<Expr>> ")" => Box::new(CExpr::Call(i, p)),
+    <i:Ident> "(" <p:Comma<Expr1>> ")" => Box::new(CExpr::Call(i, p)),
     // array index
-    <i:Ident> "[" <r:Expr> "]" => Box::new(CExpr::Index(i, r)),
-    "(" <Expr> ")",
+    <i:Ident> "[" <r:Expr1> "]" => Box::new(CExpr::Index(i, r)),
+
+    "(" <Expr1> ")",
 
     // ! => { errors.push(<>); Box::new(CExpr::Error) },
 };
@@ -235,6 +258,23 @@ Term: Box<CExpr<'input>> = {
 ExprOp: COp = {
     "+" => COp::Add,
     "-" => COp::Sub,
+};
+
+ExprOpRel: COp = {
+    "<" => COp::Lt,
+    "<=" => COp::Lte,
+    ">" => COp::Gt,
+    ">=" => COp::Gte,
+};
+
+ExprOpRel2: COp = {
+    "==" => COp::Eq,
+    "!=" => COp::Neq,
+};
+
+ExprOpLog: COp = {
+    "&&" => COp::And,
+    "||" => COp::Or,
 };
 
 FactorOp: COp = {

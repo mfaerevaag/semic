@@ -49,6 +49,8 @@ pub enum CExpr<'input> {
     Ident(CIdent<'input>),
     UnOp(COp, Box<CExpr<'input>>),
     BinOp(COp, Box<CExpr<'input>>, Box<CExpr<'input>>),
+    RelOp(COp, Box<CExpr<'input>>, Box<CExpr<'input>>),
+    LogOp(COp, Box<CExpr<'input>>, Box<CExpr<'input>>),
     Call(CIdent<'input>, Vec<Box<CExpr<'input>>>),
     Index(CIdent<'input>, Box<CExpr<'input>>),
     Error,
@@ -56,11 +58,22 @@ pub enum CExpr<'input> {
 
 #[derive(Copy, Clone)]
 pub enum COp {
+    // arith
     Mul,
     Div,
     Add,
     Sub,
-
+    // rel
+    Neq,
+    Eq,
+    Lt,
+    Lte,
+    Gt,
+    Gte,
+    // logical
+    And,
+    Or,
+    // unary
     Neg,
     Not,
 }
@@ -128,8 +141,10 @@ impl<'input> Debug for CExpr<'input> {
             Str(ref s) => write!(fmt, "{:?}", s),
             Char(n) => write!(fmt, "{:?}", n),
             Ident(ref s) => write!(fmt, "{}", &s),
-            UnOp(op, ref l) => write!(fmt, "({:?} {:?})", op, l),
+            UnOp(op, ref l) => write!(fmt, "({:?}{:?})", op, l),
             BinOp(op, ref l, ref r) => write!(fmt, "({:?} {:?} {:?})", l, op, r),
+            RelOp(op, ref l, ref r) => write!(fmt, "({:?} {:?} {:?})", l, op, r),
+            LogOp(op, ref l, ref r) => write!(fmt, "({:?} {:?} {:?})", l, op, r),
             Call(ref i, ref p) => {
                 let mut s: String = format!("{:?}", p[0]);
                 for e in p[1..].iter() {
@@ -153,6 +168,14 @@ impl Debug for COp {
             Div => write!(fmt, "/"),
             Add => write!(fmt, "+"),
             Sub => write!(fmt, "-"),
+            Eq  => write!(fmt, "=="),
+            Neq => write!(fmt, "!="),
+            Lt  => write!(fmt, "<"),
+            Lte => write!(fmt, "<="),
+            Gt  => write!(fmt, ">"),
+            Gte => write!(fmt, ">="),
+            And => write!(fmt, "&&"),
+            Or  => write!(fmt, "||"),
             Neg => write!(fmt, "-"),
             Not => write!(fmt, "!"),
         }
