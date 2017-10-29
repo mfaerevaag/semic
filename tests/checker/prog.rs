@@ -1,6 +1,6 @@
 extern crate cmm;
 
-use cmm::ast::*;
+// use cmm::ast::*;
 
 #[test]
 fn prog_empty() {
