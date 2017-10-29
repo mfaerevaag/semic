@@ -2,12 +2,13 @@ extern crate lalrpop_util;
 
 pub mod ast;
 pub mod parser;
-pub mod analyzer;
+pub mod checker;
 pub mod env;
 
 use lalrpop_util::ErrorRecovery;
 use ast::{CProg, CFunc, CStmt};
 
+// parser functions
 
 pub fn parse<'input, 'err,>(
     errors: &'err mut Vec<ErrorRecovery<usize, (usize, &'input str), ()>>,

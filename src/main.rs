@@ -17,7 +17,7 @@ int main(void)
 
     println!("AST: {:#?}", &ast);
 
-    match cmm::analyzer::check(&ast) {
+    match cmm::checker::check(&ast) {
         Ok(()) => println!("Check OK"),
         Err(s) => println!("Check Error: {:?}", s),
     };
