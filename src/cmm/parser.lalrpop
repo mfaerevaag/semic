@@ -30,7 +30,7 @@ match {
 
 } else {
     r"[0-9]+" => TInt,
-    r#""[\w]""# => TString,
+    r#""\w*""# => TString,
     r#"'\w'"# => TChar,
 
 } else {
