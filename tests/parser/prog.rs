@@ -3,17 +3,17 @@ extern crate cmm;
 use cmm::ast::*;
 
 #[test]
-fn prog_empty() {
+fn empty() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse(&mut errors, r#""#).unwrap();
 
-    assert_eq!(0, errors.len());
+    assert!(errors.is_empty());
     assert_eq!(format!("[]"), format!("{:?}", actual));
 }
 
 #[test]
-fn prog_proto_void() {
+fn proto_void() {
     let mut errors = Vec::new();
     let mut errors2 = Vec::new();
 
@@ -31,14 +31,14 @@ fn prog_proto_void() {
         params: vec![],
     };
 
-    assert_eq!(0, errors.len());
-    assert_eq!(0, errors2.len());
+    assert!(errors.is_empty());
+    assert!(errors2.is_empty());
     assert_eq!(format!("[{:?}]", expected.clone()), format!("{:?}", actual));
     assert_eq!(format!("[{:?}]", expected.clone()), format!("{:?}", actual2));
 }
 
 #[test]
-fn prog_proto_types() {
+fn proto_types() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse(&mut errors, r#"
@@ -51,12 +51,12 @@ fn prog_proto_types() {
         params: vec![(CType::Int, "a"), (CType::Char, "b")],
     };
 
-    assert_eq!(0, errors.len());
+    assert!(errors.is_empty());
     assert_eq!(format!("[{:?}]", expected), format!("{:?}", actual));
 }
 
 #[test]
-fn prog_proto_names_good() {
+fn proto_names_good() {
     let mut errors = Vec::new();
     let mut errors2 = Vec::new();
 
@@ -80,14 +80,14 @@ fn prog_proto_names_good() {
         params: vec![],
     };
 
-    assert_eq!(0, errors.len());
-    assert_eq!(0, errors2.len());
+    assert!(errors.is_empty());
+    assert!(errors2.is_empty());
     assert_eq!(format!("[{:?}]", expected), format!("{:?}", actual));
     assert_eq!(format!("[{:?}]", expected2), format!("{:?}", actual2));
 }
 
 #[test]
-fn prog_proto_names_bad() {
+fn proto_names_bad() {
     let mut errors = Vec::new();
     let mut errors2 = Vec::new();
 
@@ -106,7 +106,7 @@ fn prog_proto_names_bad() {
 }
 
 #[test]
-fn prog_proto_mult() {
+fn proto_mult() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse(&mut errors, r#"
@@ -123,6 +123,6 @@ fn prog_proto_mult() {
         params: vec![(CType::Char, "b")],
     }];
 
-    assert_eq!(0, errors.len());
+    assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }

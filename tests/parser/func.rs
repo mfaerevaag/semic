@@ -3,7 +3,7 @@ extern crate cmm;
 use cmm::ast::*;
 
 #[test]
-fn func_empty() {
+fn empty() {
     let mut errors = Vec::new();
     let mut errors2 = Vec::new();
 
@@ -25,14 +25,14 @@ fn func_empty() {
         stmts: vec![],
     };
 
-    assert_eq!(0, errors.len());
-    assert_eq!(0, errors2.len());
+    assert!(errors.is_empty());
+    assert!(errors2.is_empty());
     assert_eq!(format!("{:?}", expected.clone()), format!("{:?}", actual));
     assert_eq!(format!("{:?}", expected.clone()), format!("{:?}", actual2));
 }
 
 #[test]
-fn func_return_type() {
+fn return_type() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_func(&mut errors, r#"
@@ -49,12 +49,12 @@ fn func_return_type() {
         stmts: vec![],
     };
 
-    assert_eq!(0, errors.len());
+    assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
-fn func_param_type_single() {
+fn param_type_single() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_func(&mut errors, r#"
@@ -71,12 +71,12 @@ fn func_param_type_single() {
         stmts: vec![],
     };
 
-    assert_eq!(0, errors.len());
+    assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
-fn func_param_type_mult() {
+fn param_type_mult() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_func(&mut errors, r#"
@@ -93,12 +93,12 @@ fn func_param_type_mult() {
         stmts: vec![],
     };
 
-    assert_eq!(0, errors.len());
+    assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
-fn func_decl_single_type_single_ident() {
+fn decl_single_type_single_ident() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_func(&mut errors, r#"
@@ -117,12 +117,12 @@ fn func_decl_single_type_single_ident() {
         stmts: vec![],
     };
 
-    assert_eq!(0, errors.len());
+    assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
-fn func_decl_single_type_single_array() {
+fn decl_single_type_single_array() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_func(&mut errors, r#"
@@ -141,12 +141,12 @@ fn func_decl_single_type_single_array() {
         stmts: vec![],
     };
 
-    assert_eq!(0, errors.len());
+    assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
-fn func_decl_single_type_mult_ident() {
+fn decl_single_type_mult_ident() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_func(&mut errors, r#"
@@ -165,12 +165,12 @@ fn func_decl_single_type_mult_ident() {
         stmts: vec![],
     };
 
-    assert_eq!(0, errors.len());
+    assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
-fn func_decl_single_type_mult_array() {
+fn decl_single_type_mult_array() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_func(&mut errors, r#"
@@ -190,12 +190,12 @@ fn func_decl_single_type_mult_array() {
         stmts: vec![],
     };
 
-    assert_eq!(0, errors.len());
+    assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
-fn func_decl_mult_type_single_ident() {
+fn decl_mult_type_single_ident() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_func(&mut errors, r#"
@@ -215,12 +215,12 @@ fn func_decl_mult_type_single_ident() {
         stmts: vec![],
     };
 
-    assert_eq!(0, errors.len());
+    assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
-fn func_decl_mult_type_mult_ident() {
+fn decl_mult_type_mult_ident() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_func(&mut errors, r#"
@@ -241,12 +241,12 @@ fn func_decl_mult_type_mult_ident() {
         stmts: vec![],
     };
 
-    assert_eq!(0, errors.len());
+    assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
-fn func_no_decl_single_stmt() {
+fn no_decl_single_stmt() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_func(&mut errors, r#"
@@ -265,12 +265,12 @@ fn func_no_decl_single_stmt() {
         stmts: vec![CStmt::Return((0, 0), Some(CExpr::Number(0)))],
     };
 
-    assert_eq!(0, errors.len());
+    assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
-fn func_single_decl_single_stmt() {
+fn single_decl_single_stmt() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_func(&mut errors, r#"
@@ -290,12 +290,12 @@ fn func_single_decl_single_stmt() {
         stmts: vec![CStmt::Assign((0, 0), "x", CExpr::Number(1))],
     };
 
-    assert_eq!(0, errors.len());
+    assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
-fn func_stmt_mult() {
+fn stmt_mult() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_func(&mut errors, r#"
@@ -323,6 +323,6 @@ fn func_stmt_mult() {
                         Box::new(CExpr::Ident("y")))))],
     };
 
-    assert_eq!(0, errors.len());
+    assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }

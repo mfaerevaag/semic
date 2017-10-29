@@ -3,19 +3,19 @@ extern crate cmm;
 use cmm::ast::*;
 
 #[test]
-fn stmt_return_empty() {
+fn return_empty() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_stmt(&mut errors, r#"return;"#).unwrap();
 
     let expected = CStmt::Return((0,0), None);
 
-    assert_eq!(0, errors.len());
+    assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
-fn stmt_return_expr() {
+fn return_expr() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_stmt(&mut errors, r#"return 1 + - 2;"#).unwrap();
@@ -27,12 +27,12 @@ fn stmt_return_expr() {
                            Box::new(CExpr::UnOp(COp::Sub,
                                                 Box::new(CExpr::Number(2)))))));
 
-    assert_eq!(0, errors.len());
+    assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
-fn stmt_if_single() {
+fn if_single() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_stmt(&mut errors, r#"if (1) return;"#).unwrap();
@@ -42,12 +42,12 @@ fn stmt_if_single() {
                              Box::new(CStmt::Return((0,0), None)),
                              None);
 
-    assert_eq!(0, errors.len());
+    assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
-fn stmt_if_block() {
+fn if_block() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_stmt(&mut errors, r#"if (1) { return; }"#).unwrap();
@@ -59,12 +59,12 @@ fn stmt_if_block() {
                                  vec![Box::new(CStmt::Return((0,0), None))])),
                              None);
 
-    assert_eq!(0, errors.len());
+    assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
-fn stmt_if_else_single() {
+fn if_else_single() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_stmt(&mut errors, r#"if (1) return; else return;"#).unwrap();
@@ -74,12 +74,12 @@ fn stmt_if_else_single() {
                              Box::new(CStmt::Return((0,0), None)),
                              Some(Box::new(CStmt::Return((0,0), None))));
 
-    assert_eq!(0, errors.len());
+    assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
-fn stmt_if_else_block() {
+fn if_else_block() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_stmt(&mut errors, r#"if (1) { return; } else { return; }"#).unwrap();
@@ -93,12 +93,12 @@ fn stmt_if_else_block() {
                                  (0,0),
                                  vec![Box::new(CStmt::Return((0,0), None))]))));
 
-    assert_eq!(0, errors.len());
+    assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
-fn stmt_if_else_mixed() {
+fn if_else_mixed() {
     let mut errors = Vec::new();
     let mut errors2 = Vec::new();
 
@@ -119,14 +119,14 @@ fn stmt_if_else_mixed() {
                                  vec![Box::new(CStmt::Return((0,0), None))])),
                              Some(Box::new(CStmt::Return((0,0), None))));
 
-    assert_eq!(0, errors.len());
-    assert_eq!(0, errors2.len());
+    assert!(errors.is_empty());
+    assert!(errors2.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
     assert_eq!(format!("{:?}", expected2), format!("{:?}", actual2));
 }
 
 #[test]
-fn stmt_if_else_nested() {
+fn if_else_nested() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_stmt(&mut errors, r#"if (1) { if (1) return; else return; }"#).unwrap();
@@ -141,12 +141,12 @@ fn stmt_if_else_nested() {
                                                          Some(Box::new(CStmt::Return((0,0), None)))))])),
                              None);
 
-    assert_eq!(0, errors.len());
+    assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
-fn stmt_else_single() {
+fn else_single() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_stmt(&mut errors, r#"while (1) return;"#).unwrap();
@@ -155,12 +155,12 @@ fn stmt_else_single() {
                                 CExpr::Number(1),
                                 Box::new(CStmt::Return((0,0), None)));
 
-    assert_eq!(0, errors.len());
+    assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
-fn stmt_else_block() {
+fn else_block() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_stmt(&mut errors, r#"while (1) { return; }"#).unwrap();
@@ -171,12 +171,12 @@ fn stmt_else_block() {
                                     (0,0),
                                     vec![Box::new(CStmt::Return((0,0), None))])));
 
-    assert_eq!(0, errors.len());
+    assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
-fn stmt_for_single() {
+fn for_single() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_stmt(&mut errors, r#"for (;;) return;"#).unwrap();
@@ -184,12 +184,12 @@ fn stmt_for_single() {
     let expected = CStmt::For((0,0), None, None, None,
                               Box::new(CStmt::Return((0,0), None)));
 
-    assert_eq!(0, errors.len());
+    assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
-fn stmt_for_block() {
+fn for_block() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_stmt(&mut errors, r#"for (;;) { return; }"#).unwrap();
@@ -199,12 +199,12 @@ fn stmt_for_block() {
                                   (0,0),
                                   vec![Box::new(CStmt::Return((0,0), None))])));
 
-    assert_eq!(0, errors.len());
+    assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
-fn stmt_for_init() {
+fn for_init() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_stmt(&mut errors, r#"for (i = 0;;) return;"#).unwrap();
@@ -214,12 +214,12 @@ fn stmt_for_init() {
                               None, None,
                               Box::new(CStmt::Return((0,0), None)));
 
-    assert_eq!(0, errors.len());
+    assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
-fn stmt_for_cond() {
+fn for_cond() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_stmt(&mut errors, r#"for (;1;) return;"#).unwrap();
@@ -229,12 +229,12 @@ fn stmt_for_cond() {
                               None,
                               Box::new(CStmt::Return((0,0), None)));
 
-    assert_eq!(0, errors.len());
+    assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
-fn stmt_for_inc() {
+fn for_inc() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_stmt(&mut errors, r#"for (;;i = i + 1) return;"#).unwrap();
@@ -249,12 +249,12 @@ fn stmt_for_inc() {
                                       Box::new(CExpr::Number(1)))))),
                               Box::new(CStmt::Return((0,0), None)));
 
-    assert_eq!(0, errors.len());
+    assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
 
 #[test]
-fn stmt_for_all() {
+fn for_all() {
     let mut errors = Vec::new();
 
     let actual = cmm::parse_stmt(&mut errors, r#"for (i = 0;1;i = i + 1) return;"#).unwrap();
@@ -270,6 +270,6 @@ fn stmt_for_all() {
                                       Box::new(CExpr::Number(1)))))),
                               Box::new(CStmt::Return((0,0), None)));
 
-    assert_eq!(0, errors.len());
+    assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
 }
