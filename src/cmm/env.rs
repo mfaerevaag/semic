@@ -28,10 +28,10 @@ impl<'input, T> Tab<'input, T> {
         }
     }
 
-    // pub fn get(&self, key: &'input str) -> Result<Option<&&T>, ()> {
-    //     match self.tab.last() {
-    //         None => Err(()),
-    //         Some(frame) => Ok(frame.get(key)),
-    //     }
-    // }
+    pub fn get(&self, key: &'input str) -> Result<Option<&T>, ()> {
+        match self.tab.last() {
+            None => Err(()),
+            Some(frame) => Ok(frame.get(key)),
+        }
+    }
 }

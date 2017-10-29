@@ -37,11 +37,11 @@ pub fn check_prog<'input, 'err>(
 ) -> Result<(), ()>
 {
     // global function table
-    let mut funcs = FuncTab::new();
-    funcs.push_frame();
+    let mut vtab = FuncTab::new();
+    vtab.push_frame();
     // symbol table
-    let mut syms = SymTab::new();
-    syms.push_frame();
+    let mut symtab = SymTab::new();
+    symtab.push_frame();
 
     // check each element
     for elem in ast.iter() {
@@ -50,7 +50,7 @@ pub fn check_prog<'input, 'err>(
                 let (_, ref name, _) = *decl;
                 let val = (decl, None);
 
-                match syms.insert(*name, val) {
+                match symtab.insert(*name, val) {
                     Ok(Some(_)) => {
                         let msg = format!("variable {:?} already declared", name);
                         errors.push(CheckErr::new(msg));
@@ -65,7 +65,7 @@ pub fn check_prog<'input, 'err>(
                 let CProto { ref name, .. } = *proto;
                 let val = (proto, Some(func));
 
-                match funcs.insert(*name, val) {
+                match vtab.insert(*name, val) {
                     Ok(Some(x)) => match x {
                         (_, None) => (),
                         (_, Some(_)) => {
@@ -82,7 +82,7 @@ pub fn check_prog<'input, 'err>(
                 let CProto { ref name, .. } = *proto;
                 let val = (proto, None);
 
-                match funcs.insert(*name, val) {
+                match vtab.insert(*name, val) {
                     Ok(Some(_)) => {
                         let msg = format!("function {:?} already defined", name);
                         errors.push(CheckErr::new(msg));
@@ -94,6 +94,16 @@ pub fn check_prog<'input, 'err>(
 
             CProgElem::Error => (),
         };
+    };
+
+    // check for main function
+    match vtab.get("main") {
+        Ok(None) | Ok(Some(&(_, None))) => {
+            let msg = format!(r#"function "main" not defined"#);
+            errors.push(CheckErr::new(msg));
+        },
+        Err(_) => panic!("function table empty"),
+        _ => (),
     };
 
     match errors.len() {

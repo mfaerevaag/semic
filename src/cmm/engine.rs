@@ -1,35 +1,22 @@
-use parser;
-use checker;
+use ast::*;
+use env::{FuncTab, SymTab};
 
-pub fn run<'input>(prog: &'input str) -> Result<(), ()> {
-    let mut parser_errors = Vec::new();
-    let mut checker_errors = Vec::new();
+pub fn run_prog<'input>(
+    ast: &'input CProg<'input>,
+) -> Result<(), ()>
+{
+    // tables
+    let mut vtab = FuncTab::new();
+    let mut symtab = SymTab::new();
 
-    let ast = match parser::parse_Prog(&mut parser_errors, prog) {
-        Ok(ast) => ast,
-        Err(err) => {
-            println!("{:?}", err);
-            println!("parse errors:");
-            for err in parser_errors.iter() {
-                println!("{:?}", err);
-            };
-            return Err(());
-        }
-    };
+    // global function table
+    vtab.push_frame();
+    // symbol table
+    symtab.push_frame();
 
-    println!("ast: {:#?}", &ast);
+    for elem in ast.iter() {
+        // something
+    }
 
-    match checker::check_prog(&mut checker_errors, &ast) {
-        Ok(()) => (),
-        Err(()) => {
-            println!("checker failed:");
-            for err in checker_errors.iter() {
-                println!("{:?}", err);
-            };
-            return Err(());
-        },
-    };
-
-    // run
     Ok(())
 }
