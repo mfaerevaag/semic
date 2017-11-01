@@ -14,7 +14,7 @@ use ast::{CProg, CFunc, CStmt, CExpr};
 pub fn run(prog: &'static str) -> Result<(), ()> {
     // errors
     let mut parser_err = Vec::new();
-    let mut checker_err = Vec::new();
+    // let mut checker_err = Vec::new();
 
     let ast = match parser::parse_Prog(&mut parser_err, prog) {
         Ok(ast) => ast,
@@ -30,16 +30,16 @@ pub fn run(prog: &'static str) -> Result<(), ()> {
 
     println!("ast: {:#?}", &ast);
 
-    match checker::check_prog(&mut checker_err, &ast) {
-        Ok(()) => (),
-        Err(()) => {
-            println!("checker failed:");
-            for err in checker_err.iter() {
-                println!("{:?}", err);
-            };
-            return Err(());
-        },
-    };
+    // match checker::analyze_prog(&mut checker_err, &ast) {
+    //     Ok(()) => (),
+    //     Err(()) => {
+    //         println!("checker failed:");
+    //         for err in checker_err.iter() {
+    //             println!("{:?}", err);
+    //         };
+    //         return Err(());
+    //     },
+    // };
 
     engine::run_prog(&ast)
 }
@@ -98,19 +98,14 @@ pub fn parse_expr<'input, 'err,>(
 /// # Examples
 ///
 /// ```
-/// let mut err = Vec::new();
 /// let ast = cmm::parse(&mut vec![], r#"void main () {}"#).unwrap();
-/// assert!(cmm::check(&mut err, &ast).is_ok());
+/// assert!(cmm::check(&ast).is_ok());
 /// ```
 ///
 /// ```
-/// let mut err = Vec::new();
 /// let ast = cmm::parse(&mut vec![], r#"int x, x;"#).unwrap();
-/// assert!(cmm::check(&mut err, &ast).is_err());
+/// assert!(cmm::check(&ast).is_err()); // main missing
 /// ```
-pub fn check<'input, 'err>(
-    errors: &'err mut Vec<checker::CheckErr>,
-    ast: &'input CProg
-) -> Result<(), ()> {
-    checker::check_prog(errors, ast)
+pub fn check<'input, 'err>(ast: &'input CProg) -> Result<(env::FuncTab<'input>, env::SymTab<'input>), Vec<checker::CheckErr>> {
+    checker::analyze_prog(ast)
 }

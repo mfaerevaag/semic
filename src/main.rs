@@ -5,8 +5,7 @@ fn main() {
 
 int main(void)
 {
-    char c, s[2];
-    c = 'a';
+    char s[2];
     s = "a";
     return (s == "foo");
 }

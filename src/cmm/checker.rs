@@ -31,32 +31,27 @@ impl fmt::Display for CheckErr {
 
 // checker functions
 
-pub fn check_prog<'input, 'err>(
-    errors: &'err mut Vec<CheckErr>,
-    ast: &'input CProg
-) -> Result<(), ()>
+pub fn analyze_prog<'input, 'err>(
+    ast: &'input CProg<'input>,
+) -> Result<(FuncTab<'input>, SymTab<'input>), Vec<CheckErr>>
 {
-    // global function table
     let mut vtab = FuncTab::new();
-    vtab.push_frame();
-    // symbol table
     let mut symtab = SymTab::new();
-    symtab.push_frame();
+    let mut errors = vec![];
 
     // check each element
     for elem in ast.iter() {
         match *elem {
             CProgElem::VarDecl(ref decl) => {
-                let (_, ref name, _) = *decl;
-                let val = (decl, None);
+                let (ref t, ref name, s) = *decl;
+                let val = (t, s, None);
 
                 match symtab.insert(*name, val) {
-                    Ok(Some(_)) => {
+                    Some(_) => {
                         let msg = format!("variable {:?} already declared", name);
                         errors.push(CheckErr::new(msg));
                     },
-                    Ok(None) => (),
-                    Err(_) => panic!("symbol table empty"),
+                    None => (),
                 };
             },
 
@@ -66,15 +61,11 @@ pub fn check_prog<'input, 'err>(
                 let val = (proto, Some(func));
 
                 match vtab.insert(*name, val) {
-                    Ok(Some(x)) => match x {
-                        (_, None) => (),
-                        (_, Some(_)) => {
-                            let msg = format!("function {:?} already declared", name);
-                            errors.push(CheckErr::new(msg));
-                        },
+                    Some((_, Some(_))) => {
+                        let msg = format!("function {:?} already declared", name);
+                        errors.push(CheckErr::new(msg));
                     },
-                    Ok(None) => (),
-                    Err(_) => panic!("function table empty"),
+                    _ => (),
                 };
             },
 
@@ -83,12 +74,11 @@ pub fn check_prog<'input, 'err>(
                 let val = (proto, None);
 
                 match vtab.insert(*name, val) {
-                    Ok(Some(_)) => {
+                    Some(_) => {
                         let msg = format!("function {:?} already defined", name);
                         errors.push(CheckErr::new(msg));
                     },
-                    Ok(None) => (),
-                    Err(_) => panic!("function table empty"),
+                    None => (),
                 };
             },
 
@@ -97,17 +87,34 @@ pub fn check_prog<'input, 'err>(
     };
 
     // check for main function
-    match vtab.get("main") {
-        Ok(None) | Ok(Some(&(_, None))) => {
-            let msg = format!(r#"function "main" not defined"#);
+    match vtab.get_func("main") {
+        None => {
+            let msg = format!("function 'main' missing");
             errors.push(CheckErr::new(msg));
         },
-        Err(_) => panic!("function table empty"),
         _ => (),
     };
 
+    // check if local errors
     match errors.len() {
-        0 => Ok(()),
-        _ => Err(()),
+        0 => Ok((vtab, symtab)),
+        _ => Err(errors),
+    }
+}
+
+pub fn analyze_func<'input, 'err>(
+    func: &'input CFunc<'input>,
+) -> Result<SymTab, Vec<CheckErr>>
+{
+    let mut symtab = SymTab::new();
+    let mut errors = vec![];
+
+    // let CFunc { ref proto, .. } = *func;
+    // let CProto { ref name, .. } = *proto;
+
+    // check if local errors
+    match errors.len() {
+        0 => Ok(symtab),
+        _ => Err(errors),
     }
 }

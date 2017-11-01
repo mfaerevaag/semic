@@ -4,12 +4,18 @@ extern crate cmm;
 
 #[test]
 fn prog_empty() {
-    let mut errors = Vec::new();
-
     let ast = cmm::parse(&mut vec![], r#""#).unwrap();
 
-    let actual = cmm::check(&mut errors, &ast);
+    let actual = cmm::check(&ast);
 
-    assert!(errors.is_empty());
+    assert!(actual.is_err());
+}
+
+#[test]
+fn prog_main() {
+    let ast = cmm::parse(&mut vec![], r#"int main () {}"#).unwrap();
+
+    let actual = cmm::check(&ast);
+
     assert!(actual.is_ok());
 }
