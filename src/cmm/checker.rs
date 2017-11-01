@@ -44,7 +44,7 @@ pub fn analyze_prog<'input, 'err>(
         match *elem {
             CProgElem::VarDecl(ref decl) => {
                 let (ref t, ref name, s) = *decl;
-                let val = (t, s, None);
+                let val = (t.clone(), s, None);
 
                 match symtab.insert(*name, val) {
                     Some(_) => {

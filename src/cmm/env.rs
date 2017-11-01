@@ -41,35 +41,52 @@ impl<'a> FuncTab<'a> {
 // symbol table
 
 pub struct SymTab<'a> {
-    tab: HashMap<&'a str, SymEntry<'a>>
+    tab: HashMap<&'a str, SymEntry>
 }
 
-pub type SymEntry<'a> = (&'a CType, Option<usize>, Option<u32>);
+pub type SymEntry = (CType, Option<usize>, Option<SymVal>);
+
+#[derive(Clone)]
+pub enum SymVal {
+    Str(String),
+    Num(i32),
+    Char(char),
+    Bool(bool)
+}
 
 impl<'a> SymTab<'a> {
     pub fn new() -> SymTab<'a> {
         SymTab { tab: HashMap::new() }
     }
 
-    pub fn iter(&self) -> Iter<&'a str, SymEntry<'a>> {
+    pub fn iter(&self) -> Iter<&'a str, SymEntry> {
         self.tab.iter()
     }
 
-    pub fn get_type(&self, key: &'a str) -> Option<(&'a CType, Option<usize>)> {
+    pub fn get_type(&self, key: &'a str) -> Option<(CType, Option<usize>)> {
         match self.tab.get(key) {
-            Some(&(t, s, _)) => Some((t, s)),
+            Some(&(ref t, s, _)) => Some((t.clone(), s)),
             _ => None,
         }
     }
 
-    pub fn get_val(&self, key: &'a str) -> Option<u32> {
+    pub fn get_val(&self, key: &'a str) -> Option<SymVal> {
         match self.tab.get(key) {
-            Some(&(_, _, v)) => v,
+            Some(&(_, _, Some(ref v))) => Some(v.clone()),
             _ => None
         }
     }
 
-    pub fn insert(&mut self, key: &'a str, val: SymEntry<'a>) -> Option<SymEntry<'a>> {
+    pub fn set_val(&mut self, key: &'a str, val: SymVal) {
+        let clone = self.tab.clone();
+        let &(ref t, s, ref prev) = match clone.get(key) {
+            Some(v) => v,
+            _ => panic!("variable '{}' not declared", key),
+        };
+        self.tab.insert(key, (t.clone(), s, Some(val)));
+    }
+
+    pub fn insert(&mut self, key: &'a str, val: SymEntry) -> Option<SymEntry> {
         self.tab.insert(key, val)
     }
 }

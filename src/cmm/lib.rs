@@ -11,7 +11,7 @@ use ast::{CProg, CFunc, CStmt, CExpr};
 
 // engine functions
 
-pub fn run(prog: &'static str) -> Result<(), ()> {
+pub fn run(prog: &'static str) -> Result<Option<i32>, ()> {
     // errors
     let mut parser_err = Vec::new();
     // let mut checker_err = Vec::new();
@@ -106,6 +106,9 @@ pub fn parse_expr<'input, 'err,>(
 /// let ast = cmm::parse(&mut vec![], r#"int x, x;"#).unwrap();
 /// assert!(cmm::check(&ast).is_err()); // main missing
 /// ```
-pub fn check<'input, 'err>(ast: &'input CProg) -> Result<(env::FuncTab<'input>, env::SymTab<'input>), Vec<checker::CheckErr>> {
+pub fn check<'input, 'err>(
+    ast: &'input CProg
+) -> Result<(env::FuncTab<'input>, env::SymTab<'input>), Vec<checker::CheckErr>>
+{
     checker::analyze_prog(ast)
 }

@@ -13,7 +13,7 @@ int main(void)
 "#;
 
     match cmm::run(prog) {
-        Ok(()) => println!("returned success"),
+        Ok(ret) => println!("returned {:?}", ret),
         Err(()) => println!("returned error"),
     }
 }
