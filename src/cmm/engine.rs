@@ -7,6 +7,7 @@ pub fn run_prog<'input>(ast: &'input CProg<'input>) -> Result<Option<SymVal>, ()
     let mut vtab = FuncTab::new();
     let mut global_symtab = SymTab::new();
 
+    // load global function and symbol table
     match checker::analyze_prog(&ast) {
         Ok((v, s)) => {
             for (k, v) in v.iter() { vtab.insert(k, *v); }
@@ -18,43 +19,42 @@ pub fn run_prog<'input>(ast: &'input CProg<'input>) -> Result<Option<SymVal>, ()
         },
     };
 
-    // get main function
+    // run main function
     let main = vtab.get_func("main").unwrap();
+    let res = run_func(main, &vtab, &global_symtab);
 
-    // read symbols
-    match checker::analyze_func(&main) {
-        Ok(s) => {
-            for (k, v) in s.iter() { global_symtab.insert(k, v.clone()); }
-        },
-        Err(ref e) => {
-            print_errors(e);
-            return Err(());
-        },
-    };
+    Ok(res)
+}
 
+fn run_func<'input>(
+    func: &'input CFunc<'input>,
+    vtab: &'input FuncTab<'input>,
+    global_symtab: &'input SymTab<'input>,
+) -> Option<SymVal>
+{
     // load decls
-    let mut main_symtab = SymTab::new();
-    for decl in main.decls.iter() {
+    let mut local_symtab = SymTab::new();
+    for decl in func.decls.iter() {
         let (ref t, ref id, s) = *decl;
-        main_symtab.insert(id, (t.clone(), s, None));
+        local_symtab.insert(id, (t.clone(), s, None));
     }
 
     // check each element
-    for stmt in main.stmts.iter() {
+    for stmt in func.stmts.iter() {
         match *stmt {
             CStmt::Assign(_, id, i, ref e) => {
-                let cloned = main_symtab.clone();
-                main_symtab.set_val(id, i, run_expr(e, &vtab, &global_symtab, &cloned));
+                let cloned = local_symtab.clone();
+                local_symtab.set_val(id, i, run_expr(e, &vtab, &global_symtab, &cloned));
             },
             CStmt::Return(_, ref s) => match s {
-                &Some(ref e) => return Ok(Some(run_expr(e, &vtab, &global_symtab, &main_symtab))),
-                _ => return Ok(None),
+                &Some(ref e) => return Some(run_expr(e, &vtab, &global_symtab, &local_symtab)),
+                _ => return None,
             },
             _ => println!("TODO: run {:?}", stmt),
         }
     }
 
-    Ok(None)
+    None
 }
 
 fn run_expr<'input>(
@@ -62,12 +62,13 @@ fn run_expr<'input>(
     vtab: &'input FuncTab<'input>,
     global_symtab: &'input SymTab<'input>,
     local_symtab: &'input SymTab<'input>,
-) -> SymVal {
-    match expr {
-        &CExpr::Num(n) => SymVal::Num(n),
-        &CExpr::Str(ref s) => SymVal::Str(s.clone()),
-        &CExpr::Char(c) => SymVal::Char(c),
-        &CExpr::Ident(id) => match local_symtab.get_val(id) {
+) -> SymVal
+{
+    match *expr {
+        CExpr::Num(n) => SymVal::Num(n),
+        CExpr::Str(ref s) => SymVal::Str(s.clone()),
+        CExpr::Char(c) => SymVal::Char(c),
+        CExpr::Ident(id) => match local_symtab.get_val(id) {
             Some(v) => v,
             _ => match global_symtab.get_val(id) {
                 Some(v) => v,
@@ -75,7 +76,7 @@ fn run_expr<'input>(
             }
         },
 
-        &CExpr::UnOp(op, ref e) => {
+        CExpr::UnOp(op, ref e) => {
             let v = run_expr(e, vtab, global_symtab, local_symtab);
             match op {
                 COp::Not => match v {
@@ -89,7 +90,7 @@ fn run_expr<'input>(
                 _ => panic!("unsupported unary operator {:?}", op),
             }
         },
-        &CExpr::BinOp(op, ref e1, ref e2) => {
+        CExpr::BinOp(op, ref e1, ref e2) => {
             let n1 = match run_expr(e1, vtab, global_symtab, local_symtab) {
                 SymVal::Num(n) => n,
                 x => panic!("expected number, got {:?}", x),
@@ -106,7 +107,7 @@ fn run_expr<'input>(
                 _ => panic!("unsupported binary arithmetic operator {:?}", op),
             }
         },
-        &CExpr::RelOp(op, ref e1, ref e2) => {
+        CExpr::RelOp(op, ref e1, ref e2) => {
             let n1 = match run_expr(e1, vtab, global_symtab, local_symtab) {
                 SymVal::Num(n) => n,
                 x => panic!("expected number, got {:?}", x),
@@ -125,7 +126,7 @@ fn run_expr<'input>(
                 _ => panic!("unsupported binary relational operator {:?}", op),
             }
         },
-        &CExpr::LogOp(op, ref e1, ref e2) => {
+        CExpr::LogOp(op, ref e1, ref e2) => {
             let b1 = match run_expr(e1, vtab, global_symtab, local_symtab) {
                 SymVal::Bool(b) => b,
                 x => panic!("expected bool, got {:?}", x),
@@ -141,7 +142,7 @@ fn run_expr<'input>(
             }
         },
 
-        &CExpr::Call(id, ref params) => {
+        CExpr::Call(id, ref params) => {
             let f = match vtab.get_func(id) {
                 Some(f) => f,
                 None => panic!("function '{}' not initialized", id),
@@ -150,7 +151,7 @@ fn run_expr<'input>(
             panic!("TODO: run func '{}' with args '{:?}'", id, args)
         },
 
-        &CExpr::Index(id, ref e) => {
+        CExpr::Index(id, ref e) => {
             let sym = match local_symtab.get_val(id) {
                 Some(v) => v,
                 _ => match global_symtab.get_val(id) {
@@ -177,7 +178,7 @@ fn run_expr<'input>(
             (*a[i as usize]).clone()
         },
 
-        &CExpr::Error => panic!("unexpected Error expr"),
+        CExpr::Error => panic!("unexpected Error expr"),
     }
 }
 
