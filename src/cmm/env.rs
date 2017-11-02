@@ -40,18 +40,20 @@ impl<'a> FuncTab<'a> {
 
 // symbol table
 
+#[derive(Clone)]
 pub struct SymTab<'a> {
     tab: HashMap<&'a str, SymEntry>
 }
 
 pub type SymEntry = (CType, Option<usize>, Option<SymVal>);
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum SymVal {
     Str(String),
     Num(i32),
     Char(char),
-    Bool(bool)
+    Bool(bool),
+    Array(Vec<Box<SymVal>>)
 }
 
 impl<'a> SymTab<'a> {
@@ -77,13 +79,40 @@ impl<'a> SymTab<'a> {
         }
     }
 
-    pub fn set_val(&mut self, key: &'a str, val: SymVal) {
+    pub fn set_val(&mut self, key: &'a str, i: Option<usize>, val: SymVal) {
         let clone = self.tab.clone();
         let &(ref t, s, ref prev) = match clone.get(key) {
             Some(v) => v,
             _ => panic!("variable '{}' not declared", key),
         };
-        self.tab.insert(key, (t.clone(), s, Some(val)));
+
+        // set var or array index
+        match i {
+            None => self.tab.insert(key, (t.clone(), s, Some(val))),
+            Some(i) => match prev {
+                &Some(SymVal::Array(ref a)) => {
+                    let mut a = a.clone();
+                    a.remove(i); // remove old val
+                    a.insert(i, Box::new(val)); // set new val
+                    let new = SymVal::Array(a);
+                    self.tab.insert(key, (t.clone(), s, Some(new)))
+                },
+                &None => {
+                    let mut a = Vec::new();
+                    let size = s.unwrap();
+                    for j in 0..size {
+                        if j == i {
+                            a.push(Box::new(val.clone()));
+                        } else {
+                            a.push(Box::new(SymVal::Num(0)));
+                        }
+                    }
+                    let new = SymVal::Array(a);
+                    self.tab.insert(key, (t.clone(), s, Some(new)))
+                }
+                x => panic!("expected array, got {:?}", x),
+            }
+        };
     }
 
     pub fn insert(&mut self, key: &'a str, val: SymEntry) -> Option<SymEntry> {

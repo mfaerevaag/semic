@@ -1,6 +1,0 @@
-int main(void)
-{
-    int ret;
-    ret = 1;
-    return -ret;
-}
