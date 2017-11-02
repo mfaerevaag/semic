@@ -102,19 +102,19 @@ pub fn analyze_prog<'input, 'err>(
     }
 }
 
-pub fn analyze_func<'input, 'err>(
-    func: &'input CFunc<'input>,
-) -> Result<SymTab, Vec<CheckErr>>
-{
-    let mut symtab = SymTab::new();
-    let mut errors = vec![];
+// pub fn analyze_func<'input, 'err>(
+//     func: &'input CFunc<'input>,
+// ) -> Result<SymTab, Vec<CheckErr>>
+// {
+//     let mut symtab = SymTab::new();
+//     let mut errors = vec![];
 
-    // let CFunc { ref proto, .. } = *func;
-    // let CProto { ref name, .. } = *proto;
+//     // let CFunc { ref proto, .. } = *func;
+//     // let CProto { ref name, .. } = *proto;
 
-    // check if local errors
-    match errors.len() {
-        0 => Ok(symtab),
-        _ => Err(errors),
-    }
-}
+//     // check if local errors
+//     match errors.len() {
+//         0 => Ok(symtab),
+//         _ => Err(errors),
+//     }
+// }

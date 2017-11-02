@@ -4,8 +4,10 @@ int main()
 
     ret = 0;
 
-    if (2 > 1) {
+    if (2 > 3) {
         ret = 1;
+    } else {
+        ret = 10;
     }
 
     return ret;
