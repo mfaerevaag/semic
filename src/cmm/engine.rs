@@ -70,7 +70,7 @@ fn run_stmt<'input>(
             None
         },
         CStmt::Return(_, ref s) => match s {
-            &Some(ref e) => Some(Some(run_expr(e, &vtab, &global_symtab, &local_symtab))),
+            &Some(ref e) => Some(Some(run_expr(e, &vtab, &global_symtab, &tmp_symtab))),
             _ => Some(None),
         },
         CStmt::Block(_, ref stmts) => {
@@ -89,7 +89,7 @@ fn run_stmt<'input>(
             res
         },
         CStmt::If(_, ref cond, ref s, ref o) => {
-            let b = match run_expr(cond, vtab, global_symtab, &local_symtab) {
+            let b = match run_expr(cond, vtab, global_symtab, &tmp_symtab) {
                 SymVal::Bool(b) => b,
                 x => panic!("expected bool, got {:?}", x),
             };
@@ -209,8 +209,12 @@ fn run_expr<'input>(
                 Some(f) => f,
                 None => panic!("function '{}' not initialized", id),
             };
+            // TODO: args
             let args: Vec<SymVal> = params.iter().map(|x| run_expr(x, vtab, global_symtab, local_symtab)).collect();
-            panic!("TODO: run func '{}' with args '{:?}'", id, args)
+            match run_func(&f, vtab, global_symtab) {
+                Some(v) => v,
+                None => panic!("expression returned void"),
+            }
         },
 
         CExpr::Index(id, ref e) => {
