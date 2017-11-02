@@ -39,23 +39,85 @@ fn run_func<'input>(
         local_symtab.insert(id, (t.clone(), s, None));
     }
 
-    // check each element
-    for stmt in func.stmts.iter() {
-        match *stmt {
-            CStmt::Assign(_, id, i, ref e) => {
-                let cloned = local_symtab.clone();
-                local_symtab.set_val(id, i, run_expr(e, &vtab, &global_symtab, &cloned));
-            },
-            CStmt::Return(_, ref s) => match s {
-                &Some(ref e) => return Some(run_expr(e, &vtab, &global_symtab, &local_symtab)),
-                _ => return None,
-            },
-            _ => println!("TODO: run {:?}", stmt),
-        }
-    }
+    // TODO: params
 
-    None
+    // wrap statements in block
+    let block = CStmt::Block((0,0), func.stmts.iter().map(|x| Box::new(x.clone())).collect());
+
+    // run block
+    let (_, ret) = run_stmt(&block, vtab, global_symtab, local_symtab);
+
+    // unwrap return val
+    match ret {
+        Some(x) => x,
+        None => None,
+    }
 }
+
+fn run_stmt<'input>(
+    stmt: &'input CStmt<'input>,
+    vtab: &'input FuncTab<'input>,
+    global_symtab: &'input SymTab<'input>,
+    local_symtab: SymTab<'input>,
+) -> (SymTab<'input>, Option<Option<SymVal>>)
+{
+    let mut tmp_symtab: SymTab<'input> = local_symtab.clone();
+
+    let res = match *stmt {
+        CStmt::Assign(_, id, i, ref e) => {
+            let cloned = local_symtab.clone();
+            tmp_symtab.set_val(id, i, run_expr(e, &vtab, &global_symtab, &cloned));
+            None
+        },
+        CStmt::Return(_, ref s) => match s {
+            &Some(ref e) => Some(Some(run_expr(e, &vtab, &global_symtab, &local_symtab))),
+            _ => Some(None),
+        },
+        CStmt::Block(_, ref stmts) => {
+            let mut res = None;
+            for s in stmts.iter() {
+                let (tab, res2) = run_stmt(s, vtab, global_symtab, tmp_symtab.clone());
+                tmp_symtab = tab.clone();
+                match res2 {
+                    Some(_) => {
+                        res = res2.clone();
+                        break
+                    },
+                    _ => res2
+                };
+            }
+            res
+        },
+        CStmt::If(_, ref cond, ref s, ref o) => {
+            let b = match run_expr(cond, vtab, global_symtab, &local_symtab) {
+                SymVal::Bool(b) => b,
+                x => panic!("expected bool, got {:?}", x),
+            };
+            if b {
+                let (tab, res) = run_stmt(s, vtab, global_symtab, tmp_symtab);
+                tmp_symtab = tab.clone();
+                res
+            } else {
+                match *o {
+                    Some(ref es) => {
+                        let (tab, res) = run_stmt(es, vtab, global_symtab, tmp_symtab);
+                        tmp_symtab = tab.clone();
+                        res
+                    },
+                    _ => None
+                }
+            }
+        },
+        // CStmt::While(_, CExpr<'input>, Box<CStmt<'input>>),
+        // CStmt::For(_, Option<Box<CStmt<'input>>>, Option<CExpr<'input>>,
+        //            Option<Box<CStmt<'input>>>, Box<CStmt<'input>>),
+        // Error,
+        _ => panic!("TODO: stmt")
+    };
+
+    (tmp_symtab, res)
+}
+
 
 fn run_expr<'input>(
     expr: &'input CExpr<'input>,
