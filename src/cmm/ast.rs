@@ -31,7 +31,7 @@ pub type CVarDecl<'input> = (CType, CIdent<'input>, Option<usize>);
 
 #[derive(Clone)]
 pub enum CStmt<'input> {
-    Assign(CLoc, CIdent<'input>, CExpr<'input>),
+    Assign(CLoc, CIdent<'input>, Option<usize>, CExpr<'input>),
     Return(CLoc, Option<CExpr<'input>>),
     Block(CLoc, Vec<Box<CStmt<'input>>>),
     If(CLoc, CExpr<'input>, Box<CStmt<'input>>, Option<Box<CStmt<'input>>>),
@@ -112,7 +112,10 @@ impl<'input> Debug for CStmt<'input> {
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
         use self::CStmt::*;
         match *self {
-            Assign(_, ref l, ref r) => write!(fmt, "{:?} = {:?}", l, r),
+            Assign(_, ref l, i, ref r) => match i {
+                Some(i) => write!(fmt, "{:?}[{}] = {:?}", l, i, r),
+                None => write!(fmt, "{:?} = {:?}", l, r),
+            },
             Return(_, ref o) => {
                 match *o {
                     Some(ref e) => write!(fmt, "return {:?}", e),

@@ -194,8 +194,10 @@ StmtOther: Box<CStmt<'input>> = {
 };
 
 StmtAssign: Box<CStmt<'input>> = {
-    <l:@L> <i:Ident> "=" <e:Expr> <r:@R> =>
-        Box::new(CStmt::Assign((l, r), i, e)),
+    <l:@L> <i:VarArray> "=" <e:Expr> <r:@R> => {
+        let (id, s) = i;
+        Box::new(CStmt::Assign((l, r), id, s, e))
+    }
 };
 
 // expression
