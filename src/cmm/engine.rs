@@ -130,15 +130,11 @@ fn run_stmt<'input>(
                 None
             }
         },
-        // CStmt::For(_, Option<Box<CStmt<'input>>>, Option<CExpr<'input>>,
-        //            Option<Box<CStmt<'input>>>, Box<CStmt<'input>>),
-        // Error,
-        _ => panic!("TODO: stmt")
+        _ => panic!("unexpected token '{:?}' in ast", stmt)
     };
 
     (tmp_symtab, res)
 }
-
 
 fn run_expr<'input>(
     expr: &'input CExpr<'input>,

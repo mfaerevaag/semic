@@ -186,7 +186,31 @@ StmtOther: Box<CStmt<'input>> = {
 
     // for
     <l:@L> "for" "(" <init:StmtAssign?> ";" <cond:Expr?> ";" <inc:StmtAssign?> ")" <stmt:StmtIfMatching> <r:@R> => {
-        Box::new(CStmt::For((l, r), init, cond, inc, stmt))
+        let mut top = vec![];
+        match init {
+            Some(s) => top.push(s),
+            None => {}
+        };
+
+        let cond = match cond {
+            Some(e) => e,
+            // TODO: fix booleans...
+            None => CExpr::LogOp(COp::And, Box::new(CExpr::Num(1)), Box::new(CExpr::Num(1))),
+        };
+
+        let mut body = vec![];
+        body.push(stmt);
+        match inc {
+            Some(s) => body.push(s),
+            None => {}
+        };
+
+        // TODO: fix locations
+        let whiles = CStmt::While((l, r), cond, Box::new(CStmt::Block((l, r), body)));
+
+        top.push(Box::new(whiles));
+
+        Box::new(CStmt::Block((l, r), top))
     },
 
     // error
