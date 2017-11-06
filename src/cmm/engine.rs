@@ -111,7 +111,25 @@ fn run_stmt<'input>(
                 }
             }
         },
-        // CStmt::While(_, CExpr<'input>, Box<CStmt<'input>>),
+        CStmt::While(_, ref cond, ref s) => {
+            let b = match run_expr(cond, vtab, global_symtab, &tmp_symtab) {
+                SymVal::Bool(b) => b,
+                x => panic!("expected bool, got {:?}", x),
+            };
+            if b {
+                let (tab, res) = run_stmt(s, vtab, global_symtab, local_symtab);
+                match res {
+                    Some(_) => res,
+                    _ => {
+                        let (tab2, res2) = run_stmt(stmt, vtab, global_symtab, tab);
+                        tmp_symtab = tab2;
+                        res2
+                    }
+                }
+            } else {
+                None
+            }
+        },
         // CStmt::For(_, Option<Box<CStmt<'input>>>, Option<CExpr<'input>>,
         //            Option<Box<CStmt<'input>>>, Box<CStmt<'input>>),
         // Error,
