@@ -113,8 +113,8 @@ impl<'input> Debug for CStmt<'input> {
         use self::CStmt::*;
         match *self {
             Assign(_, ref l, i, ref r) => match i {
-                Some(i) => write!(fmt, "{:?}[{}] = {:?}", l, i, r),
-                None => write!(fmt, "{:?} = {:?}", l, r),
+                Some(i) => write!(fmt, "{}[{}] = {:?}", l, i, r),
+                None => write!(fmt, "{} = {:?}", l, r),
             },
             Return(_, ref o) => {
                 match *o {
