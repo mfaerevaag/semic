@@ -120,13 +120,13 @@ impl<'input> Debug for CStmt<'input> {
                     None => write!(fmt, "return"),
                 }
             }
-            Block(_, ref stmts) => write!(fmt, "{:?}", stmts),
+            Block(_, ref stmts) => write!(fmt, "{:#?}", stmts),
             If(_, ref cond, ref stmt, ref opt) => match opt.clone() {
-                Some(ref stmt2) => write!(fmt, "if ({:?}) {:?} else {:?}", cond, stmt, stmt2),
-                None => write!(fmt, "if ({:?}) {:?}", cond, stmt),
+                Some(ref stmt2) => write!(fmt, "if {:?} {:?} else {:?}", cond, stmt, stmt2),
+                None => write!(fmt, "if {:?} {:?}", cond, stmt),
             },
             While(_, ref cond, ref stmt) =>
-                write!(fmt, "while ({:?}) {:?}", cond, stmt),
+                write!(fmt, "while {:?} {:?}", cond, stmt),
             Error => write!(fmt, "error"),
         }
     }
