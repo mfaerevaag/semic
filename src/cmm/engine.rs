@@ -21,7 +21,10 @@ pub fn run_prog<'input>(ast: &'input CProg<'input>) -> Result<Option<SymVal>, ()
 
     // run main function
     let main = vtab.get_func("main").unwrap();
-    let res = run_func(main, &vtab, &global_symtab);
+    // TODO: load command line args
+    let mut local_symtab = SymTab::new();
+    // run
+    let res = run_func(main, &vtab, &global_symtab, &mut local_symtab);
 
     Ok(res)
 }
@@ -30,22 +33,21 @@ fn run_func<'input>(
     func: &'input CFunc<'input>,
     vtab: &'input FuncTab<'input>,
     global_symtab: &'input SymTab<'input>,
+    local_symtab: &'input mut SymTab<'input>,
 ) -> Option<SymVal>
 {
+    // let mut local_symtab = SymTab::new();
     // load decls
-    let mut local_symtab = SymTab::new();
     for decl in func.decls.iter() {
         let (ref t, ref id, s) = *decl;
         local_symtab.insert(id, (t.clone(), s, None));
     }
 
-    // TODO: params
-
     // wrap statements in block
     let block = CStmt::Block((0,0), func.stmts.iter().map(|x| Box::new(x.clone())).collect());
 
     // run block
-    let (_, ret) = run_stmt(&block, vtab, global_symtab, local_symtab);
+    let (_, ret) = run_stmt(&block, vtab, global_symtab, local_symtab.clone());
 
     // unwrap return val
     match ret {
@@ -61,23 +63,24 @@ fn run_stmt<'input>(
     local_symtab: SymTab<'input>,
 ) -> (SymTab<'input>, Option<Option<SymVal>>)
 {
-    let mut tmp_symtab: SymTab<'input> = local_symtab.clone();
+    let mut tmp_symtab = local_symtab.clone();
 
     let res = match *stmt {
         CStmt::Assign(_, id, i, ref e) => {
-            let cloned = local_symtab.clone();
-            tmp_symtab.set_val(id, i, run_expr(e, &vtab, &global_symtab, &cloned));
+            let val = run_expr(e, vtab, global_symtab, &tmp_symtab);
+            tmp_symtab.set_val(id, i, val);
             None
         },
         CStmt::Return(_, ref s) => match s {
-            &Some(ref e) => Some(Some(run_expr(e, &vtab, &global_symtab, &tmp_symtab))),
+            &Some(ref e) => Some(Some(run_expr(e, vtab, global_symtab, &tmp_symtab))),
             _ => Some(None),
         },
         CStmt::Block(_, ref stmts) => {
             let mut res = None;
             for s in stmts.iter() {
-                let (tab, res2) = run_stmt(s, vtab, global_symtab, tmp_symtab.clone());
-                tmp_symtab = tab.clone();
+                println!("run {:?}", s);
+                let (tab, res2) = run_stmt(s, vtab, global_symtab, tmp_symtab);
+                tmp_symtab = tab;
                 match res2 {
                     Some(_) => {
                         res = res2.clone();
@@ -95,13 +98,13 @@ fn run_stmt<'input>(
             };
             if b {
                 let (tab, res) = run_stmt(s, vtab, global_symtab, tmp_symtab);
-                tmp_symtab = tab.clone();
+                tmp_symtab = tab;
                 res
             } else {
                 match *o {
                     Some(ref es) => {
                         let (tab, res) = run_stmt(es, vtab, global_symtab, tmp_symtab);
-                        tmp_symtab = tab.clone();
+                        tmp_symtab = tab;
                         res
                     },
                     _ => None
@@ -211,7 +214,8 @@ fn run_expr<'input>(
             };
             // TODO: args
             let args: Vec<SymVal> = params.iter().map(|x| run_expr(x, vtab, global_symtab, local_symtab)).collect();
-            match run_func(&f, vtab, global_symtab) {
+            let mut symtab = SymTab::new();
+            match run_func(&f, vtab, global_symtab, &mut symtab) {
                 Some(v) => v,
                 None => panic!("expression returned void"),
             }
