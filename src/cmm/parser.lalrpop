@@ -1,4 +1,4 @@
-use std::str::{Chars, FromStr};
+use std::str::FromStr;
 use ast::*;
 use lalrpop_util::ErrorRecovery;
 

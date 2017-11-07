@@ -229,15 +229,23 @@ pub fn run_expr<'input>(
             }
         },
 
-        CExpr::Call(id, ref params) => {
+        CExpr::Call(id, ref args) => {
+            // get func
             let f = match vtab.get_func(id) {
                 Some(f) => f,
                 None => panic!("function '{}' not initialized", id),
             };
-            // TODO: args
-            let args: Vec<SymVal> = params.iter().map(|x| run_expr(x, vtab, global_symtab, local_symtab)).collect();
-            let mut symtab = SymTab::new();
-            match run_func(&f, vtab, global_symtab, &mut symtab) {
+
+            // calc and add args to symtab
+            let mut tab = SymTab::new();
+            for (i, p) in f.proto.params.iter().enumerate() {
+                let (ref t, ref id) = *p;
+                let e = args.iter().nth(i).unwrap();
+                let val = run_expr(e, vtab, global_symtab, local_symtab);
+                tab.insert(id, (t.clone(), None, Some(val)));
+            }
+
+            match run_func(&f, vtab, global_symtab, &mut tab) {
                 Some(v) => v,
                 None => panic!("expression returned void"),
             }
