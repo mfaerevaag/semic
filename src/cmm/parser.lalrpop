@@ -83,7 +83,6 @@ Proto: Vec<CProgElem<'input>> = {
 
 pub Func: CFunc<'input> = {
     "void" <r:FuncDecl> "{"
-        <decl:(<VarDecl> ";")*>
         <stmt:(<Stmt>)*> "}" =>
     {
         let (id, param) = r;
@@ -93,12 +92,10 @@ pub Func: CFunc<'input> = {
                 name: id,
                 params: param,
             },
-            decls: decl.into_iter().flat_map(|x| x.to_vec()).collect(),
             stmts: stmt,
         }
     },
     <l:Type> <r:FuncDecl> "{"
-        <decl:(<VarDecl> ";")*>
         <stmt:(<Stmt>)*> "}" =>
     {
         let (id, param) = r;
@@ -108,7 +105,6 @@ pub Func: CFunc<'input> = {
                 name: id,
                 params: param,
             },
-            decls: decl.into_iter().flat_map(|x| x.to_vec()).collect(),
             stmts: stmt,
         }
     },
@@ -136,22 +132,6 @@ Param: CParam<'input> = {
     }
 };
 
-// variable declaration
-
-VarDecl: Vec<CVarDecl<'input>> = {
-    <t:Type> <r:Comma<VarArray>> => {
-        Vec::from(r).into_iter().map(|x| match x {
-            (id, None) => ((t.clone(), id, None)),
-            (id, s) => (CType::Ref(Box::new(t.clone())), id, s),
-        }).collect()
-    },
-};
-
-VarArray: (CIdent<'input>, Option<usize>) = {
-    <l:Ident> "[" <r:TInt> "]" => (l, Some(usize::from_str(r).unwrap())),
-    Ident => (<>, None),
-};
-
 // statements
 
 pub Stmt: CStmt<'input> = {
@@ -177,6 +157,8 @@ StmtIfUnmatching: Box<CStmt<'input>> = {
 };
 
 StmtOther: Box<CStmt<'input>> = {
+    <VarDecl> ";",
+
     // assignment
     <StmtAssign> ";",
 
@@ -232,6 +214,20 @@ StmtOther: Box<CStmt<'input>> = {
 
     // error
     // ! => { errors.push(<>); Box::new(CStmt::Error) },
+};
+
+VarDecl: Box<CStmt<'input>> = {
+    <l:@L> <t:Type> <m:VarArray> <mm:("," <VarArray>)*> <r:@R> => {
+        let x = vec![m].into_iter().chain(mm).map(|(id, s)| {
+            Box::new(CStmt::VarDecl((l, r), id, t.clone(), s))
+        }).collect();
+        Box::new(CStmt::Block((l, r), x))
+    },
+};
+
+VarArray: (CIdent<'input>, Option<usize>) = {
+    <l:Ident> "[" <r:TInt> "]" => (l, Some(usize::from_str(r).unwrap())),
+    Ident => (<>, None),
 };
 
 StmtAssign: Box<CStmt<'input>> = {

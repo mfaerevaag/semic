@@ -59,18 +59,11 @@ pub fn run_func<'input>(
     local_symtab: SymTab<'input>,
 ) -> Option<SymVal>
 {
-    let mut tmp_symtab = local_symtab.clone();
-    // load decls
-    for decl in func.decls.iter() {
-        let (ref t, ref id, s) = *decl;
-        tmp_symtab.insert(id, (t.clone(), s, None));
-    }
-
     // wrap statements in block
     let block = CStmt::Block((0,0), func.stmts.iter().map(|x| Box::new(x.clone())).collect());
 
     // run block
-    let (_, ret) = run_stmt(&block, vtab, global_symtab, tmp_symtab);
+    let (_, ret) = run_stmt(&block, vtab, global_symtab, local_symtab);
 
     // unwrap return val
     match ret {
@@ -92,6 +85,10 @@ pub fn run_stmt<'input>(
         CStmt::Assign(_, id, i, ref e) => {
             let val = run_expr(e, vtab, global_symtab, &tmp_symtab);
             tmp_symtab.set_val(id, i, val);
+            None
+        },
+        CStmt::VarDecl(_, id, ref t, s) => {
+            tmp_symtab.insert(id, (t.clone(), s, None));
             None
         },
         CStmt::Return(_, ref s) => match s {

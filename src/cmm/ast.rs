@@ -22,16 +22,17 @@ pub struct CProto<'input> {
 #[derive(Clone, Debug)]
 pub struct CFunc<'input> {
     pub proto: CProto<'input>,
-    pub decls: Vec<CVarDecl<'input>>,
     pub stmts: Vec<CStmt<'input>>,
 }
 
+// TODO: remove
 pub type CParam<'input> = (CType, CIdent<'input>);
 
 pub type CVarDecl<'input> = (CType, CIdent<'input>, Option<usize>);
 
 #[derive(Clone)]
 pub enum CStmt<'input> {
+    VarDecl(CLoc, CIdent<'input>, CType, Option<usize>), // TODO: rename
     Assign(CLoc, CIdent<'input>, Option<usize>, CExpr<'input>),
     Return(CLoc, Option<CExpr<'input>>),
     Block(CLoc, Vec<Box<CStmt<'input>>>),
@@ -115,6 +116,10 @@ impl<'input> Debug for CStmt<'input> {
             Assign(_, ref l, i, ref r) => match i {
                 Some(i) => write!(fmt, "{}[{}] = {:?}", l, i, r),
                 None => write!(fmt, "{} = {:?}", l, r),
+            },
+            VarDecl(_, id, ref t, s) => match s {
+                Some(i) => write!(fmt, "{:?} {}[{}]", t, id, i),
+                None => write!(fmt, "{:?} {}", t, id),
             },
             Return(_, ref o) => {
                 match *o {
