@@ -287,7 +287,32 @@ fn func_single_decl_single_stmt() {
             params: vec![],
         },
         decls: vec![(CType::Int, "x", None)],
-        stmts: vec![CStmt::Assign((0, 0), "x", CExpr::Num(1))],
+        stmts: vec![CStmt::Assign((0, 0), "x", None, CExpr::Num(1))],
+    };
+
+    assert!(errors.is_empty());
+    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
+}
+
+#[test]
+fn func_single_array_single_stmt() {
+    let mut errors = Vec::new();
+
+    let actual = cmm::parse_func(&mut errors, r#"
+        int main (void) {
+            char x[7];
+            x[6] = '\0';
+        }
+    "#).unwrap();
+
+    let expected = CFunc {
+        proto: CProto {
+            ret: Some(CType::Int),
+            name: "main",
+            params: vec![],
+        },
+        decls: vec![(CType::Ref(Box::new(CType::Char)), "x", Some(7))],
+        stmts: vec![CStmt::Assign((0, 0), "x", Some(6), CExpr::Char('\0'))],
     };
 
     assert!(errors.is_empty());
@@ -315,8 +340,8 @@ fn func_stmt_mult() {
         },
         decls: vec![(CType::Int, "x", None),
                     (CType::Int, "y", None)],
-        stmts: vec![CStmt::Assign((0, 0), "x", CExpr::Num(1)),
-                    CStmt::Assign((0, 0), "y", CExpr::Num(2)),
+        stmts: vec![CStmt::Assign((0, 0), "x", None, CExpr::Num(1)),
+                    CStmt::Assign((0, 0), "y", None, CExpr::Num(2)),
                     CStmt::Return((0, 0), Some(CExpr::BinOp(
                         COp::Add,
                         Box::new(CExpr::Ident("x")),
