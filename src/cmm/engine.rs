@@ -145,7 +145,15 @@ fn run_expr<'input>(
 {
     match *expr {
         CExpr::Num(n) => SymVal::Num(n),
-        CExpr::Str(ref s) => SymVal::Str(s.clone()),
+        CExpr::Str(ref s) => {
+            let mut arr = Vec::with_capacity(s.as_str().len() + 1);
+            for c in s.clone() {
+                arr.push(Box::new(SymVal::Char(c)));
+            }
+            // add null char
+            arr.push(Box::new(SymVal::Char('\0')));
+            SymVal::Array(arr)
+        },
         CExpr::Char(c) => SymVal::Char(c),
         CExpr::Ident(id) => match local_symtab.get_val(id) {
             Some(v) => v,

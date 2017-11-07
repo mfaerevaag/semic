@@ -49,7 +49,6 @@ pub type SymEntry = (CType, Option<usize>, Option<SymVal>);
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum SymVal {
-    Str(String),
     Num(i32),
     Char(char),
     Bool(bool),

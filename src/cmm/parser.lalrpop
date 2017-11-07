@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::str::{Chars, FromStr};
 use ast::*;
 use lalrpop_util::ErrorRecovery;
 
@@ -322,12 +322,8 @@ Num: CInt = {
     TInt => i32::from_str(<>).unwrap(),
 };
 
-Str: CString = {
-    TString => {
-        let mut s = String::from(<>.get(1..).unwrap());
-        s.pop();
-        s
-    },
+Str: CString<'input> = {
+    TString => <>.get(1..(<>.len() - 1)).unwrap().chars(),
 };
 
 Char: CChar = {

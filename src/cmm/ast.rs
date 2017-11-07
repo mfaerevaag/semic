@@ -1,3 +1,4 @@
+use std::str::Chars;
 use std::fmt::{Debug, Formatter, Error};
 
 
@@ -42,7 +43,7 @@ pub enum CStmt<'input> {
 #[derive(Clone)]
 pub enum CExpr<'input> {
     Num(CInt),
-    Str(CString),
+    Str(CString<'input>),
     Char(CChar),
     Ident(CIdent<'input>),
     UnOp(COp, Box<CExpr<'input>>),
@@ -76,7 +77,7 @@ pub enum COp {
     Not,
 }
 
-#[derive(Clone)]
+#[derive(PartialEq, Clone)]
 pub enum CType {
     Char,
     Int,
@@ -86,7 +87,7 @@ pub enum CType {
 pub type CLoc = (usize, usize);
 
 pub type CInt = i32;
-pub type CString = String;
+pub type CString<'input> = Chars<'input>;
 pub type CChar = char;
 
 pub type CIdent<'input> = &'input str;
