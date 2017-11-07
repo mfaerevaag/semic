@@ -138,7 +138,7 @@ impl<'input> Debug for CExpr<'input> {
         use self::CExpr::*;
         match *self {
             Num(n) => write!(fmt, "{:?}", n),
-            Str(ref s) => write!(fmt, "{:?}", s),
+            Str(ref s) => write!(fmt, "\"{}\"", s.as_str()),
             Char(n) => write!(fmt, "{:?}", n),
             Ident(ref s) => write!(fmt, "{}", &s),
             UnOp(op, ref l) => write!(fmt, "({:?}{:?})", op, l),
