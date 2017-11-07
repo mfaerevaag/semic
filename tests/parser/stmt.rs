@@ -181,8 +181,15 @@ fn stmt_for_single() {
 
     let actual = cmm::parse_stmt(&mut errors, r#"for (;;) return;"#).unwrap();
 
-    let expected = CStmt::For((0,0), None, None, None,
-                              Box::new(CStmt::Return((0,0), None)));
+    let mut top = vec![];
+    // init
+    // cond
+    let cond = CExpr::LogOp(COp::Eq, Box::new(CExpr::Num(1)), Box::new(CExpr::Num(1)));
+    // inc
+    let body = Box::new(CStmt::Return((0,0), None));
+    // expected
+    top.push(Box::new(CStmt::While((0,0), cond, body)));
+    let expected = Box::new(CStmt::Block((0,0), top));
 
     assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
@@ -194,10 +201,15 @@ fn stmt_for_block() {
 
     let actual = cmm::parse_stmt(&mut errors, r#"for (;;) { return; }"#).unwrap();
 
-    let expected = CStmt::For((0,0), None, None, None,
-                              Box::new(CStmt::Block(
-                                  (0,0),
-                                  vec![Box::new(CStmt::Return((0,0), None))])));
+    let mut top = vec![];
+    // init
+    // cond
+    let cond = CExpr::LogOp(COp::Eq, Box::new(CExpr::Num(1)), Box::new(CExpr::Num(1)));
+    // inc
+    let body = Box::new(CStmt::Block((0,0), vec![Box::new(CStmt::Return((0,0), None))]));
+    // expected
+    top.push(Box::new(CStmt::While((0,0), cond, body)));
+    let expected = Box::new(CStmt::Block((0,0), top));
 
     assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
@@ -209,10 +221,16 @@ fn stmt_for_init() {
 
     let actual = cmm::parse_stmt(&mut errors, r#"for (i = 0;;) return;"#).unwrap();
 
-    let expected = CStmt::For((0,0),
-                              Some(Box::new(CStmt::Assign((0,0), "i", CExpr::Num(0)))),
-                              None, None,
-                              Box::new(CStmt::Return((0,0), None)));
+    let mut top = vec![];
+    // init
+    top.push(Box::new(CStmt::Assign((0,0), "i", None, CExpr::Num(0))));
+    // cond
+    let cond = CExpr::LogOp(COp::Eq, Box::new(CExpr::Num(1)), Box::new(CExpr::Num(1)));
+    // inc
+    let body = Box::new(CStmt::Return((0,0), None));
+    // expected
+    top.push(Box::new(CStmt::While((0,0), cond, body)));
+    let expected = Box::new(CStmt::Block((0,0), top));
 
     assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
@@ -224,10 +242,15 @@ fn stmt_for_cond() {
 
     let actual = cmm::parse_stmt(&mut errors, r#"for (;1;) return;"#).unwrap();
 
-    let expected = CStmt::For((0,0), None,
-                              Some(CExpr::Num(1)),
-                              None,
-                              Box::new(CStmt::Return((0,0), None)));
+    let mut top = vec![];
+    // init
+    // cond
+    let cond = CExpr::Num(1);
+    // inc
+    let body = Box::new(CStmt::Return((0,0), None));
+    // expected
+    top.push(Box::new(CStmt::While((0,0), cond, body)));
+    let expected = Box::new(CStmt::Block((0,0), top));
 
     assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
@@ -239,15 +262,18 @@ fn stmt_for_inc() {
 
     let actual = cmm::parse_stmt(&mut errors, r#"for (;;i = i + 1) return;"#).unwrap();
 
-    let expected = CStmt::For((0,0), None,
-                              None,
-                              Some(Box::new(CStmt::Assign(
-                                  (0,0), "i",
-                                  CExpr::BinOp(
-                                      COp::Add,
-                                      Box::new(CExpr::Ident("i")),
-                                      Box::new(CExpr::Num(1)))))),
-                              Box::new(CStmt::Return((0,0), None)));
+    let mut top = vec![];
+    // init
+    // cond
+    let cond = CExpr::LogOp(COp::Eq, Box::new(CExpr::Num(1)), Box::new(CExpr::Num(1)));
+    // inc
+    let mut body = vec![];
+    body.push(Box::new(CStmt::Return((0,0), None)));
+    body.push(Box::new(CStmt::Assign((0,0), "i", None, CExpr::BinOp(COp::Add, Box::new(CExpr::Ident("i")), Box::new(CExpr::Num(1))))));
+    let body = Box::new(CStmt::Block((0,0), body));
+    // expected
+    top.push(Box::new(CStmt::While((0,0), cond, body)));
+    let expected = Box::new(CStmt::Block((0,0), top));
 
     assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
@@ -259,16 +285,19 @@ fn stmt_for_all() {
 
     let actual = cmm::parse_stmt(&mut errors, r#"for (i = 0;1;i = i + 1) return;"#).unwrap();
 
-    let expected = CStmt::For((0,0),
-                              Some(Box::new(CStmt::Assign((0,0), "i", CExpr::Num(0)))),
-                              Some(CExpr::Num(1)),
-                              Some(Box::new(CStmt::Assign(
-                                  (0,0), "i",
-                                  CExpr::BinOp(
-                                      COp::Add,
-                                      Box::new(CExpr::Ident("i")),
-                                      Box::new(CExpr::Num(1)))))),
-                              Box::new(CStmt::Return((0,0), None)));
+    let mut top = vec![];
+    // init
+    top.push(Box::new(CStmt::Assign((0,0), "i", None, CExpr::Num(0))));
+    // cond
+    let cond = CExpr::Num(1);
+    // inc
+    let mut body = vec![];
+    body.push(Box::new(CStmt::Return((0,0), None)));
+    body.push(Box::new(CStmt::Assign((0,0), "i", None, CExpr::BinOp(COp::Add, Box::new(CExpr::Ident("i")), Box::new(CExpr::Num(1))))));
+    let body = Box::new(CStmt::Block((0,0), body));
+    // expected
+    top.push(Box::new(CStmt::While((0,0), cond, body)));
+    let expected = Box::new(CStmt::Block((0,0), top));
 
     assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));

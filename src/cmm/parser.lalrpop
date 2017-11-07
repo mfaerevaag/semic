@@ -195,18 +195,21 @@ StmtOther: Box<CStmt<'input>> = {
         let cond = match cond {
             Some(e) => e,
             // TODO: fix booleans...
-            None => CExpr::LogOp(COp::And, Box::new(CExpr::Num(1)), Box::new(CExpr::Num(1))),
+            None => CExpr::LogOp(COp::Eq, Box::new(CExpr::Num(1)), Box::new(CExpr::Num(1))),
         };
 
-        let mut body = vec![];
-        body.push(stmt);
-        match inc {
-            Some(s) => body.push(s),
-            None => {}
+        let body = match inc {
+            Some(s) => {
+                let mut ss = vec![];
+                ss.push(stmt);
+                ss.push(s);
+                Box::new(CStmt::Block((0,0), ss))
+            },
+            None => stmt,
         };
 
         // TODO: fix locations
-        let whiles = CStmt::While((l, r), cond, Box::new(CStmt::Block((l, r), body)));
+        let whiles = CStmt::While((l, r), cond, body);
 
         top.push(Box::new(whiles));
 
