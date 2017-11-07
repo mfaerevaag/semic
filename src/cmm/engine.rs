@@ -29,7 +29,7 @@ pub fn run_prog<'input>(ast: &'input CProg<'input>) -> Result<Option<SymVal>, ()
     Ok(res)
 }
 
-fn run_func<'input>(
+pub fn run_func<'input>(
     func: &'input CFunc<'input>,
     vtab: &'input FuncTab<'input>,
     global_symtab: &'input SymTab<'input>,
@@ -56,7 +56,7 @@ fn run_func<'input>(
     }
 }
 
-fn run_stmt<'input>(
+pub fn run_stmt<'input>(
     stmt: &'input CStmt<'input>,
     vtab: &'input FuncTab<'input>,
     global_symtab: &'input SymTab<'input>,
@@ -136,7 +136,7 @@ fn run_stmt<'input>(
     (tmp_symtab, res)
 }
 
-fn run_expr<'input>(
+pub fn run_expr<'input>(
     expr: &'input CExpr<'input>,
     vtab: &'input FuncTab<'input>,
     global_symtab: &'input SymTab<'input>,
