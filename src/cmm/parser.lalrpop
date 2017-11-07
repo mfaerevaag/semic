@@ -124,8 +124,16 @@ FuncParam: Vec<CParam<'input>> = {
 };
 
 Param: CParam<'input> = {
-    <t:Type> <r:Ident> "[" "]" => (CType::Ref(Box::new(t)), r),
-    <t:Type> <r:Ident> => (<>),
+    <t:Type> <r:Ident> <s:("[" "]")*> => match s.len() {
+        0 => (t, r),
+        x => {
+            let mut tt = t;
+            for i in 0..x {
+                tt = CType::Ref(Box::new(tt));
+            }
+            (tt, r)
+        }
+    }
 };
 
 // variable declaration
