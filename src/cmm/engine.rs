@@ -1,3 +1,4 @@
+use std::env;
 use ast::*;
 use env::{FuncTab, SymTab, SymVal};
 use checker;
@@ -19,10 +20,32 @@ pub fn run_prog<'input>(ast: &'input CProg<'input>) -> Result<Option<SymVal>, ()
         },
     };
 
-    // run main function
+    // get main function
     let main = vtab.get_func("main").unwrap();
-    // TODO: load command line args
-    let local_symtab = SymTab::new();
+
+    // load command line args
+    let mut local_symtab = SymTab::new();
+    // argc
+    let argc = env::args().len() as i32 - 1;
+    local_symtab.insert("argc", (CType::Int, None, Some(SymVal::Num(argc))));
+    // argv
+    let mut argv = vec![];
+    for (i, arg) in env::args().enumerate() {
+        if i < 1 { continue };
+
+        // create internal string
+        let mut s = Vec::with_capacity(arg.len() + 1);
+        for c in arg.chars() {
+            s.push(Box::new(SymVal::Char(c)));
+        }
+        // add null char
+        s.push(Box::new(SymVal::Char('\0')));
+
+        argv.push(Box::new(SymVal::Array(s)));
+    }
+    local_symtab.insert("argv", (CType::Ref(Box::new(CType::Ref(Box::new(CType::Char)))),
+                                 None,
+                                 Some(SymVal::Array(argv))));
     // run
     let res = run_func(main, &vtab, &global_symtab, local_symtab);
 
