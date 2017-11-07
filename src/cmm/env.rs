@@ -1,3 +1,4 @@
+use std::fmt::{Debug, Formatter, Error};
 use std::collections::HashMap;
 use std::collections::hash_map::Iter;
 use ast::*;
@@ -47,7 +48,7 @@ pub struct SymTab<'a> {
 
 pub type SymEntry = (CType, Option<usize>, Option<SymVal>);
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Clone)]
 pub enum SymVal {
     Num(i32),
     Char(char),
@@ -116,5 +117,17 @@ impl<'a> SymTab<'a> {
 
     pub fn insert(&mut self, key: &'a str, val: SymEntry) -> Option<SymEntry> {
         self.tab.insert(key, val)
+    }
+}
+
+impl Debug for SymVal {
+    fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
+        use self::SymVal::*;
+        match *self {
+            Num(n) => write!(fmt, "{}", n),
+            Char(c) => write!(fmt, "{}", c),
+            Bool(b) => write!(fmt, "{}", b),
+            Array(ref a) => write!(fmt, "{:?}", a),
+        }
     }
 }
