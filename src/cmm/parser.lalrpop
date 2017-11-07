@@ -15,7 +15,6 @@ Comma<T>: Vec<T> = {
 // token precedence
 
 match {
-    "void",
     "return",
     "extern",
     "if",
@@ -25,8 +24,11 @@ match {
     "continue",
     "break",
 
+    "void",
     "int",
     "char",
+
+    "printf",
 
 } else {
     r"[0-9]+" => TInt,
@@ -215,6 +217,10 @@ StmtOther: Box<CStmt<'input>> = {
 
         Box::new(CStmt::Block((l, r), top))
     },
+
+    // print
+    <l:@L> "printf" "(" <e:Expr> ")" ";" <r:@R> =>
+        Box::new(CStmt::Print((l, r), e)),
 
     // error
     // ! => { errors.push(<>); Box::new(CStmt::Error) },

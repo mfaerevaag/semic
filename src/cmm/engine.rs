@@ -129,6 +129,11 @@ pub fn run_stmt<'input>(
                 None
             }
         },
+        CStmt::Print(_, ref e) => {
+            let val = run_expr(e, vtab, global_symtab, &tmp_symtab);
+            println!("{:?}", val);
+            None
+        },
         _ => panic!("unexpected token '{:?}' in ast", stmt)
     };
 
