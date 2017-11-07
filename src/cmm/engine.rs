@@ -22,9 +22,9 @@ pub fn run_prog<'input>(ast: &'input CProg<'input>) -> Result<Option<SymVal>, ()
     // run main function
     let main = vtab.get_func("main").unwrap();
     // TODO: load command line args
-    let mut local_symtab = SymTab::new();
+    let local_symtab = SymTab::new();
     // run
-    let res = run_func(main, &vtab, &global_symtab, &mut local_symtab);
+    let res = run_func(main, &vtab, &global_symtab, local_symtab);
 
     Ok(res)
 }
@@ -33,21 +33,21 @@ pub fn run_func<'input>(
     func: &'input CFunc<'input>,
     vtab: &'input FuncTab<'input>,
     global_symtab: &'input SymTab<'input>,
-    local_symtab: &'input mut SymTab<'input>,
+    local_symtab: SymTab<'input>,
 ) -> Option<SymVal>
 {
-    // let mut local_symtab = SymTab::new();
+    let mut tmp_symtab = local_symtab.clone();
     // load decls
     for decl in func.decls.iter() {
         let (ref t, ref id, s) = *decl;
-        local_symtab.insert(id, (t.clone(), s, None));
+        tmp_symtab.insert(id, (t.clone(), s, None));
     }
 
     // wrap statements in block
     let block = CStmt::Block((0,0), func.stmts.iter().map(|x| Box::new(x.clone())).collect());
 
     // run block
-    let (_, ret) = run_stmt(&block, vtab, global_symtab, local_symtab.clone());
+    let (_, ret) = run_stmt(&block, vtab, global_symtab, tmp_symtab);
 
     // unwrap return val
     match ret {
@@ -244,7 +244,7 @@ pub fn run_expr<'input>(
                 tab.insert(id, (t.clone(), None, Some(val)));
             }
 
-            match run_func(&f, vtab, global_symtab, &mut tab) {
+            match run_func(&f, vtab, global_symtab, tab) {
                 Some(v) => v,
                 None => panic!("expression returned void"),
             }
