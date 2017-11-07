@@ -47,7 +47,7 @@ pub struct SymTab<'a> {
 
 pub type SymEntry = (CType, Option<usize>, Option<SymVal>);
 
-#[derive(Debug, Clone)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum SymVal {
     Str(String),
     Num(i32),
