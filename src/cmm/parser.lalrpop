@@ -239,7 +239,7 @@ Expr1: Box<CExpr<'input>> = {
 };
 
 Expr2: Box<CExpr<'input>> = {
-    <l:Expr2> "&&" <r:Expr3> => Box::new(CExpr::LogOp(COp::Eq, l, r)),
+    <l:Expr2> "&&" <r:Expr3> => Box::new(CExpr::LogOp(COp::And, l, r)),
     Expr3,
 };
 
