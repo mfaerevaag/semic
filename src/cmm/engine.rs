@@ -78,7 +78,6 @@ pub fn run_stmt<'input>(
         CStmt::Block(_, ref stmts) => {
             let mut res = None;
             for s in stmts.iter() {
-                println!("run {:?}", s);
                 let (tab, res2) = run_stmt(s, vtab, global_symtab, tmp_symtab);
                 tmp_symtab = tab;
                 match res2 {
