@@ -31,7 +31,7 @@ match {
 } else {
     r"[0-9]+" => TInt,
     r#""\w*""# => TString,
-    r#"'\w'"# => TChar,
+    r#"('(.|([\\]0|([\\]n)))')"# => TChar,
 
 } else {
     r"[a-zA-Z][a-zA-Z0-9_]*" => TIdent,
@@ -328,7 +328,11 @@ Str: CString = {
 };
 
 Char: CChar = {
-    TChar => <>.chars().nth(1).unwrap(),
+    TChar => match <> {
+        "'\\0'" => '\0',
+        "'\\n'" => '\n',
+        _ => <>.chars().nth(1).unwrap(),
+    }
 };
 
 Ident: &'input str = {
