@@ -94,7 +94,12 @@ pub Func: CFunc<'input> = {
                 name: id,
                 params: param,
             },
-            stmts: stmt,
+            stmts: stmt.into_iter().flat_map(|x| match x {
+                CStmt::Block(_, ss) => {
+                    ss.into_iter().map(|b| *b).collect()
+                },
+                x => vec![x]
+            }).collect(),
         }
     },
     <l:Type> <r:FuncDecl> "{"
@@ -107,7 +112,12 @@ pub Func: CFunc<'input> = {
                 name: id,
                 params: param,
             },
-            stmts: stmt,
+            stmts: stmt.into_iter().flat_map(|x| match x {
+                CStmt::Block(_, ss) => {
+                    ss.into_iter().map(|b| *b).collect()
+                },
+                x => vec![x]
+            }).collect(),
         }
     },
 };
@@ -193,7 +203,12 @@ StmtOther: Box<CStmt<'input>> = {
         let body = match inc {
             Some(s) => {
                 let mut ss = vec![];
-                ss.push(stmt);
+                match *stmt {
+                    CStmt::Block(_, s) => {
+                        ss.extend(s);
+                    },
+                    _ => ss.push(stmt),
+                };
                 ss.push(s);
                 Box::new(CStmt::Block((0,0), ss))
             },
