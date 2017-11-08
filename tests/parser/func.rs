@@ -242,6 +242,87 @@ fn func_decl_mult_type_mult_ident() {
 }
 
 #[test]
+fn func_decl_after_stmt() {
+    let mut errors = Vec::new();
+
+    let actual = cmm::parse_func(&mut errors, r#"
+        void main (void) {
+            return;
+            char a;
+            return;
+        }
+    "#).unwrap();
+
+    let expected = CFunc {
+        proto: CProto {
+            ret: None,
+            name: "main",
+            params: vec![],
+        },
+        stmts: vec![
+            CStmt::Return((0, 0), None),
+            CStmt::Decl((0, 0), CType::Char, "a", None),
+            CStmt::Return((0, 0), None),
+        ],
+    };
+
+    assert!(errors.is_empty());
+    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
+}
+
+#[test]
+fn func_decl_imm_init() {
+    let mut errors = Vec::new();
+
+    let actual = cmm::parse_func(&mut errors, r#"
+        void main (void) {
+            char a = 'a';
+        }
+    "#).unwrap();
+
+    let expected = CFunc {
+        proto: CProto {
+            ret: None,
+            name: "main",
+            params: vec![],
+        },
+        stmts: vec![
+            CStmt::Decl((0, 0), CType::Char, "a", None),
+            CStmt::Assign((0, 0), "a", None, CExpr::Char('a')),
+        ],
+    };
+
+    assert!(errors.is_empty());
+    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
+}
+
+#[test]
+fn func_decl_imm_init_string() {
+    let mut errors = Vec::new();
+
+    let actual = cmm::parse_func(&mut errors, r#"
+        void main (void) {
+            char a[] = "foobar";
+        }
+    "#).unwrap();
+
+    let expected = CFunc {
+        proto: CProto {
+            ret: None,
+            name: "main",
+            params: vec![],
+        },
+        stmts: vec![
+            CStmt::Decl((0, 0), CType::Ref(Box::new(CType::Char)), "a", None),
+            CStmt::Assign((0, 0), "a", None, CExpr::Str("foobar".chars())),
+        ],
+    };
+
+    assert!(errors.is_empty());
+    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
+}
+
+#[test]
 fn func_no_decl_single_stmt() {
     let mut errors = Vec::new();
 

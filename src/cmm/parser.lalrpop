@@ -233,20 +233,21 @@ StmtOther: Box<CStmt<'input>> = {
 
 StmtDecl: Box<CStmt<'input>> = {
     <l:@L> <t:Type> <m:Comma<StmtDecl2>> <r:@R> => {
-        let mut x: Vec<Box<CStmt<'input>>> = m.into_iter().map(|(id, s, eo)| {
-            let mut ss = vec![];
-            let tt = match s {
+        let mut x: Vec<Box<CStmt<'input>>> = m.into_iter().map(|(id, so, eo)| {
+            let mut stmts = vec![];
+            let tt = match so {
                 Some(_) => CType::Ref(Box::new(t.clone())),
                 _ => t.clone()
             };
+            let s = so.unwrap_or(None);
 
-            ss.push(Box::new(CStmt::Decl((l, r), tt, id, s)));
+            stmts.push(Box::new(CStmt::Decl((l, r), tt, id, s)));
             // also init?
             if let Some(e) = eo {
-                ss.push(Box::new(CStmt::Assign((l, r), id, s, e)));
+                stmts.push(Box::new(CStmt::Assign((l, r), id, s, e)));
             }
 
-            ss
+            stmts
         }).flat_map(|x| x.to_vec()).collect(); // flatten
 
         match x.len() {
@@ -256,8 +257,9 @@ StmtDecl: Box<CStmt<'input>> = {
     },
 };
 
-StmtDecl2: (CIdent<'input>, Option<usize>, Option<CExpr<'input>>) = {
-    <l:Ident> <so:("[" <Size> "]")?> <eo:("=" <Expr>)?> => (l, so, eo),
+StmtDecl2: (CIdent<'input>, Option<Option<usize>>, Option<CExpr<'input>>) = {
+    <l:Ident> <eo:("=" <Expr>)?> => (l, None, eo),
+    <l:Ident> "[" <so:Size?> "]" <eo:("=" <Expr>)?> => (l, Some(so), eo),
 };
 
 VarArray: (CIdent<'input>, Option<usize>) = {
