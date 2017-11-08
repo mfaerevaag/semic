@@ -218,12 +218,28 @@ StmtOther: Box<CStmt<'input>> = {
 };
 
 StmtDecl: Box<CStmt<'input>> = {
-    <l:@L> <t:Type> <m:Comma<VarArray>> <r:@R> => {
-        let x = m.into_iter().map(|(id, s)| {
-            Box::new(CStmt::Decl((l, r), t.clone(), id, s))
-        }).collect();
-        Box::new(CStmt::Block((l, r), x))
+    <l:@L> <t:Type> <m:Comma<StmtDecl2>> <r:@R> => {
+        let mut x: Vec<Box<CStmt<'input>>> = m.into_iter().map(|(id, s, eo)| {
+            let mut ss = vec![];
+
+            ss.push(Box::new(CStmt::Decl((l, r), t.clone(), id, s)));
+            // also init?
+            if let Some(e) = eo {
+                ss.push(Box::new(CStmt::Assign((l, r), id, s, e)));
+            }
+
+            ss
+        }).flat_map(|x| x.to_vec()).collect(); // flatten
+
+        match x.len() {
+            1 => x.pop().unwrap(),
+            _ => Box::new(CStmt::Block((l, r), x))
+        }
     },
+};
+
+StmtDecl2: (CIdent<'input>, Option<usize>, Option<CExpr<'input>>) = {
+    <l:Ident> <so:("[" <Size> "]")?> <eo:("=" <Expr>)?> => (l, so, eo),
 };
 
 VarArray: (CIdent<'input>, Option<usize>) = {
@@ -331,6 +347,10 @@ TermOp: COp = {
 
 Num: CInt = {
     TInt => i32::from_str(<>).unwrap(),
+};
+
+Size: usize = {
+    TInt => usize::from_str(<>).unwrap(),
 };
 
 Str: CString<'input> = {
