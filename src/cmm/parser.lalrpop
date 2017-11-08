@@ -54,15 +54,17 @@ ProgElem: Vec<CProgElem<'input>> = {
             CProgElem::Decl(t.clone(), id, s)
         }).collect()
     },
+
     // proto
     Proto,
+
     // func
     Func => vec![CProgElem::Func(<>)],
 };
 
 Proto: Vec<CProgElem<'input>> = {
-    "void" <m:FuncDecl> <r:("," <FuncDecl>)*> ";" => {
-        vec![m].into_iter().chain(r).map(|(id, ps)| {
+    "void" <m:Comma<FuncDecl>> ";" => {
+        m.into_iter().map(|(id, ps)| {
             CProgElem::Proto(CProto {
                 ret: None,
                 name: id,
@@ -70,8 +72,8 @@ Proto: Vec<CProgElem<'input>> = {
             })
         }).collect()
     },
-    <l:Type> <m:FuncDecl> <r:("," <FuncDecl>)*> ";" => {
-        vec![m].into_iter().chain(r).map(|(id, ps)| {
+    <l:Type> <m:Comma<FuncDecl>> ";" => {
+        m.into_iter().map(|(id, ps)| {
             CProgElem::Proto(CProto {
                 ret: Some(l.clone()),
                 name: id,
