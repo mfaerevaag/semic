@@ -12,34 +12,21 @@ use ast::{CProg, CFunc, CStmt, CExpr};
 // engine functions
 
 pub fn run(prog: String) -> Result<Option<env::SymVal>, ()> {
-    // errors
     let mut parser_err = Vec::new();
-    // let mut checker_err = Vec::new();
 
     let ast = match parser::parse_Prog(&mut parser_err, &prog) {
         Ok(ast) => ast,
         Err(err) => {
             println!("{:?}", err);
-            println!("parse errors:");
-            for err in parser_err.iter() {
-                println!("{:?}", err);
-            };
+            // println!("parse errors:");
+            // for err in parser_err.iter() {
+            //     println!("{:?}", err);
+            // };
             return Err(());
         }
     };
 
     println!("ast: {:#?}", &ast);
-
-    // match checker::analyze_prog(&mut checker_err, &ast) {
-    //     Ok(()) => (),
-    //     Err(()) => {
-    //         println!("checker failed:");
-    //         for err in checker_err.iter() {
-    //             println!("{:?}", err);
-    //         };
-    //         return Err(());
-    //     },
-    // };
 
     engine::run_prog(&ast)
 }
