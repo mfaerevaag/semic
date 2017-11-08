@@ -235,8 +235,12 @@ StmtDecl: Box<CStmt<'input>> = {
     <l:@L> <t:Type> <m:Comma<StmtDecl2>> <r:@R> => {
         let mut x: Vec<Box<CStmt<'input>>> = m.into_iter().map(|(id, s, eo)| {
             let mut ss = vec![];
+            let tt = match s {
+                Some(_) => CType::Ref(Box::new(t.clone())),
+                _ => t.clone()
+            };
 
-            ss.push(Box::new(CStmt::Decl((l, r), t.clone(), id, s)));
+            ss.push(Box::new(CStmt::Decl((l, r), tt, id, s)));
             // also init?
             if let Some(e) = eo {
                 ss.push(Box::new(CStmt::Assign((l, r), id, s, e)));
@@ -257,8 +261,7 @@ StmtDecl2: (CIdent<'input>, Option<usize>, Option<CExpr<'input>>) = {
 };
 
 VarArray: (CIdent<'input>, Option<usize>) = {
-    <l:Ident> "[" <r:TInt> "]" => (l, Some(usize::from_str(r).unwrap())),
-    Ident => (<>, None),
+    <l:Ident> <so:("[" <Size> "]")?> => (l, so),
 };
 
 StmtAssign: Box<CStmt<'input>> = {

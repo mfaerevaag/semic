@@ -21,7 +21,6 @@ fn func_empty() {
             name: "main",
             params: vec![],
         },
-        decls: vec![],
         stmts: vec![],
     };
 
@@ -45,7 +44,6 @@ fn func_return_type() {
             name: "main",
             params: vec![],
         },
-        decls: vec![],
         stmts: vec![],
     };
 
@@ -67,7 +65,6 @@ fn func_param_type_single() {
             name: "main",
             params: vec![(CType::Int, "a")],
         },
-        decls: vec![],
         stmts: vec![],
     };
 
@@ -89,7 +86,6 @@ fn func_param_type_mult() {
             name: "main",
             params: vec![(CType::Int, "a"), (CType::Char, "b")],
         },
-        decls: vec![],
         stmts: vec![],
     };
 
@@ -113,8 +109,7 @@ fn func_decl_single_type_single_ident() {
             name: "main",
             params: vec![],
         },
-        decls: vec![(CType::Int, "x", None)],
-        stmts: vec![],
+        stmts: vec![CStmt::Decl((0, 0), CType::Int, "x", None)],
     };
 
     assert!(errors.is_empty());
@@ -137,8 +132,7 @@ fn func_decl_single_type_single_array() {
             name: "main",
             params: vec![],
         },
-        decls: vec![(CType::Ref(Box::new(CType::Int)), "x", Some(7))],
-        stmts: vec![],
+        stmts: vec![CStmt::Decl((0, 0), CType::Ref(Box::new(CType::Int)), "x", Some(7))],
     };
 
     assert!(errors.is_empty());
@@ -161,8 +155,8 @@ fn func_decl_single_type_mult_ident() {
             name: "main",
             params: vec![],
         },
-        decls: vec![(CType::Int, "x", None), (CType::Int, "y", None)],
-        stmts: vec![],
+        stmts: vec![CStmt::Decl((0, 0), CType::Int, "x", None),
+                    CStmt::Decl((0, 0), CType::Int, "y", None)],
     };
 
     assert!(errors.is_empty());
@@ -185,9 +179,8 @@ fn func_decl_single_type_mult_array() {
             name: "main",
             params: vec![],
         },
-        decls: vec![(CType::Ref(Box::new(CType::Int)), "x", Some(7)),
-                    (CType::Ref(Box::new(CType::Int)), "y", Some(8))],
-        stmts: vec![],
+        stmts: vec![CStmt::Decl((0, 0), CType::Ref(Box::new(CType::Int)), "x", Some(7)),
+                    CStmt::Decl((0, 0), CType::Ref(Box::new(CType::Int)), "y", Some(8))],
     };
 
     assert!(errors.is_empty());
@@ -211,8 +204,8 @@ fn func_decl_mult_type_single_ident() {
             name: "main",
             params: vec![],
         },
-        decls: vec![(CType::Int, "x", None), (CType::Char, "y", None)],
-        stmts: vec![],
+        stmts: vec![CStmt::Decl((0, 0), CType::Int, "x", None),
+                    CStmt::Decl((0, 0), CType::Char, "y", None)],
     };
 
     assert!(errors.is_empty());
@@ -236,9 +229,12 @@ fn func_decl_mult_type_mult_ident() {
             name: "main",
             params: vec![],
         },
-        decls: vec![(CType::Int, "x", None), (CType::Int, "y", None),
-                    (CType::Char, "a", None), (CType::Char, "b", None)],
-        stmts: vec![],
+        stmts: vec![
+            CStmt::Decl((0, 0), CType::Int, "x", None),
+            CStmt::Decl((0, 0), CType::Int, "y", None),
+            CStmt::Decl((0, 0), CType::Char, "a", None),
+            CStmt::Decl((0, 0), CType::Char, "b", None)
+        ],
     };
 
     assert!(errors.is_empty());
@@ -261,7 +257,6 @@ fn func_no_decl_single_stmt() {
             name: "main",
             params: vec![],
         },
-        decls: vec![],
         stmts: vec![CStmt::Return((0, 0), Some(CExpr::Num(0)))],
     };
 
@@ -286,8 +281,10 @@ fn func_single_decl_single_stmt() {
             name: "main",
             params: vec![],
         },
-        decls: vec![(CType::Int, "x", None)],
-        stmts: vec![CStmt::Assign((0, 0), "x", None, CExpr::Num(1))],
+        stmts: vec![
+            CStmt::Decl((0, 0), CType::Int, "x", None),
+            CStmt::Assign((0, 0), "x", None, CExpr::Num(1))
+        ],
     };
 
     assert!(errors.is_empty());
@@ -311,8 +308,9 @@ fn func_single_array_single_stmt() {
             name: "main",
             params: vec![],
         },
-        decls: vec![(CType::Ref(Box::new(CType::Char)), "x", Some(7))],
-        stmts: vec![CStmt::Assign((0, 0), "x", Some(6), CExpr::Char('\0'))],
+        stmts: vec![
+            CStmt::Decl((0, 0), CType::Ref(Box::new(CType::Char)), "x", Some(7)),
+            CStmt::Assign((0, 0), "x", Some(6), CExpr::Char('\0'))],
     };
 
     assert!(errors.is_empty());
@@ -338,14 +336,16 @@ fn func_stmt_mult() {
             name: "main",
             params: vec![],
         },
-        decls: vec![(CType::Int, "x", None),
-                    (CType::Int, "y", None)],
-        stmts: vec![CStmt::Assign((0, 0), "x", None, CExpr::Num(1)),
-                    CStmt::Assign((0, 0), "y", None, CExpr::Num(2)),
-                    CStmt::Return((0, 0), Some(CExpr::BinOp(
-                        COp::Add,
-                        Box::new(CExpr::Ident("x")),
-                        Box::new(CExpr::Ident("y")))))],
+        stmts: vec![
+            CStmt::Decl((0, 0), CType::Int, "x", None),
+            CStmt::Decl((0, 0), CType::Int, "y", None),
+            CStmt::Assign((0, 0), "x", None, CExpr::Num(1)),
+            CStmt::Assign((0, 0), "y", None, CExpr::Num(2)),
+            CStmt::Return((0, 0), Some(CExpr::BinOp(
+                COp::Add,
+                Box::new(CExpr::Ident("x")),
+                Box::new(CExpr::Ident("y")))))
+        ],
     };
 
     assert!(errors.is_empty());
