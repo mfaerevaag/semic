@@ -122,15 +122,12 @@ FuncParam: Vec<(CType, CIdent<'input>)> = {
 };
 
 Param: (CType, CIdent<'input>) = {
-    <t:Type> <r:Ident> <s:("[" "]")*> => match s.len() {
-        0 => (t, r),
-        x => {
-            let mut tt = t;
-            for i in 0..x {
-                tt = CType::Ref(Box::new(tt));
-            }
-            (tt, r)
+    <t:Type> <r:Ident> <s:("[" "]")*> => {
+        let mut tt = t;
+        for i in 0..s.len() {
+            tt = CType::Ref(Box::new(tt));
         }
+        (tt, r)
     }
 };
 
