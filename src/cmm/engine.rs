@@ -87,7 +87,7 @@ pub fn run_stmt<'input>(
             tmp_symtab.set_val(id, i, val);
             None
         },
-        CStmt::VarDecl(_, id, ref t, s) => {
+        CStmt::Decl(_, ref t, id, s) => {
             tmp_symtab.insert(id, (t.clone(), s, None));
             None
         },

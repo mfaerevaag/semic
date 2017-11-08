@@ -6,7 +6,7 @@ pub type CProg<'input> = Vec<CProgElem<'input>>;
 
 #[derive(Clone)]
 pub enum CProgElem<'input> {
-    VarDecl(CVarDecl<'input>),
+    Decl(CType, CIdent<'input>, Option<usize>),
     Proto(CProto<'input>),
     Func(CFunc<'input>),
     Error,
@@ -16,7 +16,7 @@ pub enum CProgElem<'input> {
 pub struct CProto<'input> {
     pub ret: Option<CType>,
     pub name: CIdent<'input>,
-    pub params: Vec<CParam<'input>>,
+    pub params: Vec<(CType, CIdent<'input>)>,
 }
 
 #[derive(Clone, Debug)]
@@ -25,14 +25,9 @@ pub struct CFunc<'input> {
     pub stmts: Vec<CStmt<'input>>,
 }
 
-// TODO: remove
-pub type CParam<'input> = (CType, CIdent<'input>);
-
-pub type CVarDecl<'input> = (CType, CIdent<'input>, Option<usize>);
-
 #[derive(Clone)]
 pub enum CStmt<'input> {
-    VarDecl(CLoc, CIdent<'input>, CType, Option<usize>), // TODO: rename
+    Decl(CLoc, CType, CIdent<'input>, Option<usize>),
     Assign(CLoc, CIdent<'input>, Option<usize>, CExpr<'input>),
     Return(CLoc, Option<CExpr<'input>>),
     Block(CLoc, Vec<Box<CStmt<'input>>>),
@@ -101,7 +96,10 @@ impl<'input> Debug for CProgElem<'input> {
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
         use self::CProgElem::*;
         match *self {
-            VarDecl(ref x) => write!(fmt, "{:?}", x),
+            Decl(ref t, id, s) => match s {
+                Some(i) => write!(fmt, "{:?} {}[{}]", t, id, i),
+                None => write!(fmt, "{:?} {}", t, id),
+            },
             Proto(ref x) => write!(fmt, "{:?}", x),
             Func(ref x) => write!(fmt, "{:#?}", x),
             Error => write!(fmt, "error"),
@@ -117,7 +115,7 @@ impl<'input> Debug for CStmt<'input> {
                 Some(i) => write!(fmt, "{}[{}] = {:?}", l, i, r),
                 None => write!(fmt, "{} = {:?}", l, r),
             },
-            VarDecl(_, id, ref t, s) => match s {
+            Decl(_, ref t, id, s) => match s {
                 Some(i) => write!(fmt, "{:?} {}[{}]", t, id, i),
                 None => write!(fmt, "{:?} {}", t, id),
             },

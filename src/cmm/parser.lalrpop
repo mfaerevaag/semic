@@ -48,15 +48,15 @@ pub Prog: CProg<'input> = <l:(<ProgElem>)*> => {
 };
 
 ProgElem: Vec<CProgElem<'input>> = {
-    // VarDecl
-    <l:Type> <m:VarArray> <r:("," <VarArray>)*> ";" => {
+    // decl
+    <t:Type> <m:VarArray> <r:("," <VarArray>)*> ";" => {
         vec![m].into_iter().chain(r).map(|(id, s)| {
-            CProgElem::VarDecl((l.clone(), id, s))
+            CProgElem::Decl(t.clone(), id, s)
         }).collect()
     },
-    // Proto
+    // proto
     Proto,
-    // Func
+    // func
     Func => vec![CProgElem::Func(<>)],
 };
 
@@ -110,16 +110,16 @@ pub Func: CFunc<'input> = {
     },
 };
 
-FuncDecl: (CIdent<'input>, Vec<CParam<'input>>) = {
+FuncDecl: (CIdent<'input>, Vec<(CType, CIdent<'input>)>) = {
     <id:Ident> "(" <param:FuncParam> ")" => (id, param),
 };
 
-FuncParam: Vec<CParam<'input>> = {
+FuncParam: Vec<(CType, CIdent<'input>)> = {
     Comma<Param>,
     "void" => Vec::new(),
 };
 
-Param: CParam<'input> = {
+Param: (CType, CIdent<'input>) = {
     <t:Type> <r:Ident> <s:("[" "]")*> => match s.len() {
         0 => (t, r),
         x => {
@@ -157,7 +157,8 @@ StmtIfUnmatching: Box<CStmt<'input>> = {
 };
 
 StmtOther: Box<CStmt<'input>> = {
-    <VarDecl> ";",
+    // decl
+    <StmtDecl> ";",
 
     // assignment
     <StmtAssign> ";",
@@ -216,10 +217,10 @@ StmtOther: Box<CStmt<'input>> = {
     // ! => { errors.push(<>); Box::new(CStmt::Error) },
 };
 
-VarDecl: Box<CStmt<'input>> = {
-    <l:@L> <t:Type> <m:VarArray> <mm:("," <VarArray>)*> <r:@R> => {
-        let x = vec![m].into_iter().chain(mm).map(|(id, s)| {
-            Box::new(CStmt::VarDecl((l, r), id, t.clone(), s))
+StmtDecl: Box<CStmt<'input>> = {
+    <l:@L> <t:Type> <m:Comma<VarArray>> <r:@R> => {
+        let x = m.into_iter().map(|(id, s)| {
+            Box::new(CStmt::Decl((l, r), t.clone(), id, s))
         }).collect();
         Box::new(CStmt::Block((l, r), x))
     },

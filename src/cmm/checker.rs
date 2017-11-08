@@ -42,10 +42,8 @@ pub fn analyze_prog<'input, 'err>(
     // check each element
     for elem in ast.iter() {
         match *elem {
-            CProgElem::VarDecl(ref decl) => {
-                let (ref t, ref name, s) = *decl;
+            CProgElem::Decl(ref t, ref name, s) => {
                 let val = (t.clone(), s, None);
-
                 match symtab.insert(*name, val) {
                     Some(_) => {
                         let msg = format!("variable {:?} already declared", name);
