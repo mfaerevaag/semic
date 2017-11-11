@@ -27,7 +27,7 @@ i = 7;
     let val = tab.get_val("i");
     assert_eq!(CType::Int, t);
     assert_eq!(None, s);
-    assert_eq!(Some(SymVal::Num(7)), val);
+    assert_eq!(Some(SymVal::Int(7)), val);
 }
 
 #[test]
@@ -53,7 +53,7 @@ s[1] = '\0';
     let val = tab.get_val("s");
     assert_eq!(CType::Char, t);
     assert_eq!(Some(2), s);
-    assert_eq!(Some(SymVal::Array(vec![Box::new(SymVal::Num(0)),
+    assert_eq!(Some(SymVal::Array(vec![Box::new(SymVal::Int(0)),
                                        Box::new(SymVal::Char('\0'))])), val);
 }
 

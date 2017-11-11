@@ -27,11 +27,13 @@ match {
     "void",
     "int",
     "char",
+    "float",
 
     "printf",
 
 } else {
     r"[0-9]+" => TInt,
+    r"[0-9]+\.[0-9]+" => TFloat,
     r#""\w*""# => TString,
     r#"('(.|([\\]0|([\\]n)))')"# => TChar,
 
@@ -196,8 +198,7 @@ StmtOther: Box<CStmt<'input>> = {
 
         let cond = match cond {
             Some(e) => e,
-            // TODO: fix booleans...
-            None => CExpr::LogOp(COp::Eq, Box::new(CExpr::Num(1)), Box::new(CExpr::Num(1))),
+            None => CExpr::Int(1),
         };
 
         let body = match inc {
@@ -280,22 +281,22 @@ pub Expr: CExpr<'input> = {
 };
 
 Expr1: Box<CExpr<'input>> = {
-    <l:Expr1> "||" <r:Expr2> => Box::new(CExpr::LogOp(COp::Or, l, r)),
+    <l:Expr1> "||" <r:Expr2> => Box::new(CExpr::BinOp(COp::Or, l, r)),
     Expr2,
 };
 
 Expr2: Box<CExpr<'input>> = {
-    <l:Expr2> "&&" <r:Expr3> => Box::new(CExpr::LogOp(COp::And, l, r)),
+    <l:Expr2> "&&" <r:Expr3> => Box::new(CExpr::BinOp(COp::And, l, r)),
     Expr3,
 };
 
 Expr3: Box<CExpr<'input>> = {
-    <l:Expr3> <op:ExprOpRel2> <r:Expr4> => Box::new(CExpr::RelOp(op, l, r)),
+    <l:Expr3> <op:ExprOpRel2> <r:Expr4> => Box::new(CExpr::BinOp(op, l, r)),
     Expr4,
 };
 
 Expr4: Box<CExpr<'input>> = {
-    <l:Expr4> <op:ExprOpRel> <r:Expr5> => Box::new(CExpr::RelOp(op, l, r)),
+    <l:Expr4> <op:ExprOpRel> <r:Expr5> => Box::new(CExpr::BinOp(op, l, r)),
     Expr5,
 };
 
@@ -310,7 +311,8 @@ Factor: Box<CExpr<'input>> = {
 };
 
 Term: Box<CExpr<'input>> = {
-    Num => Box::new(CExpr::Num(<>)),
+    Int => Box::new(CExpr::Int(<>)),
+    Float => Box::new(CExpr::Float(<>)),
     Str => Box::new(CExpr::Str(<>)),
     Char => Box::new(CExpr::Char(<>)),
 
@@ -364,12 +366,16 @@ TermOp: COp = {
 
 // simple stuff
 
-Num: CInt = {
+Int: CInt = {
     TInt => i32::from_str(<>).unwrap(),
 };
 
 Size: usize = {
     TInt => usize::from_str(<>).unwrap(),
+};
+
+Float: CFloat = {
+    TFloat => f32::from_str(<>).unwrap(),
 };
 
 Str: CString<'input> = {
@@ -391,4 +397,5 @@ Ident: &'input str = {
 Type: CType = {
     "int" => CType::Int,
     "char" => CType::Char,
+    "float" => CType::Float,
 };

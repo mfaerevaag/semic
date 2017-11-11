@@ -39,14 +39,13 @@ pub enum CStmt<'input> {
 
 #[derive(Clone)]
 pub enum CExpr<'input> {
-    Num(CInt),
+    Int(CInt),
+    Float(CFloat),
     Str(CString<'input>),
     Char(CChar),
     Ident(CIdent<'input>),
     UnOp(COp, Box<CExpr<'input>>),
     BinOp(COp, Box<CExpr<'input>>, Box<CExpr<'input>>),
-    RelOp(COp, Box<CExpr<'input>>, Box<CExpr<'input>>),
-    LogOp(COp, Box<CExpr<'input>>, Box<CExpr<'input>>),
     Call(CIdent<'input>, Vec<Box<CExpr<'input>>>),
     Index(CIdent<'input>, Box<CExpr<'input>>),
     Error,
@@ -78,12 +77,14 @@ pub enum COp {
 pub enum CType {
     Char,
     Int,
+    Float,
     Ref(Box<CType>),
 }
 
 pub type CLoc = (usize, usize);
 
 pub type CInt = i32;
+pub type CFloat = f32;
 pub type CString<'input> = Chars<'input>;
 pub type CChar = char;
 
@@ -142,14 +143,13 @@ impl<'input> Debug for CExpr<'input> {
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
         use self::CExpr::*;
         match *self {
-            Num(n) => write!(fmt, "{:?}", n),
+            Int(i) => write!(fmt, "{:?}", i),
+            Float(f) => write!(fmt, "{:?}", f),
             Str(ref s) => write!(fmt, "\"{}\"", s.as_str()),
             Char(n) => write!(fmt, "{:?}", n),
             Ident(ref s) => write!(fmt, "{}", &s),
             UnOp(op, ref l) => write!(fmt, "({:?}{:?})", op, l),
             BinOp(op, ref l, ref r) => write!(fmt, "({:?} {:?} {:?})", l, op, r),
-            RelOp(op, ref l, ref r) => write!(fmt, "({:?} {:?} {:?})", l, op, r),
-            LogOp(op, ref l, ref r) => write!(fmt, "({:?} {:?} {:?})", l, op, r),
             Call(ref i, ref p) => {
                 let mut s: String = format!("{:?}", p[0]);
                 for e in p[1..].iter() {
@@ -193,6 +193,7 @@ impl Debug for CType {
         match *self {
             Char => write!(fmt, "char"),
             Int => write!(fmt, "int"),
+            Float => write!(fmt, "float"),
             Ref(ref t) => write!(fmt, "{:?}[]", t),
         }
     }

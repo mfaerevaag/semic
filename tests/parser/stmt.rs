@@ -23,9 +23,9 @@ fn stmt_return_expr() {
     let expected = CStmt::Return
         ((0,0),
          Some(CExpr::BinOp(COp::Add,
-                           Box::new(CExpr::Num(1)),
+                           Box::new(CExpr::Int(1)),
                            Box::new(CExpr::UnOp(COp::Sub,
-                                                Box::new(CExpr::Num(2)))))));
+                                                Box::new(CExpr::Int(2)))))));
 
     assert!(errors.is_empty());
     assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
@@ -38,7 +38,7 @@ fn stmt_if_single() {
     let actual = cmm::parse_stmt(&mut errors, r#"if (1) return;"#).unwrap();
 
     let expected = CStmt::If((0,0),
-                             CExpr::Num(1),
+                             CExpr::Int(1),
                              Box::new(CStmt::Return((0,0), None)),
                              None);
 
@@ -53,7 +53,7 @@ fn stmt_if_block() {
     let actual = cmm::parse_stmt(&mut errors, r#"if (1) { return; }"#).unwrap();
 
     let expected = CStmt::If((0,0),
-                             CExpr::Num(1),
+                             CExpr::Int(1),
                              Box::new(CStmt::Block(
                                  (0,0),
                                  vec![Box::new(CStmt::Return((0,0), None))])),
@@ -70,7 +70,7 @@ fn stmt_if_else_single() {
     let actual = cmm::parse_stmt(&mut errors, r#"if (1) return; else return;"#).unwrap();
 
     let expected = CStmt::If((0,0),
-                             CExpr::Num(1),
+                             CExpr::Int(1),
                              Box::new(CStmt::Return((0,0), None)),
                              Some(Box::new(CStmt::Return((0,0), None))));
 
@@ -85,7 +85,7 @@ fn stmt_if_else_block() {
     let actual = cmm::parse_stmt(&mut errors, r#"if (1) { return; } else { return; }"#).unwrap();
 
     let expected = CStmt::If((0,0),
-                             CExpr::Num(1),
+                             CExpr::Int(1),
                              Box::new(CStmt::Block(
                                  (0,0),
                                  vec![Box::new(CStmt::Return((0,0), None))])),
@@ -106,14 +106,14 @@ fn stmt_if_else_mixed() {
     let actual2 = cmm::parse_stmt(&mut errors2, r#"if (1) { return; } else return;"#).unwrap();
 
     let expected = CStmt::If((0,0),
-                             CExpr::Num(1),
+                             CExpr::Int(1),
                              Box::new(CStmt::Return((0,0), None)),
                              Some(Box::new(CStmt::Block(
                                  (0,0),
                                  vec![Box::new(CStmt::Return((0,0), None))]))));
 
     let expected2 = CStmt::If((0,0),
-                             CExpr::Num(1),
+                             CExpr::Int(1),
                              Box::new(CStmt::Block(
                                  (0,0),
                                  vec![Box::new(CStmt::Return((0,0), None))])),
@@ -132,11 +132,11 @@ fn stmt_if_else_nested() {
     let actual = cmm::parse_stmt(&mut errors, r#"if (1) { if (1) return; else return; }"#).unwrap();
 
     let expected = CStmt::If((0,0),
-                             CExpr::Num(1),
+                             CExpr::Int(1),
                              Box::new(CStmt::Block(
                                  (0,0),
                                  vec![Box::new(CStmt::If((0,0),
-                                                         CExpr::Num(1),
+                                                         CExpr::Int(1),
                                                          Box::new(CStmt::Return((0,0), None)),
                                                          Some(Box::new(CStmt::Return((0,0), None)))))])),
                              None);
@@ -152,7 +152,7 @@ fn stmt_else_single() {
     let actual = cmm::parse_stmt(&mut errors, r#"while (1) return;"#).unwrap();
 
     let expected = CStmt::While((0,0),
-                                CExpr::Num(1),
+                                CExpr::Int(1),
                                 Box::new(CStmt::Return((0,0), None)));
 
     assert!(errors.is_empty());
@@ -166,7 +166,7 @@ fn stmt_else_block() {
     let actual = cmm::parse_stmt(&mut errors, r#"while (1) { return; }"#).unwrap();
 
     let expected = CStmt::While((0,0),
-                                CExpr::Num(1),
+                                CExpr::Int(1),
                                 Box::new(CStmt::Block(
                                     (0,0),
                                     vec![Box::new(CStmt::Return((0,0), None))])));
@@ -184,7 +184,7 @@ fn stmt_for_single() {
     let mut top = vec![];
     // init
     // cond
-    let cond = CExpr::LogOp(COp::Eq, Box::new(CExpr::Num(1)), Box::new(CExpr::Num(1)));
+    let cond = CExpr::Int(1);
     // inc
     let body = Box::new(CStmt::Return((0,0), None));
     // expected
@@ -204,7 +204,7 @@ fn stmt_for_block() {
     let mut top = vec![];
     // init
     // cond
-    let cond = CExpr::LogOp(COp::Eq, Box::new(CExpr::Num(1)), Box::new(CExpr::Num(1)));
+    let cond = CExpr::Int(1);
     // inc
     let body = Box::new(CStmt::Block((0,0), vec![Box::new(CStmt::Return((0,0), None))]));
     // expected
@@ -223,9 +223,9 @@ fn stmt_for_init() {
 
     let mut top = vec![];
     // init
-    top.push(Box::new(CStmt::Assign((0,0), "i", None, CExpr::Num(0))));
+    top.push(Box::new(CStmt::Assign((0,0), "i", None, CExpr::Int(0))));
     // cond
-    let cond = CExpr::LogOp(COp::Eq, Box::new(CExpr::Num(1)), Box::new(CExpr::Num(1)));
+    let cond = CExpr::Int(1);
     // inc
     let body = Box::new(CStmt::Return((0,0), None));
     // expected
@@ -245,7 +245,7 @@ fn stmt_for_cond() {
     let mut top = vec![];
     // init
     // cond
-    let cond = CExpr::Num(1);
+    let cond = CExpr::Int(1);
     // inc
     let body = Box::new(CStmt::Return((0,0), None));
     // expected
@@ -265,11 +265,14 @@ fn stmt_for_inc() {
     let mut top = vec![];
     // init
     // cond
-    let cond = CExpr::LogOp(COp::Eq, Box::new(CExpr::Num(1)), Box::new(CExpr::Num(1)));
+    let cond = CExpr::Int(1);
     // inc
     let mut body = vec![];
     body.push(Box::new(CStmt::Return((0,0), None)));
-    body.push(Box::new(CStmt::Assign((0,0), "i", None, CExpr::BinOp(COp::Add, Box::new(CExpr::Ident("i")), Box::new(CExpr::Num(1))))));
+    body.push(Box::new(CStmt::Assign((0,0), "i", None,
+                                     CExpr::BinOp(COp::Add,
+                                                  Box::new(CExpr::Ident("i")),
+                                                  Box::new(CExpr::Int(1))))));
     let body = Box::new(CStmt::Block((0,0), body));
     // expected
     top.push(Box::new(CStmt::While((0,0), cond, body)));
@@ -287,13 +290,16 @@ fn stmt_for_all() {
 
     let mut top = vec![];
     // init
-    top.push(Box::new(CStmt::Assign((0,0), "i", None, CExpr::Num(0))));
+    top.push(Box::new(CStmt::Assign((0,0), "i", None, CExpr::Int(0))));
     // cond
-    let cond = CExpr::Num(1);
+    let cond = CExpr::Int(1);
     // inc
     let mut body = vec![];
     body.push(Box::new(CStmt::Return((0,0), None)));
-    body.push(Box::new(CStmt::Assign((0,0), "i", None, CExpr::BinOp(COp::Add, Box::new(CExpr::Ident("i")), Box::new(CExpr::Num(1))))));
+    body.push(Box::new(CStmt::Assign((0,0), "i", None,
+                                     CExpr::BinOp(COp::Add,
+                                                  Box::new(CExpr::Ident("i")),
+                                                  Box::new(CExpr::Int(1))))));
     let body = Box::new(CStmt::Block((0,0), body));
     // expected
     top.push(Box::new(CStmt::While((0,0), cond, body)));

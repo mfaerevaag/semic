@@ -50,7 +50,8 @@ pub type SymEntry = (CType, Option<usize>, Option<SymVal>);
 
 #[derive(PartialEq, Clone)]
 pub enum SymVal {
-    Num(i32),
+    Int(i32),
+    Float(f32),
     Char(char),
     Bool(bool),
     Array(Vec<Box<SymVal>>)
@@ -104,7 +105,7 @@ impl<'a> SymTab<'a> {
                         if j == i {
                             a.push(Box::new(val.clone()));
                         } else {
-                            a.push(Box::new(SymVal::Num(0)));
+                            a.push(Box::new(SymVal::Int(0)));
                         }
                     }
                     let new = SymVal::Array(a);
@@ -124,7 +125,8 @@ impl Debug for SymVal {
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
         use self::SymVal::*;
         match *self {
-            Num(n) => write!(fmt, "{}", n),
+            Int(i) => write!(fmt, "{}", i),
+            Float(f) => write!(fmt, "{}", f),
             Char(c) => write!(fmt, "'{}'", c),
             Bool(b) => write!(fmt, "{}", b),
             Array(ref a) => write!(fmt, "{:?}", a),

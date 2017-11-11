@@ -25,3 +25,10 @@ fn expr_rel() {
     let expected = r#"((s == "foo") || (i < 9))"#;
     assert_eq!(expected, format!("{:?}", actual));
 }
+
+#[test]
+fn expr_float() {
+    let actual = cmm::parse_expr(&mut vec![], r#"0.0"#).unwrap();
+    let expected = r#"0.0"#;
+    assert_eq!(expected, format!("{:?}", actual));
+}

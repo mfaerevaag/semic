@@ -28,7 +28,7 @@ return 0;
 
     let actual = engine::run_prog(&ast).unwrap();
 
-    let expected = Some(SymVal::Num(0));
+    let expected = Some(SymVal::Int(0));
 
     assert_eq!(expected, actual);
 }
@@ -43,7 +43,7 @@ return argc;
 
     let actual = engine::run_prog(&ast).unwrap();
 
-    let expected = Some(SymVal::Num(0));
+    let expected = Some(SymVal::Int(0));
 
     assert_eq!(expected, actual);
 }
