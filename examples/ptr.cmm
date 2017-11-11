@@ -1,0 +1,12 @@
+char *str(char a, char b) {
+    char s[3];
+    s[0] = a;
+    s[1] = b;
+    s[2] = '\0';
+    return s;
+}
+
+int main(void) {
+    printf(str('a', 'b'));
+    return 0;
+}

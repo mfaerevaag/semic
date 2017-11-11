@@ -146,7 +146,7 @@ impl<'input> Debug for CExpr<'input> {
             Int(i) => write!(fmt, "{:?}", i),
             Float(f) => write!(fmt, "{:?}", f),
             Str(ref s) => write!(fmt, "\"{}\"", s.as_str()),
-            Char(n) => write!(fmt, "{:?}", n),
+            Char(c) => write!(fmt, "{:?}", c),
             Ident(ref s) => write!(fmt, "{}", &s),
             UnOp(op, ref l) => write!(fmt, "({:?}{:?})", op, l),
             BinOp(op, ref l, ref r) => write!(fmt, "({:?} {:?} {:?})", l, op, r),
@@ -194,7 +194,7 @@ impl Debug for CType {
             Char => write!(fmt, "char"),
             Int => write!(fmt, "int"),
             Float => write!(fmt, "float"),
-            Ref(ref t) => write!(fmt, "{:?}[]", t),
+            Ref(ref t) => write!(fmt, "{:?}*", t),
         }
     }
 }

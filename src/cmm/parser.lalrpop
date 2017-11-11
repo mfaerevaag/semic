@@ -74,10 +74,14 @@ Proto: Vec<CProgElem<'input>> = {
             })
         }).collect()
     },
-    <l:Type> <m:Comma<FuncDecl>> ";" => {
+    <l:Type> <p:("*")?> <m:Comma<FuncDecl>> ";" => {
+        let t = match p {
+            None => Some(l.clone()),
+            _ => Some(CType::Ref(Box::new(l.clone()))),
+        };
         m.into_iter().map(|(id, ps)| {
             CProgElem::Proto(CProto {
-                ret: Some(l.clone()),
+                ret: t.clone(),
                 name: id,
                 params: ps,
             })
@@ -104,13 +108,17 @@ pub Func: CFunc<'input> = {
             }).collect(),
         }
     },
-    <l:Type> <r:FuncDecl> "{"
+    <l:Type> <p:("*")?> <r:FuncDecl> "{"
         <stmt:(<Stmt>)*> "}" =>
     {
+        let t = match p {
+            None => Some(l.clone()),
+            _ => Some(CType::Ref(Box::new(l.clone()))),
+        };
         let (id, param) = r;
         CFunc {
             proto: CProto {
-                ret: Some(l),
+                ret: t,
                 name: id,
                 params: param,
             },
@@ -261,6 +269,7 @@ StmtDecl: Box<CStmt<'input>> = {
 StmtDecl2: (CIdent<'input>, Option<Option<usize>>, Option<CExpr<'input>>) = {
     <l:Ident> <eo:("=" <Expr>)?> => (l, None, eo),
     <l:Ident> "[" <so:Size?> "]" <eo:("=" <Expr>)?> => (l, Some(so), eo),
+    "*" <l:Ident> <eo:("=" <Expr>)?> => (l, Some(None), None),
 };
 
 VarArray: (CIdent<'input>, Option<usize>) = {

@@ -192,11 +192,13 @@ pub fn run_expr<'input>(
             let v = run_expr(e, vtab, global_symtab, local_symtab);
             match op {
                 COp::Not => match v {
+                    SymVal::Int(b) => SymVal::Bool(b != 0),
                     SymVal::Bool(b) => SymVal::Bool(!b),
                     v => panic!("cannot negate {:?}", v),
                 },
                 COp::Neg => match v {
-                    SymVal::Int(b) => SymVal::Int(-b),
+                    SymVal::Int(n) => SymVal::Int(-n),
+                    SymVal::Float(n) => SymVal::Float(-n),
                     v => panic!("cannot negate {:?}", v),
                 },
                 _ => panic!("unsupported unary operator {:?}", op),
