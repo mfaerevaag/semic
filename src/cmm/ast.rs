@@ -153,7 +153,7 @@ impl<'input> Debug for CExpr<'input> {
         use self::CExpr::*;
         match *self {
             Int(_, i) => write!(fmt, "{:?}", i),
-            Float(_, f) => write!(fmt, "{:?}", f),
+            Float(_, f) => write!(fmt, "{:.2}", f),
             Str(_, ref s) => write!(fmt, "\"{}\"", s.as_str()),
             Char(_, c) => write!(fmt, "{:?}", c),
             Ident(_, ref s) => write!(fmt, "{}", &s),

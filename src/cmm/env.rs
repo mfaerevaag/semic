@@ -128,7 +128,7 @@ impl Debug for SymVal {
         use self::SymVal::*;
         match *self {
             Int(i) => write!(fmt, "{}", i),
-            Float(f) => write!(fmt, "{}", f),
+            Float(f) => write!(fmt, "{:.2}", f),
             Char(c) => write!(fmt, "'{}'", c),
             Bool(b) => write!(fmt, "{}", b),
             Array(ref a) => write!(fmt, "{:?}", a),
