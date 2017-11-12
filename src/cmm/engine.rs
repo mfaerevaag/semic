@@ -112,7 +112,7 @@ pub fn run_stmt<'input>(
         CStmt::If((l, _), ref cond, ref s, ref o) => {
             let b = match try!(run_expr(cond, vtab, global_symtab, &tmp_symtab)) {
                 SymVal::Bool(b) => b,
-                x => return Err(CError::RuntimeError(format!("expected bool, got {:?}", x), l)),
+                x => return Err(CError::RuntimeError(format!("Expected bool, got {:?}", x), l)),
             };
             if b {
                 let (tab, res) = try!(run_stmt(s, vtab, global_symtab, tmp_symtab));
@@ -132,7 +132,7 @@ pub fn run_stmt<'input>(
         CStmt::While((l, _), ref cond, ref s) => {
             let b = match try!(run_expr(cond, vtab, global_symtab, &tmp_symtab)) {
                 SymVal::Bool(b) => b,
-                x => return Err(CError::RuntimeError(format!("expected bool, got {:?}", x), l)),
+                x => return Err(CError::RuntimeError(format!("Expected bool, got {:?}", x), l)),
             };
             if b {
                 let (tab, res) = try!(run_stmt(s, vtab, global_symtab, local_symtab));
@@ -167,9 +167,9 @@ pub fn run_expr<'input>(
 ) -> Result<SymVal, CError>
 {
     let res = match *expr {
-        CExpr::Int(i) => SymVal::Int(i),
-        CExpr::Float(f) => SymVal::Float(f),
-        CExpr::Str(ref s) => {
+        CExpr::Int((_, _), i) => SymVal::Int(i),
+        CExpr::Float((_, _), f) => SymVal::Float(f),
+        CExpr::Str((_, _), ref s) => {
             let mut arr = Vec::with_capacity(s.as_str().len() + 1);
             for c in s.clone() {
                 arr.push(Box::new(SymVal::Char(c)));
@@ -178,39 +178,39 @@ pub fn run_expr<'input>(
             arr.push(Box::new(SymVal::Char('\0')));
             SymVal::Array(arr)
         },
-        CExpr::Char(c) => SymVal::Char(c),
-        CExpr::Ident(id) => match local_symtab.get_val(id) {
+        CExpr::Char((_, _), c) => SymVal::Char(c),
+        CExpr::Ident((l, _), id) => match local_symtab.get_val(id) {
             Some(v) => v,
             _ => match global_symtab.get_val(id) {
                 Some(v) => v,
-                _ => panic!("variable '{}' not initialized", id),
+                _ => return Err(CError::RuntimeError(format!("Variable '{}' not initialized", id), l)),
             }
         },
 
-        CExpr::UnOp(op, ref e) => {
+        CExpr::UnOp((l, _), op, ref e) => {
             let v = try!(run_expr(e, vtab, global_symtab, local_symtab));
             match op {
                 COp::Not => match v {
                     SymVal::Int(b) => SymVal::Bool(b != 0),
                     SymVal::Bool(b) => SymVal::Bool(!b),
-                    v => panic!("cannot negate {:?}", v),
+                    v => return Err(CError::RuntimeError(format!("Cannot negate {:?}", v), l)),
                 },
                 COp::Neg => match v {
                     SymVal::Int(n) => SymVal::Int(-n),
                     SymVal::Float(n) => SymVal::Float(-n),
-                    v => panic!("cannot negate {:?}", v),
+                    v => return Err(CError::RuntimeError(format!("Cannot negate {:?}", v), l)),
                 },
-                _ => panic!("unsupported unary operator {:?}", op),
+                _ => return Err(CError::RuntimeError(format!("Unsupported unary operator {:?}", op), l)),
             }
         },
-        CExpr::BinOp(op, ref e1, ref e2) => {
+        CExpr::BinOp((l, _), op, ref e1, ref e2) => {
             let v1 = try!(run_expr(e1, vtab, global_symtab, local_symtab));
             let (is_num1, is_int1, i1, is_float1, f1, is_bool1, b1) =
                 match v1 {
                     SymVal::Int(x)   => (true,  true,  x, false, 0f32, false, false),
                     SymVal::Float(x) => (true,  false, 0, true,  x,    false, false),
                     SymVal::Bool(x)  => (false, false, 0, false, 0f32, true,  x),
-                    _ => panic!("unexpected '{:?}' in binary op", v1),
+                    _ => return Err(CError::RuntimeError(format!("Unexpected '{:?}' in binary op", v1), l)),
                 };
             let v2 = try!(run_expr(e2, vtab, global_symtab, local_symtab));
             let (is_num2, is_int2, i2, is_float2, f2, is_bool2, b2) =
@@ -218,7 +218,7 @@ pub fn run_expr<'input>(
                     SymVal::Int(x)   => (true,  true,  x, false, 0f32, false, false),
                     SymVal::Float(x) => (true,  false, 0, true,  x,    false, false),
                     SymVal::Bool(x)  => (false, false, 0, false, 0f32, true,  x),
-                    _ => panic!("unexpected '{:?}' in binary op", v2),
+                    _ => return Err(CError::RuntimeError(format!("Unexpected '{:?}' in binary op", v2), l)),
                 };
 
             match op {
@@ -229,7 +229,7 @@ pub fn run_expr<'input>(
                         (true, false) => SymVal::Float(i1 as f32 + f2),
                         (false, false) => SymVal::Float(f1 + f2),
                     },
-                    _ => panic!("`+` op expected numbers, got '{:?}' and '{:?}'", v1, v2),
+                    _ => return Err(CError::RuntimeError(format!("`+` op expected numbers, got '{:?}' and '{:?}'", v1, v2), l)),
                 },
                 COp::Sub => match (is_num1, is_num2) {
                     (true, true) => match (is_int1, is_int2) {
@@ -238,7 +238,7 @@ pub fn run_expr<'input>(
                         (true, false) => SymVal::Float(i1 as f32 - f2),
                         (false, false) => SymVal::Float(f1 - f2),
                     },
-                    _ => panic!("`-` op expected numbers, got '{:?}' and '{:?}'", v1, v2),
+                    _ => return Err(CError::RuntimeError(format!("`-` op expected numbers, got '{:?}' and '{:?}'", v1, v2), l)),
                 },
                 COp::Mul => match (is_num1, is_num2) {
                     (true, true) => match (is_int1, is_int2) {
@@ -247,7 +247,7 @@ pub fn run_expr<'input>(
                         (true, false) => SymVal::Float(i1 as f32 * f2),
                         (false, false) => SymVal::Float(f1 * f2),
                     },
-                    _ => panic!("`*` op expected numbers, got '{:?}' and '{:?}'", v1, v2),
+                    _ => return Err(CError::RuntimeError(format!("`*` op expected numbers, got '{:?}' and '{:?}'", v1, v2), l)),
                 },
                 COp::Div => match (is_num1, is_num2) {
                     (true, true) => match (is_int1, is_int2) {
@@ -256,7 +256,7 @@ pub fn run_expr<'input>(
                         (true, false) => SymVal::Float(i1 as f32 / f2),
                         (false, false) => SymVal::Float(f1 / f2),
                     },
-                    _ => panic!("`/` op expected numbers, got '{:?}' and '{:?}'", v1, v2),
+                    _ => return Err(CError::RuntimeError(format!("`/` op expected numbers, got '{:?}' and '{:?}'", v1, v2), l)),
                 },
                 // relational
                 COp::Eq => match (is_int1, is_int2, is_float1, is_float2) {
@@ -264,42 +264,42 @@ pub fn run_expr<'input>(
                     (false, true, true, false) => SymVal::Bool(f1 == i2 as f32),
                     (true, false, false, true) => SymVal::Bool(i1 as f32 == f2),
                     (false, false, true, true) => SymVal::Bool(f1 == f2),
-                    _ => panic!("`==` op expected pair of numbers, got '{:?}' and '{:?}'", v1, v2),
+                    _ => return Err(CError::RuntimeError(format!("`==` op expected pair of numbers, got '{:?}' and '{:?}'", v1, v2), l)),
                 },
                 COp::Neq => match (is_int1, is_int2, is_float1, is_float2) {
                     (true, true, false, false) => SymVal::Bool(i1 != i2),
                     (false, true, true, false) => SymVal::Bool(f1 != i2 as f32),
                     (true, false, false, true) => SymVal::Bool(i1 as f32 != f2),
                     (false, false, true, true) => SymVal::Bool(f1 != f2),
-                    _ => panic!("`!=` op expected pair of numbers, got '{:?}' and '{:?}'", v1, v2),
+                    _ => return Err(CError::RuntimeError(format!("`!=` op expected pair of numbers, got '{:?}' and '{:?}'", v1, v2), l)),
                 },
                 COp::Lt => match (is_int1, is_int2, is_float1, is_float2) {
                     (true, true, false, false) => SymVal::Bool(i1 < i2),
                     (false, true, true, false) => SymVal::Bool(f1 < i2 as f32),
                     (true, false, false, true) => SymVal::Bool((i1 as f32) < f2),
                     (false, false, true, true) => SymVal::Bool(f1 < f2),
-                    _ => panic!("`<` op expected pair of numbers, got '{:?}' and '{:?}'", v1, v2),
+                    _ => return Err(CError::RuntimeError(format!("`<` op expected pair of numbers, got '{:?}' and '{:?}'", v1, v2), l)),
                 },
                 COp::Lte => match (is_int1, is_int2, is_float1, is_float2) {
                     (true, true, false, false) => SymVal::Bool(i1 <= i2),
                     (false, true, true, false) => SymVal::Bool(f1 <= i2 as f32),
                     (true, false, false, true) => SymVal::Bool(i1 as f32 <= f2),
                     (false, false, true, true) => SymVal::Bool(f1 <= f2),
-                    _ => panic!("`<=` op expected pair of numbers, got '{:?}' and '{:?}'", v1, v2),
+                    _ => return Err(CError::RuntimeError(format!("`<=` op expected pair of numbers, got '{:?}' and '{:?}'", v1, v2), l)),
                 },
                 COp::Gt => match (is_int1, is_int2, is_float1, is_float2) {
                     (true, true, false, false) => SymVal::Bool(i1 > i2),
                     (false, true, true, false) => SymVal::Bool(f1 > i2 as f32),
                     (true, false, false, true) => SymVal::Bool(i1 as f32 > f2),
                     (false, false, true, true) => SymVal::Bool(f1 > f2),
-                    _ => panic!("`>` op expected pair of numbers, got '{:?}' and '{:?}'", v1, v2),
+                    _ => return Err(CError::RuntimeError(format!("`>` op expected pair of numbers, got '{:?}' and '{:?}'", v1, v2), l)),
                 },
                 COp::Gte => match (is_int1, is_int2, is_float1, is_float2) {
                     (true, true, false, false) => SymVal::Bool(i1 >= i2),
                     (false, true, true, false) => SymVal::Bool(f1 >= i2 as f32),
                     (true, false, false, true) => SymVal::Bool(i1 as f32 >= f2),
                     (false, false, true, true) => SymVal::Bool(f1 >= f2),
-                    _ => panic!("`>=` op expected pair of numbers, got '{:?}' and '{:?}'", v1, v2),
+                    _ => return Err(CError::RuntimeError(format!("`>=` op expected pair of numbers, got '{:?}' and '{:?}'", v1, v2), l)),
                 },
                 // logical
                 COp::And => match (is_int1, is_int2, is_float1, is_float2, is_bool1, is_bool2) {
@@ -310,7 +310,7 @@ pub fn run_expr<'input>(
                     // auto cast
                     (.., false, true) => SymVal::Bool(((i1 as f32 + f1) != 0.0) && b2),
                     (.., true, false) => SymVal::Bool(b1 && ((i1 as f32 + f1) != 0.0)),
-                    _ => panic!("`&&` op expected pair of bools, got '{:?}' and '{:?}'", v1, v2),
+                    _ => return Err(CError::RuntimeError(format!("`&&` op expected pair of bools, got '{:?}' and '{:?}'", v1, v2), l)),
                 },
                 COp::Or => match (is_int1, is_int2, is_float1, is_float2, is_bool1, is_bool2) {
                     (true, true, false, false, ..) => SymVal::Bool((i1 != 0) || (i2 != 0)),
@@ -320,56 +320,59 @@ pub fn run_expr<'input>(
                     // auto cast
                     (.., false, true) => SymVal::Bool(((i1 as f32 + f1) != 0.0) || b2),
                     (.., true, false) => SymVal::Bool(b1 || ((i1 as f32 + f1) != 0.0)),
-                    _ => panic!("`&&` op expected pair of bools, got '{:?}' and '{:?}'", v1, v2),
+                    _ => return Err(CError::RuntimeError(format!("`&&` op expected pair of bools, got '{:?}' and '{:?}'", v1, v2), l)),
                 },
-                _ => panic!("unsupported operator `{:?}`", op),
+                _ => return Err(CError::RuntimeError(format!("Unsupported operator `{:?}`", op), l)),
             }
         },
 
-        CExpr::Call(id, ref args) => {
+        CExpr::Call((l, _), id, ref args) => {
             // get func
             let f = match vtab.get_func(id) {
                 Some(f) => f,
-                None => panic!("function '{}' not initialized", id),
+                None => return Err(CError::RuntimeError(format!("Function '{}' not initialized", id), l)),
             };
 
             // calc and add args to symtab
             let mut tab = SymTab::new();
             for (i, p) in f.proto.params.iter().enumerate() {
-                let (ref t, ref id) = *p;
-                let e = args.iter().nth(i).unwrap();
+                let (ref t, ref pid) = *p;
+                let e = match args.iter().nth(i) {
+                    Some(x) => x,
+                    None => return Err(CError::RuntimeError(format!("Function '{}' missing param '{:?}'", id, p), l)),
+                };
                 let val = try!(run_expr(e, vtab, global_symtab, local_symtab));
-                tab.insert(id, (t.clone(), None, Some(val)));
+                tab.insert(pid, (t.clone(), None, Some(val)));
             }
 
             match try!(run_func(&f, vtab, global_symtab, tab)) {
                 Some(v) => v,
-                None => panic!("expression returned void"),
+                None => return Err(CError::RuntimeError(format!("Expression returned void"), l)),
             }
         },
 
-        CExpr::Index(id, ref e) => {
+        CExpr::Index((l, _), id, ref e) => {
             let sym = match local_symtab.get_val(id) {
                 Some(v) => v,
                 _ => match global_symtab.get_val(id) {
                     Some(v) => v,
-                    _ => panic!("variable '{}' not initialized", id),
+                    _ => return Err(CError::RuntimeError(format!("Variable '{}' not initialized", id), l)),
                 }
             };
             let a = match sym {
                 SymVal::Array(a) => a,
-                x => panic!("expected array, got {:?}", x),
+                x => return Err(CError::RuntimeError(format!("Expected array, got {:?}", x), l)),
             };
 
             // get index
             let i = match try!(run_expr(e, vtab, global_symtab, local_symtab)) {
                 SymVal::Int(n) => n,
-                x => panic!("expected array index, got {:?}", x),
+                x => return Err(CError::RuntimeError(format!("Expected array index, got {:?}", x), l)),
             };
 
             // check bounds
             if i >= (a.len() as i32) {
-                panic!("index {} out of bounds (range: {})", i, a.len())
+                return Err(CError::RuntimeError(format!("Index {} out of bounds (range: {})", i, a.len()), l))
             };
 
             (*a[i as usize]).clone()

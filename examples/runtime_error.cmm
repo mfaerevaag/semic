@@ -1,7 +1,11 @@
+int foo(int a) {
+    return a;
+}
+
 int main(void) {
     int i;
 
-    i = return;
+    i = foo();
 
     return 0;
 }

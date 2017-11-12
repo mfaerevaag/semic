@@ -39,15 +39,15 @@ pub enum CStmt<'input> {
 
 #[derive(Clone)]
 pub enum CExpr<'input> {
-    Int(CInt),
-    Float(CFloat),
-    Str(CString<'input>),
-    Char(CChar),
-    Ident(CIdent<'input>),
-    UnOp(COp, Box<CExpr<'input>>),
-    BinOp(COp, Box<CExpr<'input>>, Box<CExpr<'input>>),
-    Call(CIdent<'input>, Vec<Box<CExpr<'input>>>),
-    Index(CIdent<'input>, Box<CExpr<'input>>),
+    Int(CLoc, CInt),
+    Float(CLoc, CFloat),
+    Str(CLoc, CString<'input>),
+    Char(CLoc, CChar),
+    Ident(CLoc, CIdent<'input>),
+    UnOp(CLoc, COp, Box<CExpr<'input>>),
+    BinOp(CLoc, COp, Box<CExpr<'input>>, Box<CExpr<'input>>),
+    Call(CLoc, CIdent<'input>, Vec<Box<CExpr<'input>>>),
+    Index(CLoc, CIdent<'input>, Box<CExpr<'input>>),
     Error,
 }
 
@@ -143,21 +143,22 @@ impl<'input> Debug for CExpr<'input> {
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
         use self::CExpr::*;
         match *self {
-            Int(i) => write!(fmt, "{:?}", i),
-            Float(f) => write!(fmt, "{:?}", f),
-            Str(ref s) => write!(fmt, "\"{}\"", s.as_str()),
-            Char(c) => write!(fmt, "{:?}", c),
-            Ident(ref s) => write!(fmt, "{}", &s),
-            UnOp(op, ref l) => write!(fmt, "({:?}{:?})", op, l),
-            BinOp(op, ref l, ref r) => write!(fmt, "({:?} {:?} {:?})", l, op, r),
-            Call(ref i, ref p) => {
-                let mut s: String = format!("{:?}", p[0]);
-                for e in p[1..].iter() {
-                    s.push_str(&format!(", {:?}", e));
+            Int(_, i) => write!(fmt, "{:?}", i),
+            Float(_, f) => write!(fmt, "{:?}", f),
+            Str(_, ref s) => write!(fmt, "\"{}\"", s.as_str()),
+            Char(_, c) => write!(fmt, "{:?}", c),
+            Ident(_, ref s) => write!(fmt, "{}", &s),
+            UnOp(_, op, ref l) => write!(fmt, "({:?}{:?})", op, l),
+            BinOp(_, op, ref l, ref r) => write!(fmt, "({:?} {:?} {:?})", l, op, r),
+            Call(_, ref i, ref p) => {
+                let mut s: String = String::new();
+                for (i, e) in p.iter().enumerate() {
+                    if i > 0 { s.push_str(", ") }
+                    s.push_str(&format!("{:?}", e));
                 }
                 write!(fmt, "{}({})", i, s)
             },
-            Index(ref i, ref e) => {
+            Index(_, ref i, ref e) => {
                 write!(fmt, "{}[{:?}]", i, e)
             },
             Error => write!(fmt, "error"),

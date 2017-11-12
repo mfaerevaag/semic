@@ -206,7 +206,7 @@ StmtOther: Box<CStmt<'input>> = {
 
         let cond = match cond {
             Some(e) => e,
-            None => CExpr::Int(1),
+            None => CExpr::Int((l, r), 1),
         };
 
         let body = match inc {
@@ -290,51 +290,51 @@ pub Expr: CExpr<'input> = {
 };
 
 Expr1: Box<CExpr<'input>> = {
-    <l:Expr1> "||" <r:Expr2> => Box::new(CExpr::BinOp(COp::Or, l, r)),
+    <l:@L> <e1:Expr1> "||" <e2:Expr2> <r:@R> => Box::new(CExpr::BinOp((l, r), COp::Or, e1, e2)),
     Expr2,
 };
 
 Expr2: Box<CExpr<'input>> = {
-    <l:Expr2> "&&" <r:Expr3> => Box::new(CExpr::BinOp(COp::And, l, r)),
+    <l:@L> <e1:Expr2> "&&" <e2:Expr3> <r:@R> => Box::new(CExpr::BinOp((l, r), COp::And, e1, e2)),
     Expr3,
 };
 
 Expr3: Box<CExpr<'input>> = {
-    <l:Expr3> <op:ExprOpRel2> <r:Expr4> => Box::new(CExpr::BinOp(op, l, r)),
+    <l:@L> <e1:Expr3> <op:ExprOpRel2> <e2:Expr4> <r:@R> => Box::new(CExpr::BinOp((l, r), op, e1, e2)),
     Expr4,
 };
 
 Expr4: Box<CExpr<'input>> = {
-    <l:Expr4> <op:ExprOpRel> <r:Expr5> => Box::new(CExpr::BinOp(op, l, r)),
+    <l:@L> <e1:Expr4> <op:ExprOpRel> <e2:Expr5> <r:@R> => Box::new(CExpr::BinOp((l, r), op, e1, e2)),
     Expr5,
 };
 
 Expr5: Box<CExpr<'input>> = {
-    <l:Expr5> <op:ExprOp> <r:Factor> => Box::new(CExpr::BinOp(op, l, r)),
+    <l:@L> <e1:Expr5> <op:ExprOp> <e2:Factor> <r:@R> => Box::new(CExpr::BinOp((l, r), op, e1, e2)),
     Factor,
 };
 
 Factor: Box<CExpr<'input>> = {
-    <l:Factor> <op:FactorOp> <r:Term> => Box::new(CExpr::BinOp(op, l, r)),
+    <l:@L> <e1:Factor> <op:FactorOp> <e2:Term> <r:@R> => Box::new(CExpr::BinOp((l, r), op, e1, e2)),
     Term,
 };
 
 Term: Box<CExpr<'input>> = {
-    Int => Box::new(CExpr::Int(<>)),
-    Float => Box::new(CExpr::Float(<>)),
-    Str => Box::new(CExpr::Str(<>)),
-    Char => Box::new(CExpr::Char(<>)),
+    <l:@L> <x:Int> <r:@R> => Box::new(CExpr::Int((l, r), x)),
+    <l:@L> <x:Float> <r:@R> => Box::new(CExpr::Float((l, r), x)),
+    <l:@L> <x:Str> <r:@R> => Box::new(CExpr::Str((l, r), x)),
+    <l:@L> <x:Char> <r:@R> => Box::new(CExpr::Char((l, r), x)),
 
     // variable
-    Ident => Box::new(CExpr::Ident(<>)),
+    <l:@L> <i:Ident> <r:@R> => Box::new(CExpr::Ident((l, r), i)),
 
     // unary op
-    <op:TermOp> <r:Term> => Box::new(CExpr::UnOp(op, r)),
+    <l:@L> <op:TermOp> <t:Term> <r:@R> => Box::new(CExpr::UnOp((l, r), op, t)),
 
     // call
-    <i:Ident> "(" <p:Comma<Expr1>> ")" => Box::new(CExpr::Call(i, p)),
+    <l:@L> <i:Ident> "(" <p:Comma<Expr1>> ")" <r:@R> => Box::new(CExpr::Call((l, r), i, p)),
     // array index
-    <i:Ident> "[" <r:Expr1> "]" => Box::new(CExpr::Index(i, r)),
+    <l:@L> <i:Ident> "[" <e:Expr1> "]" <r:@R> => Box::new(CExpr::Index((l, r), i, e)),
 
     "(" <Expr1> ")",
 
