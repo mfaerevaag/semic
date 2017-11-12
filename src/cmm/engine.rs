@@ -348,7 +348,9 @@ pub fn run_expr<'input>(
                     (false, false, true, true, ..) => SymVal::Bool((f1 != 0.0) && (f2 != 0.0)),
                     // auto cast
                     (.., false, true) => SymVal::Bool(((i1 as f32 + f1) != 0.0) && b2),
-                    (.., true, false) => SymVal::Bool(b1 && ((i1 as f32 + f1) != 0.0)),
+                    (.., true, false) => SymVal::Bool(b1 && ((i2 as f32 + f2) != 0.0)),
+                    // normal
+                    (.., true, true) => SymVal::Bool(b1 && b2),
                     _ => return Err(CError::RuntimeError(format!("`&&` op expected pair of bools, got '{:?}' and '{:?}'", v1, v2), l)),
                 },
                 COp::Or => match (is_int1, is_int2, is_float1, is_float2, is_bool1, is_bool2) {
@@ -358,8 +360,10 @@ pub fn run_expr<'input>(
                     (false, false, true, true, ..) => SymVal::Bool((f1 != 0.0) || (f2 != 0.0)),
                     // auto cast
                     (.., false, true) => SymVal::Bool(((i1 as f32 + f1) != 0.0) || b2),
-                    (.., true, false) => SymVal::Bool(b1 || ((i1 as f32 + f1) != 0.0)),
-                    _ => return Err(CError::RuntimeError(format!("`&&` op expected pair of bools, got '{:?}' and '{:?}'", v1, v2), l)),
+                    (.., true, false) => SymVal::Bool(b1 || ((i2 as f32 + f2) != 0.0)),
+                    // normal
+                    (.., true, true) => SymVal::Bool(b1 && b2),
+                    _ => return Err(CError::RuntimeError(format!("`||` op expected pair of bools, got '{:?}' and '{:?}'", v1, v2), l)),
                 },
                 _ => return Err(CError::RuntimeError(format!("Unsupported operator `{:?}`", op), l)),
             }
