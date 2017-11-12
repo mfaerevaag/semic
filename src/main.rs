@@ -1,6 +1,7 @@
 extern crate cmm;
 
 use std::env;
+use std::process;
 use std::fs::File;
 use std::io::prelude::*;
 
@@ -15,5 +16,10 @@ fn main() {
     let mut prog = String::new();
     f.read_to_string(&mut prog).unwrap();
 
-    cmm::run(filename, prog);
+    let ret = match cmm::run(filename, prog) {
+        Ok(_) => 0,
+        Err(()) => 1
+    };
+
+    process::exit(ret);
 }

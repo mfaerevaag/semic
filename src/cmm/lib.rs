@@ -9,29 +9,34 @@ pub mod error;
 
 use lalrpop_util::ErrorRecovery;
 use ast::{CProg, CFunc, CStmt, CExpr};
+use error::CError;
 
 // engine functions
 
-pub fn run(filename: String, prog: String) {
-    let mut parser_err = Vec::new();
-
+pub fn run(filename: String, prog: String) -> Result<Option<env::SymVal>, ()> {
     let error_printer = error::ErrorPrinter::new(&filename, &prog);
 
-    let ast = match parser::parse_Prog(&mut parser_err, &prog) {
+    let ast = match parse_prog(&prog) {
         Ok(ast) => {
             println!("ast: {:#?}", &ast); // TODO: debug
             ast
         },
         Err(err) => {
-            error_printer.print_parse_error(err);
-            return ();
+            error_printer.print_err(err);
+            return Err(());
         }
     };
 
-    match engine::run_prog(&ast, &error_printer) {
-        Ok(ret) => println!("returned {:?}", ret),
-        _ => {}
-    };
+    match engine::run_prog(&ast) {
+        Ok(ret) => {
+            println!("returned: {:?}", ret); // TODO: debug
+            Ok(ret)
+        }
+        Err(err) => {
+            error_printer.print_err(err);
+            Err(())
+        }
+    }
 }
 
 // parser functions
@@ -49,12 +54,15 @@ pub fn run(filename: String, prog: String) {
 /// let mut err = Vec::new();
 /// assert!(cmm::parse(&mut err, r#"main () {}"#).is_err());
 /// ```
-pub fn parse<'input, 'err,>(
-    errors: &'err mut Vec<ErrorRecovery<usize, (usize, &'input str), ()>>,
+pub fn parse_prog<'input, 'err,>(
+    // errors: &'err mut Vec<ErrorRecovery<usize, (usize, &'input str), ()>>,
     input: &'input str,
-) -> Result<CProg<'input>, lalrpop_util::ParseError<usize, (usize, &'input str), ()>>
+) -> Result<CProg<'input>, CError>
 {
-    parser::parse_Prog(errors, input)
+    match parser::parse_Prog(&mut vec![], input) {
+        Ok(x) => Ok(x),
+        Err(err) => Err(CError::from_lalrpop(err)),
+    }
 }
 
 pub fn parse_func<'input, 'err,>(
@@ -98,7 +106,7 @@ pub fn parse_expr<'input, 'err,>(
 /// ```
 pub fn check<'input, 'err>(
     ast: &'input CProg
-) -> Result<(env::FuncTab<'input>, env::SymTab<'input>), Vec<checker::CheckErr>>
+) -> Result<(env::FuncTab<'input>, env::SymTab<'input>), CError>
 {
     checker::analyze_prog(ast)
 }

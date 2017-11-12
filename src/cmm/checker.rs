@@ -1,43 +1,16 @@
-use std::error::Error;
-use std::fmt;
-
 use ast::*;
 use env::{FuncTab, SymTab};
-
-// error type
-
-#[derive(Debug)]
-pub struct CheckErr {
-    message: String,
-}
-
-impl CheckErr {
-    pub fn new (message: String) -> CheckErr {
-        CheckErr { message }
-    }
-}
-
-impl Error for CheckErr {
-    fn description(&self) -> &str {
-        &self.message
-    }
-}
-
-impl fmt::Display for CheckErr {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        write!(fmt, "{}", &self.message)
-    }
-}
+use error::CError;
 
 // checker functions
 
 pub fn analyze_prog<'input, 'err>(
     ast: &'input CProg<'input>,
-) -> Result<(FuncTab<'input>, SymTab<'input>), Vec<CheckErr>>
+) -> Result<(FuncTab<'input>, SymTab<'input>), CError>
 {
     let mut vtab = FuncTab::new();
     let mut symtab = SymTab::new();
-    let mut errors = vec![];
+    let mut errors: Vec<String> = vec![];
 
     // check each element
     for elem in ast.iter() {
@@ -45,10 +18,7 @@ pub fn analyze_prog<'input, 'err>(
             CProgElem::Decl(ref t, ref name, s) => {
                 let val = (t.clone(), s, None);
                 match symtab.insert(*name, val) {
-                    Some(_) => {
-                        let msg = format!("variable {:?} already declared", name);
-                        errors.push(CheckErr::new(msg));
-                    },
+                    Some(_) => errors.push(format!("variable {:?} already declared", name)),
                     None => (),
                 };
             },
@@ -59,10 +29,7 @@ pub fn analyze_prog<'input, 'err>(
                 let val = (proto, Some(func));
 
                 match vtab.insert(*name, val) {
-                    Some((_, Some(_))) => {
-                        let msg = format!("function {:?} already declared", name);
-                        errors.push(CheckErr::new(msg));
-                    },
+                    Some((_, Some(_))) => errors.push(format!("function {:?} already declared", name)),
                     _ => (),
                 };
             },
@@ -72,10 +39,7 @@ pub fn analyze_prog<'input, 'err>(
                 let val = (proto, None);
 
                 match vtab.insert(*name, val) {
-                    Some(_) => {
-                        let msg = format!("function {:?} already defined", name);
-                        errors.push(CheckErr::new(msg));
-                    },
+                    Some(_) => errors.push(format!("function {:?} already defined", name)),
                     None => (),
                 };
             },
@@ -86,17 +50,14 @@ pub fn analyze_prog<'input, 'err>(
 
     // check for main function
     match vtab.get_func("main") {
-        None => {
-            let msg = format!("function 'main' missing");
-            errors.push(CheckErr::new(msg));
-        },
+        None => errors.push(format!("function 'main' missing")),
         _ => (),
     };
 
     // check if local errors
     match errors.len() {
         0 => Ok((vtab, symtab)),
-        _ => Err(errors),
+        _ => Err(CError::CheckerError(errors)),
     }
 }
 

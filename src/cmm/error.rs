@@ -1,6 +1,26 @@
 extern crate lalrpop_util;
 use lalrpop_util::ParseError;
 
+pub enum CError {
+    ParseError(String, usize),
+    RuntimeError(String, usize),
+    CheckerError(Vec<String>),  // TODO: loc
+}
+
+impl<'input> CError {
+    pub fn from_lalrpop(err: lalrpop_util::ParseError<usize, (usize, &'input str), ()>) -> CError {
+        match err {
+            ParseError::InvalidToken { location } =>
+                CError::ParseError(format!("Invalid token"), location),
+            ParseError::UnrecognizedToken { token: Some((loc, (_, tok), _)), expected: exp } =>
+                CError::ParseError(format!("Unrecognized token {:?}. Expected either {:?}", tok, exp), loc),
+            ParseError::ExtraToken { token: (loc, tok, _) } =>
+                CError::ParseError(format!("Extra token {:?}", tok), loc),
+            _ => panic!("unknown parse error: {:?}", err),
+        }
+    }
+}
+
 pub struct ErrorPrinter {
     filename: String,
     lines: Vec<String>,
@@ -14,7 +34,43 @@ impl<'a> ErrorPrinter {
         }
     }
 
-    pub fn get_line_with_off(&self, loc: usize) -> Option<(usize, usize)> {
+    pub fn print_err(&self, err: CError) {
+        match err {
+            CError::ParseError(..) => self.print_simple_err(err),
+            CError::RuntimeError(..) => self.print_simple_err(err),
+            CError::CheckerError(..) => self.print_list_err(err),
+        }
+    }
+
+    fn print_list_err(&self, err: CError) {
+        let (head, es) = match err {
+            CError::CheckerError(es) => ("Checker error", es),
+            _ => panic!("unexpected type of error")
+        };
+
+        println!("TODO: print checker err");
+        println!("{} : ({})", head, self.filename);
+        println!("{:?}", es);
+    }
+
+    fn print_simple_err(&self, err: CError) {
+        let (head, msg, loc) = match err {
+            CError::ParseError(msg, loc) => ("Syntax error", msg, loc),
+            CError::RuntimeError(msg, loc) => ("Run-time error", msg, loc),
+            _ => panic!("unexpected type of error")
+        };
+
+        let (i, off) = self.get_line_with_off(loc).unwrap();
+        let line = self.lines.get(i).unwrap();
+
+        println!("{} : line {} ({})", head, i + 1, self.filename);
+
+        println!("{}", line);
+        println!("{}^", String::from_utf8(vec![b' '; off]).unwrap());
+        println!("{}", msg);
+    }
+
+    fn get_line_with_off(&self, loc: usize) -> Option<(usize, usize)> {
         let mut count = 0;
 
         for (i, line) in self.lines.iter().enumerate() {
@@ -26,38 +82,5 @@ impl<'a> ErrorPrinter {
         }
 
         None
-    }
-
-    pub fn print_with_line(&self, header: &'a str, loc: usize, msg: &'a str) {
-        let (i, off) = self.get_line_with_off(loc).unwrap();
-        let line = self.lines.get(i).unwrap();
-
-        println!("{} on line {}", header, i);
-        println!("{}", line);
-        println!("{}^", String::from_utf8(vec![b' '; off]).unwrap());
-        println!("{}", msg);
-    }
-
-    pub fn print_parse_error<'input>(&self, err: lalrpop_util::ParseError<usize, (usize, &'input str), ()>) {
-        let (msgo, loc) = match err {
-            ParseError::InvalidToken { location } =>
-                (Some(format!("Invalid token")), location),
-            ParseError::UnrecognizedToken { token: Some((loc, (_, tok), _)), expected: exp } =>
-                (Some(format!("Unrecognized token {:?}. Expected either {:?}", tok, exp)), loc),
-            ParseError::ExtraToken { token: (loc, tok, _) } =>
-                (Some(format!("Extra token {:?}", tok)), loc),
-            _ => (None, 0),
-        };
-
-        let (i, off) = self.get_line_with_off(loc).unwrap();
-        let line = self.lines.get(i).unwrap();
-
-        println!("Syntax Error : line {} ({})", i, self.filename);
-
-        if let Some(msg) = msgo {
-            println!("{}", line);
-            println!("{}^", String::from_utf8(vec![b' '; off]).unwrap());
-            println!("{}", msg);
-        }
     }
 }
