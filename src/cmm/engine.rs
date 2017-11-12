@@ -109,10 +109,10 @@ pub fn run_stmt<'input>(
             }
             res
         },
-        CStmt::If(_, ref cond, ref s, ref o) => {
+        CStmt::If((l, _), ref cond, ref s, ref o) => {
             let b = match try!(run_expr(cond, vtab, global_symtab, &tmp_symtab)) {
                 SymVal::Bool(b) => b,
-                x => panic!("expected bool, got {:?}", x),
+                x => return Err(CError::RuntimeError(format!("expected bool, got {:?}", x), l)),
             };
             if b {
                 let (tab, res) = try!(run_stmt(s, vtab, global_symtab, tmp_symtab));
@@ -129,10 +129,10 @@ pub fn run_stmt<'input>(
                 }
             }
         },
-        CStmt::While(_, ref cond, ref s) => {
+        CStmt::While((l, _), ref cond, ref s) => {
             let b = match try!(run_expr(cond, vtab, global_symtab, &tmp_symtab)) {
                 SymVal::Bool(b) => b,
-                x => panic!("expected bool, got {:?}", x),
+                x => return Err(CError::RuntimeError(format!("expected bool, got {:?}", x), l)),
             };
             if b {
                 let (tab, res) = try!(run_stmt(s, vtab, global_symtab, local_symtab));
