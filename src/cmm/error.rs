@@ -1,6 +1,8 @@
 extern crate lalrpop_util;
+
 use lalrpop_util::ParseError;
 
+#[derive(Debug)]
 pub enum CError {
     ParseError(String, usize),
     RuntimeError(String, usize),
@@ -20,6 +22,8 @@ impl<'input> CError {
         }
     }
 }
+
+// printer
 
 pub struct ErrorPrinter {
     filename: String,

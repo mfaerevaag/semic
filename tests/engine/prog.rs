@@ -5,7 +5,7 @@ use cmm::env::SymVal;
 
 #[test]
 fn empty() {
-    let ast = cmm::parse(&mut vec![], r#"
+    let ast = cmm::parse_prog(r#"
 void main () {
 
 }
@@ -20,7 +20,7 @@ void main () {
 
 #[test]
 fn int() {
-    let ast = cmm::parse(&mut vec![], r#"
+    let ast = cmm::parse_prog(r#"
 int main () {
 return 0;
 }
@@ -35,7 +35,7 @@ return 0;
 
 #[test]
 fn argc() {
-    let ast = cmm::parse(&mut vec![], r#"
+    let ast = cmm::parse_prog(r#"
 int main (int argc, char argv[][]) {
 return argc;
 }

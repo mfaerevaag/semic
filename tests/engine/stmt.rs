@@ -12,11 +12,9 @@ fn assign_int() {
 
     local.insert("i", (CType::Int, None, None));
 
-    let ast = cmm::parse_stmt(&mut vec![], r#"
-i = 7;
-"#).unwrap();
+    let ast = cmm::parse_stmt(r#" i = 7; "#).unwrap();
 
-    let (tab, actual) = engine::run_stmt(&ast, &vtab, &global, local);
+    let (_, tab, actual) = engine::run_stmt(&ast, &vtab, global, local).unwrap();
     let expected = None;
     assert_eq!(expected, actual);
 
@@ -38,11 +36,9 @@ fn assign_array() {
 
     local.insert("s", (CType::Char, Some(2), None));
 
-    let ast = cmm::parse_stmt(&mut vec![], r#"
-s[1] = '\0';
-"#).unwrap();
+    let ast = cmm::parse_stmt(r#" s[1] = '\0'; "#).unwrap();
 
-    let (tab, actual) = engine::run_stmt(&ast, &vtab, &global, local);
+    let (_, tab, actual) = engine::run_stmt(&ast, &vtab, global, local).unwrap();
     let expected = None;
     assert_eq!(expected, actual);
 
@@ -65,11 +61,9 @@ fn assign_string() {
 
     local.insert("s", (CType::Char, Some(2), None));
 
-    let ast = cmm::parse_stmt(&mut vec![], r#"
-s = "a";
-"#).unwrap();
+    let ast = cmm::parse_stmt(r#" s = "a"; "#).unwrap();
 
-    let (tab, actual) = engine::run_stmt(&ast, &vtab, &global, local);
+    let (_, tab, actual) = engine::run_stmt(&ast, &vtab, global, local).unwrap();
     let expected = None;
     assert_eq!(expected, actual);
 

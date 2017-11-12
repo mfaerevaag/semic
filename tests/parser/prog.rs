@@ -4,26 +4,21 @@ use cmm::ast::*;
 
 #[test]
 fn prog_empty() {
-    let mut errors = Vec::new();
+    let actual = cmm::parse_prog(r#""#);
 
-    let actual = cmm::parse(&mut errors, r#""#).unwrap();
-
-    assert!(errors.is_empty());
-    assert_eq!(format!("[]"), format!("{:?}", actual));
+    assert!(actual.is_ok());
+    assert_eq!(format!("[]"), format!("{:?}", actual.unwrap()));
 }
 
 #[test]
 fn prog_proto_void() {
-    let mut errors = Vec::new();
-    let mut errors2 = Vec::new();
-
-    let actual = cmm::parse(&mut errors, r#"
+    let actual = cmm::parse_prog(r#"
         void foo (void);
-    "#).unwrap();
+    "#);
 
-    let actual2 = cmm::parse(&mut errors2, r#"
+    let actual2 = cmm::parse_prog(r#"
         void foo ();
-    "#).unwrap();
+    "#);
 
     let expected = CProto {
         ret: None,
@@ -31,19 +26,17 @@ fn prog_proto_void() {
         params: vec![],
     };
 
-    assert!(errors.is_empty());
-    assert!(errors2.is_empty());
-    assert_eq!(format!("[{:?}]", expected.clone()), format!("{:?}", actual));
-    assert_eq!(format!("[{:?}]", expected.clone()), format!("{:?}", actual2));
+    assert!(actual.is_ok());
+    assert!(actual2.is_ok());
+    assert_eq!(format!("[{:?}]", expected.clone()), format!("{:?}", actual.unwrap()));
+    assert_eq!(format!("[{:?}]", expected.clone()), format!("{:?}", actual2.unwrap()));
 }
 
 #[test]
 fn prog_proto_types() {
-    let mut errors = Vec::new();
-
-    let actual = cmm::parse(&mut errors, r#"
+    let actual = cmm::parse_prog(r#"
         int foo (int a, char b);
-    "#).unwrap();
+    "#);
 
     let expected = CProto {
         ret: Some(CType::Int),
@@ -51,22 +44,19 @@ fn prog_proto_types() {
         params: vec![(CType::Int, "a"), (CType::Char, "b")],
     };
 
-    assert!(errors.is_empty());
-    assert_eq!(format!("[{:?}]", expected), format!("{:?}", actual));
+    assert!(actual.is_ok());
+    assert_eq!(format!("[{:?}]", expected), format!("{:?}", actual.unwrap()));
 }
 
 #[test]
 fn prog_proto_names_good() {
-    let mut errors = Vec::new();
-    let mut errors2 = Vec::new();
-
-    let actual = cmm::parse(&mut errors, r#"
+    let actual = cmm::parse_prog(r#"
         int foo42 ();
-    "#).unwrap();
+    "#);
 
-    let actual2 = cmm::parse(&mut errors2, r#"
+    let actual2 = cmm::parse_prog(r#"
         int foo_42 ();
-    "#).unwrap();
+    "#);
 
     let expected = CProto {
         ret: Some(CType::Int),
@@ -80,38 +70,31 @@ fn prog_proto_names_good() {
         params: vec![],
     };
 
-    assert!(errors.is_empty());
-    assert!(errors2.is_empty());
-    assert_eq!(format!("[{:?}]", expected), format!("{:?}", actual));
-    assert_eq!(format!("[{:?}]", expected2), format!("{:?}", actual2));
+    assert!(actual.is_ok());
+    assert!(actual2.is_ok());
+    assert_eq!(format!("[{:?}]", expected), format!("{:?}", actual.unwrap()));
+    assert_eq!(format!("[{:?}]", expected2), format!("{:?}", actual2.unwrap()));
 }
 
 #[test]
 fn prog_proto_names_bad() {
-    let mut errors = Vec::new();
-    let mut errors2 = Vec::new();
-
-    let actual = cmm::parse(&mut errors, r#"
+    let actual = cmm::parse_prog(r#"
         int 42foo42 ();
     "#);
 
-    let actual2 = cmm::parse(&mut errors2, r#"
+    let actual2 = cmm::parse_prog(r#"
         int _foo_42 ();
     "#);
 
-    // assert_eq!(1, errors.len());
-    // assert_eq!(1, errors2.len());
     assert!(actual.is_err());
     assert!(actual2.is_err());
 }
 
 #[test]
 fn prog_proto_mult() {
-    let mut errors = Vec::new();
-
-    let actual = cmm::parse(&mut errors, r#"
+    let actual = cmm::parse_prog(r#"
         int foo(int a), bar(char b);
-    "#).unwrap();
+    "#);
 
     let expected = vec![CProto {
         ret: Some(CType::Int),
@@ -123,6 +106,6 @@ fn prog_proto_mult() {
         params: vec![(CType::Char, "b")],
     }];
 
-    assert!(errors.is_empty());
-    assert_eq!(format!("{:?}", expected), format!("{:?}", actual));
+    assert!(actual.is_ok());
+    assert_eq!(format!("{:?}", expected), format!("{:?}", actual.unwrap()));
 }

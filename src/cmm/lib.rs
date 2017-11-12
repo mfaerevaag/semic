@@ -46,13 +46,11 @@ pub fn run(filename: String, prog: String) -> Result<Option<env::SymVal>, ()> {
 /// # Examples
 ///
 /// ```
-/// let mut err = Vec::new();
-/// assert!(cmm::parse(&mut err, r#"int main () {}"#).is_ok());
+/// assert!(cmm::parse_prog(r#"int main () {}"#).is_ok());
 /// ```
 ///
 /// ```
-/// let mut err = Vec::new();
-/// assert!(cmm::parse(&mut err, r#"main () {}"#).is_err());
+/// assert!(cmm::parse_prog(r#"main () {}"#).is_err());
 /// ```
 pub fn parse_prog<'input, 'err,>(
     // errors: &'err mut Vec<ErrorRecovery<usize, (usize, &'input str), ()>>,
@@ -108,15 +106,15 @@ pub fn parse_expr<'input, 'err,>(
 /// # Examples
 ///
 /// ```
-/// let ast = cmm::parse(&mut vec![], r#"void main () {}"#).unwrap();
-/// assert!(cmm::check(&ast).is_ok());
+/// let ast = cmm::parse_prog(r#"void main () {}"#).unwrap();
+/// assert!(cmm::check_prog(&ast).is_ok());
 /// ```
 ///
 /// ```
-/// let ast = cmm::parse(&mut vec![], r#"int x, x;"#).unwrap();
-/// assert!(cmm::check(&ast).is_err()); // main missing
+/// let ast = cmm::parse_prog(r#"int x, x;"#).unwrap();
+/// assert!(cmm::check_prog(&ast).is_err()); // main missing
 /// ```
-pub fn check<'input, 'err>(
+pub fn check_prog<'input, 'err>(
     ast: &'input CProg
 ) -> Result<(env::FuncTab<'input>, env::SymTab<'input>), CError>
 {
