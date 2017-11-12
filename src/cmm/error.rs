@@ -74,11 +74,12 @@ impl<'a> ErrorPrinter {
         let mut count = 0;
 
         for (i, line) in self.lines.iter().enumerate() {
-            if loc < (count + line.len()) {
-                return Some((i, loc - count - 1))
+            if loc < (count + line.len() + 1) {
+                return Some((i, loc - count))
             }
 
-            count += line.len();
+            // +1 for newline char
+            count += line.len() + 1;
         }
 
         None
