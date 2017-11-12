@@ -10,36 +10,36 @@ pub fn analyze_prog<'input, 'err>(
 {
     let mut vtab = FuncTab::new();
     let mut symtab = SymTab::new();
-    let mut errors: Vec<String> = vec![];
+    let mut errors: Vec<(String, Option<usize>)> = vec![];
 
     // check each element
     for elem in ast.iter() {
         match *elem {
-            CProgElem::Decl(ref t, ref name, s) => {
+            CProgElem::Decl((l, _), ref t, ref name, s) => {
                 let val = (t.clone(), s, None);
                 match symtab.insert(*name, val) {
-                    Some(_) => errors.push(format!("variable {:?} already declared", name)),
+                    Some(_) => errors.push((format!("Variable '{}' already declared", name), Some(l))),
                     None => (),
                 };
             },
 
-            CProgElem::Func(ref func) => {
+            CProgElem::Func((l, _), ref func) => {
                 let CFunc { ref proto, .. } = *func;
                 let CProto { ref name, .. } = *proto;
                 let val = (proto, Some(func));
 
                 match vtab.insert(*name, val) {
-                    Some((_, Some(_))) => errors.push(format!("function {:?} already declared", name)),
+                    Some((_, Some(_))) => errors.push((format!("Function '{}' already declared", name), Some(l))),
                     _ => (),
                 };
             },
 
-            CProgElem::Proto(ref proto) => {
+            CProgElem::Proto((l, _), ref proto) => {
                 let CProto { ref name, .. } = *proto;
                 let val = (proto, None);
 
                 match vtab.insert(*name, val) {
-                    Some(_) => errors.push(format!("function {:?} already defined", name)),
+                    Some(_) => errors.push((format!("Function '{}' already defined", name), Some(l))),
                     None => (),
                 };
             },
@@ -50,7 +50,7 @@ pub fn analyze_prog<'input, 'err>(
 
     // check for main function
     match vtab.get_func("main") {
-        None => errors.push(format!("function 'main' missing")),
+        None => errors.push((format!("Function 'main' missing"), None)),
         _ => (),
     };
 

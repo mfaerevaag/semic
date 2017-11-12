@@ -51,9 +51,9 @@ pub Prog: CProg<'input> = <l:(<ProgElem>)*> => {
 
 ProgElem: Vec<CProgElem<'input>> = {
     // decl
-    <t:Type> <m:VarArray> <r:("," <VarArray>)*> ";" => {
-        vec![m].into_iter().chain(r).map(|(id, s)| {
-            CProgElem::Decl(t.clone(), id, s)
+    <l:@L> <t:Type> <m:VarArray> <mm:("," <VarArray>)*> ";" <r:@R> => {
+        vec![m].into_iter().chain(mm).map(|(id, s)| {
+            CProgElem::Decl((l, r), t.clone(), id, s)
         }).collect()
     },
 
@@ -61,27 +61,27 @@ ProgElem: Vec<CProgElem<'input>> = {
     Proto,
 
     // func
-    Func => vec![CProgElem::Func(<>)],
+    Func,
 };
 
 Proto: Vec<CProgElem<'input>> = {
-    "void" <m:Comma<FuncDecl>> ";" => {
+    <l:@L> "void" <m:Comma<FuncDecl>> ";" <r:@R> => {
         m.into_iter().map(|(id, ps)| {
-            CProgElem::Proto(CProto {
+            CProgElem::Proto((l, r), CProto {
                 ret: None,
                 name: id,
                 params: ps,
             })
         }).collect()
     },
-    <l:Type> <p:("*")?> <m:Comma<FuncDecl>> ";" => {
-        let t = match p {
-            None => Some(l.clone()),
-            _ => Some(CType::Ref(Box::new(l.clone()))),
+    <l:@L> <t:Type> <p:("*")?> <m:Comma<FuncDecl>> ";" <r:@R> => {
+        let tt = match p {
+            None => Some(t.clone()),
+            _ => Some(CType::Ref(Box::new(t.clone()))),
         };
         m.into_iter().map(|(id, ps)| {
-            CProgElem::Proto(CProto {
-                ret: t.clone(),
+            CProgElem::Proto((l, r), CProto {
+                ret: tt.clone(),
                 name: id,
                 params: ps,
             })
@@ -89,12 +89,10 @@ Proto: Vec<CProgElem<'input>> = {
     },
 };
 
-pub Func: CFunc<'input> = {
-    "void" <r:FuncDecl> "{"
-        <stmt:(<Stmt>)*> "}" =>
-    {
-        let (id, param) = r;
-        CFunc {
+pub Func: Vec<CProgElem<'input>> = {
+    <l:@L> "void" <d:FuncDecl> "{" <stmt:(<Stmt>)*> "}" <r:@R> => {
+        let (id, param) = d;
+        vec![CProgElem::Func((l, r), CFunc {
             proto: CProto {
                 ret: None,
                 name: id,
@@ -106,19 +104,17 @@ pub Func: CFunc<'input> = {
                 },
                 x => vec![x]
             }).collect(),
-        }
+        })]
     },
-    <l:Type> <p:("*")?> <r:FuncDecl> "{"
-        <stmt:(<Stmt>)*> "}" =>
-    {
-        let t = match p {
-            None => Some(l.clone()),
-            _ => Some(CType::Ref(Box::new(l.clone()))),
+    <l:@L> <t:Type> <p:("*")?> <d:FuncDecl> "{" <stmt:(<Stmt>)*> "}" <r:@R> => {
+        let tt = match p {
+            None => Some(t.clone()),
+            _ => Some(CType::Ref(Box::new(t.clone()))),
         };
-        let (id, param) = r;
-        CFunc {
+        let (id, param) = d;
+        vec![CProgElem::Func((l, r), CFunc {
             proto: CProto {
-                ret: t,
+                ret: tt,
                 name: id,
                 params: param,
             },
@@ -128,7 +124,7 @@ pub Func: CFunc<'input> = {
                 },
                 x => vec![x]
             }).collect(),
-        }
+        })]
     },
 };
 

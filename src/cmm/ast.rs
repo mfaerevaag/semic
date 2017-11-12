@@ -6,9 +6,9 @@ pub type CProg<'input> = Vec<CProgElem<'input>>;
 
 #[derive(Clone)]
 pub enum CProgElem<'input> {
-    Decl(CType, CIdent<'input>, Option<usize>),
-    Proto(CProto<'input>),
-    Func(CFunc<'input>),
+    Decl(CLoc, CType, CIdent<'input>, Option<usize>),
+    Proto(CLoc, CProto<'input>),
+    Func(CLoc, CFunc<'input>),
     Error,
 }
 
@@ -98,12 +98,12 @@ impl<'input> Debug for CProgElem<'input> {
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
         use self::CProgElem::*;
         match *self {
-            Decl(ref t, id, s) => match s {
+            Decl(_, ref t, id, s) => match s {
                 Some(i) => write!(fmt, "{:?} {}[{}]", t, id, i),
                 None => write!(fmt, "{:?} {}", t, id),
             },
-            Proto(ref x) => write!(fmt, "{:?}", x),
-            Func(ref x) => write!(fmt, "{:#?}", x),
+            Proto(_, ref x) => write!(fmt, "{:?}", x),
+            Func(_, ref x) => write!(fmt, "{:#?}", x),
             Error => write!(fmt, "error"),
         }
     }

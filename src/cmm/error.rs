@@ -4,7 +4,7 @@ use lalrpop_util::ParseError;
 pub enum CError {
     ParseError(String, usize),
     RuntimeError(String, usize),
-    CheckerError(Vec<String>),  // TODO: loc
+    CheckerError(Vec<(String, Option<usize>)>),
 }
 
 impl<'input> CError {
@@ -35,39 +35,31 @@ impl<'a> ErrorPrinter {
     }
 
     pub fn print_err(&self, err: CError) {
-        match err {
-            CError::ParseError(..) => self.print_simple_err(err),
-            CError::RuntimeError(..) => self.print_simple_err(err),
-            CError::CheckerError(..) => self.print_list_err(err),
+        let (head, es) = match err {
+            CError::ParseError(msg, loc) => ("Syntax error", vec![(msg, Some(loc))]),
+            CError::RuntimeError(msg, loc) => ("Run-time error", vec![(msg, Some(loc))]),
+            CError::CheckerError(es) => ("Checker error", es),
+        };
+
+        for (msg, loc) in es {
+            match loc {
+                Some(loc) => {
+                    let (i, off) = self.get_line_with_off(loc).unwrap();
+                    println!("{}: line {}:{} ({})", head, i + 1, off, self.filename);
+                    self.print_at_loc(loc)
+                },
+                None => println!("{}: ({})", head, self.filename),
+
+            };
+            println!(" -> {}", msg);
         }
     }
 
-    fn print_list_err(&self, err: CError) {
-        let (head, es) = match err {
-            CError::CheckerError(es) => ("Checker error", es),
-            _ => panic!("unexpected type of error")
-        };
-
-        println!("TODO: print checker err");
-        println!("{} : ({})", head, self.filename);
-        println!("{:?}", es);
-    }
-
-    fn print_simple_err(&self, err: CError) {
-        let (head, msg, loc) = match err {
-            CError::ParseError(msg, loc) => ("Syntax error", msg, loc),
-            CError::RuntimeError(msg, loc) => ("Run-time error", msg, loc),
-            _ => panic!("unexpected type of error")
-        };
-
+    fn print_at_loc(&self, loc: usize) {
         let (i, off) = self.get_line_with_off(loc).unwrap();
         let line = self.lines.get(i).unwrap();
-
-        println!("{} : line {} ({})", head, i + 1, self.filename);
-
-        println!("{}", line);
-        println!("{}^", String::from_utf8(vec![b' '; off]).unwrap());
-        println!("{}", msg);
+        println!(" | {}", line);
+        println!(" | {}^", String::from_utf8(vec![b' '; off]).unwrap());
     }
 
     fn get_line_with_off(&self, loc: usize) -> Option<(usize, usize)> {

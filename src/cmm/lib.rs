@@ -7,8 +7,8 @@ pub mod env;
 pub mod engine;
 pub mod error;
 
-use lalrpop_util::ErrorRecovery;
-use ast::{CProg, CFunc, CStmt, CExpr};
+// use lalrpop_util::ErrorRecovery;
+use ast::{CProg, CProgElem, CFunc, CStmt, CExpr};
 use error::CError;
 
 // engine functions
@@ -66,27 +66,39 @@ pub fn parse_prog<'input, 'err,>(
 }
 
 pub fn parse_func<'input, 'err,>(
-    errors: &'err mut Vec<ErrorRecovery<usize, (usize, &'input str), ()>>,
+    // errors: &'err mut Vec<ErrorRecovery<usize, (usize, &'input str), ()>>,
     input: &'input str,
-) -> Result<CFunc<'input>, lalrpop_util::ParseError<usize, (usize, &'input str), ()>>
+) -> Result<CFunc<'input>, CError>
 {
-    parser::parse_Func(errors, input)
+    match parser::parse_Func(&mut vec![], input) {
+        Ok(ref x) => match x.first().unwrap() {
+            &CProgElem::Func(_, ref f) => Ok(f.clone()),
+            x => panic!("unexpected prog elem '{:?}'", x),
+        },
+        Err(err) => Err(CError::from_lalrpop(err)),
+    }
 }
 
 pub fn parse_stmt<'input, 'err,>(
-    errors: &'err mut Vec<ErrorRecovery<usize, (usize, &'input str), ()>>,
+    // errors: &'err mut Vec<ErrorRecovery<usize, (usize, &'input str), ()>>,
     input: &'input str,
-) -> Result<CStmt<'input>, lalrpop_util::ParseError<usize, (usize, &'input str), ()>>
+) -> Result<CStmt<'input>, CError>
 {
-    parser::parse_Stmt(errors, input)
+    match parser::parse_Stmt(&mut vec![], input) {
+        Ok(x) => Ok(x),
+        Err(err) => Err(CError::from_lalrpop(err)),
+    }
 }
 
 pub fn parse_expr<'input, 'err,>(
-    errors: &'err mut Vec<ErrorRecovery<usize, (usize, &'input str), ()>>,
+    // errors: &'err mut Vec<ErrorRecovery<usize, (usize, &'input str), ()>>,
     input: &'input str,
-) -> Result<CExpr<'input>, lalrpop_util::ParseError<usize, (usize, &'input str), ()>>
+) -> Result<CExpr<'input>, CError>
 {
-    parser::parse_Expr(errors, input)
+    match parser::parse_Expr(&mut vec![], input) {
+        Ok(x) => Ok(x),
+        Err(err) => Err(CError::from_lalrpop(err)),
+    }
 }
 
 // checker functions
