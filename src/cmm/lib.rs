@@ -13,12 +13,12 @@ use error::CError;
 
 // engine functions
 
-pub fn run(filename: String, prog: String) -> Result<Option<env::SymVal>, ()> {
+pub fn run(filename: String, prog: String, verbose: bool) -> Result<Option<env::SymVal>, ()> {
     let error_printer = error::ErrorPrinter::new(&filename, &prog);
 
     let ast = match parse_prog(&prog) {
         Ok(ast) => {
-            println!("ast: {:#?}", &ast); // TODO: debug
+            if verbose { println!("ast: {:#?}", &ast); }
             ast
         },
         Err(err) => {
@@ -29,7 +29,7 @@ pub fn run(filename: String, prog: String) -> Result<Option<env::SymVal>, ()> {
 
     match engine::run_prog(&ast) {
         Ok(ret) => {
-            println!("returned: {:?}", ret); // TODO: debug
+            if verbose { println!("returned: {:?}", ret); }
             Ok(ret)
         }
         Err(err) => {

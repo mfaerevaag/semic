@@ -16,5 +16,6 @@ path = "src/main.rs"
 lalrpop = "0.13.1"
 
 [dependencies]
+getopts = "0.2"
 lalrpop-util = "0.13.1"
 regex = "0.2.1"
