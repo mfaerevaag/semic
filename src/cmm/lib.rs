@@ -5,27 +5,27 @@ pub mod parser;
 pub mod checker;
 pub mod env;
 pub mod engine;
+pub mod error;
 
 use lalrpop_util::ErrorRecovery;
 use ast::{CProg, CFunc, CStmt, CExpr};
 
 // engine functions
 
-pub fn run(prog: String) -> Result<Option<env::SymVal>, ()> {
+pub fn run(filename: String, prog: String) -> Result<Option<env::SymVal>, ()> {
     let mut parser_err = Vec::new();
+
+    let error_printer = error::ErrorPrinter::new(&filename, &prog);
 
     let ast = match parser::parse_Prog(&mut parser_err, &prog) {
         Ok(ast) => ast,
         Err(err) => {
-            println!("{:?}", err);
-            // println!("parse errors:");
-            // for err in parser_err.iter() {
-            //     println!("{:?}", err);
-            // };
+            error_printer.print_parse_error(err);
             return Err(());
         }
     };
 
+    // TODO: debug
     println!("ast: {:#?}", &ast);
 
     engine::run_prog(&ast)
