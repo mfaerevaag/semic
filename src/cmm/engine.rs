@@ -2,8 +2,13 @@ use std::env;
 use ast::*;
 use env::{FuncTab, SymTab, SymVal};
 use checker;
+use error::ErrorPrinter;
 
-pub fn run_prog<'input>(ast: &'input CProg<'input>) -> Result<Option<SymVal>, ()> {
+pub fn run_prog<'input>(
+    ast: &'input CProg<'input>,
+    error_printer: &'input ErrorPrinter
+) -> Result<Option<SymVal>, ()>
+{
     // tables
     let mut vtab = FuncTab::new();
     let mut global_symtab = SymTab::new();
@@ -46,6 +51,7 @@ pub fn run_prog<'input>(ast: &'input CProg<'input>) -> Result<Option<SymVal>, ()
     local_symtab.insert("argv", (CType::Ref(Box::new(CType::Ref(Box::new(CType::Char)))),
                                  None,
                                  Some(SymVal::Array(argv))));
+
     // run
     let res = run_func(main, &vtab, &global_symtab, local_symtab);
 

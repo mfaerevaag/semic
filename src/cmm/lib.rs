@@ -12,23 +12,26 @@ use ast::{CProg, CFunc, CStmt, CExpr};
 
 // engine functions
 
-pub fn run(filename: String, prog: String) -> Result<Option<env::SymVal>, ()> {
+pub fn run(filename: String, prog: String) {
     let mut parser_err = Vec::new();
 
     let error_printer = error::ErrorPrinter::new(&filename, &prog);
 
     let ast = match parser::parse_Prog(&mut parser_err, &prog) {
-        Ok(ast) => ast,
+        Ok(ast) => {
+            println!("ast: {:#?}", &ast); // TODO: debug
+            ast
+        },
         Err(err) => {
             error_printer.print_parse_error(err);
-            return Err(());
+            return ();
         }
     };
 
-    // TODO: debug
-    println!("ast: {:#?}", &ast);
-
-    engine::run_prog(&ast)
+    match engine::run_prog(&ast, &error_printer) {
+        Ok(ret) => println!("returned {:?}", ret),
+        _ => {}
+    };
 }
 
 // parser functions

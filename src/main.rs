@@ -15,8 +15,5 @@ fn main() {
     let mut prog = String::new();
     f.read_to_string(&mut prog).unwrap();
 
-    match cmm::run(filename, prog) {
-        Ok(ret) => println!("returned {:?}", ret),
-        Err(()) => println!("returned error"),
-    }
+    cmm::run(filename, prog);
 }
