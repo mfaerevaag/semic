@@ -48,13 +48,13 @@ pub fn run_prog<'input>(ast: &'input CProg<'input>) -> Result<Option<SymVal>, CE
                                  Some(SymVal::Array(argv))));
 
     // run
-    run_func(main, &vtab, &global_symtab, local_symtab)
+    run_func(main, &vtab, global_symtab, local_symtab)
 }
 
 pub fn run_func<'input>(
     func: &'input CFunc<'input>,
     vtab: &'input FuncTab<'input>,
-    global_symtab: &'input SymTab<'input>,
+    global_symtab: SymTab<'input>,
     local_symtab: SymTab<'input>,
 ) -> Result<Option<SymVal>, CError>
 {
@@ -62,7 +62,7 @@ pub fn run_func<'input>(
     let block = CStmt::Block((0,0), func.stmts.iter().map(|x| Box::new(x.clone())).collect());
 
     // run block
-    let (_, ret) = try!(run_stmt(&block, vtab, global_symtab, local_symtab));
+    let (_, _, ret) = try!(run_stmt(&block, vtab, global_symtab, local_symtab));
 
     // unwrap return val
     match ret {
@@ -74,10 +74,11 @@ pub fn run_func<'input>(
 pub fn run_stmt<'input>(
     stmt: &'input CStmt<'input>,
     vtab: &'input FuncTab<'input>,
-    global_symtab: &'input SymTab<'input>,
+    global_symtab: SymTab<'input>,
     local_symtab: SymTab<'input>,
-) -> Result<(SymTab<'input>, Option<Option<SymVal>>), CError>
+) -> Result<(SymTab<'input>, SymTab<'input>, Option<Option<SymVal>>), CError>
 {
+    let mut tmp_global_symtab = global_symtab.clone();
     let mut tmp_symtab = local_symtab.clone();
 
     let res = match *stmt {
@@ -86,10 +87,18 @@ pub fn run_stmt<'input>(
             None
         },
         CStmt::Assign((l, _), id, i, ref e) => {
-            let val = try!(run_expr(e, vtab, global_symtab, &tmp_symtab));
-            match tmp_symtab.set_val(id, i, val) {
-                Ok(()) => None,
-                Err(s) => return Err(CError::RuntimeError(s, l)),
+            let val = try!(run_expr(e, vtab, &tmp_global_symtab, &tmp_symtab));
+            match tmp_symtab.get_type(id) {
+                // set in global
+                Some(_) => match tmp_symtab.set_val(id, i, val) {
+                    Ok(()) => None,
+                    Err(s) => return Err(CError::RuntimeError(s, l)),
+                },
+                // if not, assume global
+                None => match tmp_global_symtab.set_val(id, i, val) {
+                    Ok(()) => None,
+                    Err(s) => return Err(CError::RuntimeError(s, l)),
+                }
             }
         },
         CStmt::Call((l, _), id, ref args) => {
@@ -107,7 +116,7 @@ pub fn run_stmt<'input>(
                     Some(x) => x,
                     None => return Err(CError::RuntimeError(format!("Function '{}' missing param '{:?}'", id, p), l)),
                 };
-                let val = try!(run_expr(e, vtab, global_symtab, &tmp_symtab));
+                let val = try!(run_expr(e, vtab, &tmp_global_symtab, &tmp_symtab));
                 tab.insert(pid, (t.clone(), None, Some(val)));
             }
 
@@ -115,13 +124,14 @@ pub fn run_stmt<'input>(
             None
         },
         CStmt::Return(_, ref s) => match s {
-            &Some(ref e) => Some(Some(try!(run_expr(e, vtab, global_symtab, &tmp_symtab)))),
+            &Some(ref e) => Some(Some(try!(run_expr(e, vtab, &tmp_global_symtab, &tmp_symtab)))),
             _ => Some(None),
         },
         CStmt::Block(_, ref stmts) => {
             let mut res = None;
             for s in stmts.iter() {
-                let (tab, res2) = try!(run_stmt(s, vtab, global_symtab, tmp_symtab));
+                let (gtab, tab, res2) = try!(run_stmt(s, vtab, tmp_global_symtab, tmp_symtab));
+                tmp_global_symtab = gtab;
                 tmp_symtab = tab;
                 match res2 {
                     Some(_) => {
@@ -134,18 +144,21 @@ pub fn run_stmt<'input>(
             res
         },
         CStmt::If((l, _), ref cond, ref s, ref o) => {
-            let b = match try!(run_expr(cond, vtab, global_symtab, &tmp_symtab)) {
+            let b = match try!(run_expr(cond, vtab, &tmp_global_symtab, &tmp_symtab)) {
+                SymVal::Int(i) => i != 0,
                 SymVal::Bool(b) => b,
                 x => return Err(CError::RuntimeError(format!("Expected bool, got {:?}", x), l)),
             };
             if b {
-                let (tab, res) = try!(run_stmt(s, vtab, global_symtab, tmp_symtab));
+                let (gtab, tab, res) = try!(run_stmt(s, vtab, tmp_global_symtab, tmp_symtab));
+                tmp_global_symtab = gtab;
                 tmp_symtab = tab;
                 res
             } else {
                 match *o {
                     Some(ref es) => {
-                        let (tab, res) = try!(run_stmt(es, vtab, global_symtab, tmp_symtab));
+                        let (gtab, tab, res) = try!(run_stmt(es, vtab, tmp_global_symtab, tmp_symtab));
+                        tmp_global_symtab = gtab;
                         tmp_symtab = tab;
                         res
                     },
@@ -154,16 +167,18 @@ pub fn run_stmt<'input>(
             }
         },
         CStmt::While((l, _), ref cond, ref s) => {
-            let b = match try!(run_expr(cond, vtab, global_symtab, &tmp_symtab)) {
+            let b = match try!(run_expr(cond, vtab, &tmp_global_symtab, &tmp_symtab)) {
+                SymVal::Int(i) => i != 0,
                 SymVal::Bool(b) => b,
                 x => return Err(CError::RuntimeError(format!("Expected bool, got {:?}", x), l)),
             };
             if b {
-                let (tab, res) = try!(run_stmt(s, vtab, global_symtab, local_symtab));
+                let (gtab, tab, res) = try!(run_stmt(s, vtab, global_symtab, local_symtab));
                 match res {
                     Some(_) => res,
                     _ => {
-                        let (tab2, res2) = try!(run_stmt(stmt, vtab, global_symtab, tab));
+                        let (gtab2, tab2, res2) = try!(run_stmt(stmt, vtab, gtab, tab));
+                        tmp_global_symtab = gtab2;
                         tmp_symtab = tab2;
                         res2
                     }
@@ -173,14 +188,14 @@ pub fn run_stmt<'input>(
             }
         },
         CStmt::Print(_, ref e) => {
-            let val = try!(run_expr(e, vtab, global_symtab, &tmp_symtab));
+            let val = try!(run_expr(e, vtab, &tmp_global_symtab, &tmp_symtab));
             println!("{:?}", val);
             None
         },
         _ => panic!("unexpected stmt '{:?}' in ast", stmt)
     };
 
-    Ok((tmp_symtab, res))
+    Ok((tmp_global_symtab, tmp_symtab, res))
 }
 
 pub fn run_expr<'input>(
@@ -369,7 +384,7 @@ pub fn run_expr<'input>(
                 tab.insert(pid, (t.clone(), None, Some(val)));
             }
 
-            match try!(run_func(&f, vtab, global_symtab, tab)) {
+            match try!(run_func(&f, vtab, global_symtab.clone(), tab)) {
                 Some(v) => v,
                 None => return Err(CError::RuntimeError(format!("Expression returned void"), l)),
             }
