@@ -81,14 +81,16 @@ pub fn run_stmt<'input>(
     let mut tmp_symtab = local_symtab.clone();
 
     let res = match *stmt {
-        CStmt::Assign(_, id, i, ref e) => {
-            let val = try!(run_expr(e, vtab, global_symtab, &tmp_symtab));
-            tmp_symtab.set_val(id, i, val);
-            None
-        },
         CStmt::Decl(_, ref t, id, s) => {
             tmp_symtab.insert(id, (t.clone(), s, None));
             None
+        },
+        CStmt::Assign((l, _), id, i, ref e) => {
+            let val = try!(run_expr(e, vtab, global_symtab, &tmp_symtab));
+            match tmp_symtab.set_val(id, i, val) {
+                Ok(()) => None,
+                Err(s) => return Err(CError::RuntimeError(s, l)),
+            }
         },
         CStmt::Call((l, _), id, ref args) => {
             // get func

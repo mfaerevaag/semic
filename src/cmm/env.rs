@@ -80,11 +80,11 @@ impl<'a> SymTab<'a> {
         }
     }
 
-    pub fn set_val(&mut self, key: &'a str, i: Option<usize>, val: SymVal) {
+    pub fn set_val(&mut self, key: &'a str, i: Option<usize>, val: SymVal) -> Result <(), String> {
         let clone = self.tab.clone();
         let &(ref t, s, ref prev) = match clone.get(key) {
             Some(v) => v,
-            _ => panic!("variable '{}' not declared", key),
+            _ => return Err(format!("Variable '{}' not declared", key)),
         };
 
         // set var or array index
@@ -111,9 +111,11 @@ impl<'a> SymTab<'a> {
                     let new = SymVal::Array(a);
                     self.tab.insert(key, (t.clone(), s, Some(new)))
                 }
-                x => panic!("expected array, got {:?}", x),
+                x => return Err(format!("Expected array, got {:?}", x)),
             }
         };
+
+        Ok(())
     }
 
     pub fn insert(&mut self, key: &'a str, val: SymEntry) -> Option<SymEntry> {
