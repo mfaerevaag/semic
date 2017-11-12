@@ -29,6 +29,7 @@ pub struct CFunc<'input> {
 pub enum CStmt<'input> {
     Decl(CLoc, CType, CIdent<'input>, Option<usize>),
     Assign(CLoc, CIdent<'input>, Option<usize>, CExpr<'input>),
+    Call(CLoc, CIdent<'input>, Vec<Box<CExpr<'input>>>),
     Return(CLoc, Option<CExpr<'input>>),
     Block(CLoc, Vec<Box<CStmt<'input>>>),
     If(CLoc, CExpr<'input>, Box<CStmt<'input>>, Option<Box<CStmt<'input>>>),
@@ -112,13 +113,21 @@ impl<'input> Debug for CStmt<'input> {
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
         use self::CStmt::*;
         match *self {
+            Decl(_, ref t, id, s) => match s {
+                Some(i) => write!(fmt, "{:?} {}[{}]", t, id, i),
+                None => write!(fmt, "{:?} {}", t, id),
+            },
             Assign(_, ref l, i, ref r) => match i {
                 Some(i) => write!(fmt, "{}[{}] = {:?}", l, i, r),
                 None => write!(fmt, "{} = {:?}", l, r),
             },
-            Decl(_, ref t, id, s) => match s {
-                Some(i) => write!(fmt, "{:?} {}[{}]", t, id, i),
-                None => write!(fmt, "{:?} {}", t, id),
+            Call(_, ref i, ref p) => {
+                let mut s: String = String::new();
+                for (i, e) in p.iter().enumerate() {
+                    if i > 0 { s.push_str(", ") }
+                    s.push_str(&format!("{:?}", e));
+                }
+                write!(fmt, "{}({})", i, s)
             },
             Return(_, ref o) => {
                 match *o {

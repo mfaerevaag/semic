@@ -90,6 +90,28 @@ pub fn run_stmt<'input>(
             tmp_symtab.insert(id, (t.clone(), s, None));
             None
         },
+        CStmt::Call((l, _), id, ref args) => {
+            // get func
+            let f = match vtab.get_func(id) {
+                Some(f) => f,
+                None => return Err(CError::RuntimeError(format!("Function '{}' not initialized", id), l)),
+            };
+
+            // calc and add args to symtab
+            let mut tab = SymTab::new();
+            for (i, p) in f.proto.params.iter().enumerate() {
+                let (ref t, ref pid) = *p;
+                let e = match args.iter().nth(i) {
+                    Some(x) => x,
+                    None => return Err(CError::RuntimeError(format!("Function '{}' missing param '{:?}'", id, p), l)),
+                };
+                let val = try!(run_expr(e, vtab, global_symtab, &tmp_symtab));
+                tab.insert(pid, (t.clone(), None, Some(val)));
+            }
+
+            let _ = try!(run_func(&f, vtab, global_symtab, tab));
+            None
+        },
         CStmt::Return(_, ref s) => match s {
             &Some(ref e) => Some(Some(try!(run_expr(e, vtab, global_symtab, &tmp_symtab)))),
             _ => Some(None),

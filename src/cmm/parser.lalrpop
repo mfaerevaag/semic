@@ -182,6 +182,9 @@ StmtOther: Box<CStmt<'input>> = {
     // assignment
     <StmtAssign> ";",
 
+    // call
+    <l:@L> <i:Ident> "(" <p:Comma<Expr1>> ")" ";" <r:@R> => Box::new(CStmt::Call((l, r), i, p)),
+
     // return
     <l:@L> "return" <e:Expr> ";" <r:@R> =>
         Box::new(CStmt::Return((l, r), Some(e))),
@@ -333,6 +336,7 @@ Term: Box<CExpr<'input>> = {
 
     // call
     <l:@L> <i:Ident> "(" <p:Comma<Expr1>> ")" <r:@R> => Box::new(CExpr::Call((l, r), i, p)),
+
     // array index
     <l:@L> <i:Ident> "[" <e:Expr1> "]" <r:@R> => Box::new(CExpr::Index((l, r), i, e)),
 
