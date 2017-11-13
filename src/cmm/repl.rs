@@ -1,3 +1,6 @@
+use std::io;
+use std::io::Write;
+
 use ast::CStmt;
 use util;
 
@@ -22,7 +25,7 @@ impl<'a> Repl {
         }
     }
 
-    pub fn show<'input>(&mut self, stmt: CStmt<'input>) {
+    pub fn show<'input>(&mut self, stmt: CStmt<'input>) -> Result<(), CError> {
         let loc = match stmt {
             CStmt::Decl((l, _), ..) |
             CStmt::Assign((l, _), ..) |
@@ -45,13 +48,70 @@ impl<'a> Repl {
                 return;
             }
 
-            // TODO: fix blank lines
+            // blank lines counts when skipping
+            if line > self.last_line {
+                for _ in 0..(line - self.last_line) {
+                    if self.skip > 0 {
+                        self.skip -= 1;
+                    } else {
+                        break;
+                    }
+                }
+            }
 
+            // check if should skip
             if self.skip > 0 {
                 println!("-> skip {}", self.skip);
-                self.skip -= 1
+                self.skip -= 1;
             } else {
-                println!("-> run");
+                loop {
+                    print!(">> ");
+                    let _ = io::stdout().flush().unwrap(); // TODO: error handling
+
+                    // read input
+                    let mut input = String::new();
+                    let (command, arg) = match io::stdin().read_line(&mut input) {
+                        Err(error) => panic!("Error: {}", error),
+                        Ok(_) => {
+                            let mut matches = input.split_whitespace();
+                            (matches.next(), matches.next())
+                        }
+                    };
+
+                    // match command
+                    match command {
+                        Some("next") => {
+                            // get number
+                            let n: usize = match arg {
+                                Some(x) => match x.parse() {
+                                    Ok(n) => n,
+                                    Err(_) => {
+                                        println!("Incorrect command usage: try 'next [lines]");
+                                        continue;
+                                    }
+                                },
+                                None => 1,
+                            };
+
+                            // do nothing of zero
+                            if n == 0 { continue; }
+
+                            println!("TODO: next {}", n);
+                            break;
+                        },
+                        Some("print") => {
+                            println!("TODO: print");
+                            break;
+                        },
+                        Some("trace") => {
+                            println!("TODO: trace");
+                            break;
+                        },
+                        Some(x) => println!("Unknown command '{}'. Try again", x),
+                        None => println!("No command given. Try again"),
+
+                    };
+                }
             }
 
             self.last_line = line;
