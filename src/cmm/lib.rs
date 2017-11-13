@@ -7,12 +7,21 @@ pub mod env;
 pub mod engine;
 pub mod error;
 
-// use lalrpop_util::ErrorRecovery;
 use ast::{CProg, CProgElem, CFunc, CStmt, CExpr};
 use error::CError;
 
-// engine functions
-
+/// Run program
+///
+/// # Examples
+///
+/// ```
+/// use cmm::env::SymVal;
+/// let filename = "foo.cmm".to_owned();
+/// let program = r#"int main () { return 0; }"#.to_owned();
+/// let result = cmm::run(filename, program, false);
+/// assert!(result.is_ok());
+/// assert_eq!(Some(SymVal::Int(0)), result.unwrap());
+/// ```
 pub fn run(filename: String, prog: String, verbose: bool) -> Result<Option<env::SymVal>, ()> {
     let error_printer = error::ErrorPrinter::new(&filename, &prog);
 
@@ -39,35 +48,25 @@ pub fn run(filename: String, prog: String, verbose: bool) -> Result<Option<env::
     }
 }
 
-// parser functions
-
 /// Parse program
 ///
 /// # Examples
 ///
 /// ```
-/// assert!(cmm::parse_prog(r#"int main () {}"#).is_ok());
+/// assert!(cmm::parse_prog(r#"int main () { return 0; }"#).is_ok());
 /// ```
 ///
 /// ```
 /// assert!(cmm::parse_prog(r#"main () {}"#).is_err());
 /// ```
-pub fn parse_prog<'input, 'err,>(
-    // errors: &'err mut Vec<ErrorRecovery<usize, (usize, &'input str), ()>>,
-    input: &'input str,
-) -> Result<CProg<'input>, CError>
-{
+pub fn parse_prog<'input, 'err,>(input: &'input str) -> Result<CProg<'input>, CError> {
     match parser::parse_Prog(&mut vec![], input) {
         Ok(x) => Ok(x),
         Err(err) => Err(CError::from_lalrpop(err)),
     }
 }
 
-pub fn parse_func<'input, 'err,>(
-    // errors: &'err mut Vec<ErrorRecovery<usize, (usize, &'input str), ()>>,
-    input: &'input str,
-) -> Result<CFunc<'input>, CError>
-{
+pub fn parse_func<'input, 'err,>(input: &'input str,) -> Result<CFunc<'input>, CError> {
     match parser::parse_Func(&mut vec![], input) {
         Ok(ref x) => match x.first().unwrap() {
             &CProgElem::Func(_, ref f) => Ok(f.clone()),
@@ -77,29 +76,19 @@ pub fn parse_func<'input, 'err,>(
     }
 }
 
-pub fn parse_stmt<'input, 'err,>(
-    // errors: &'err mut Vec<ErrorRecovery<usize, (usize, &'input str), ()>>,
-    input: &'input str,
-) -> Result<CStmt<'input>, CError>
-{
+pub fn parse_stmt<'input, 'err,>(input: &'input str,) -> Result<CStmt<'input>, CError> {
     match parser::parse_Stmt(&mut vec![], input) {
         Ok(x) => Ok(x),
         Err(err) => Err(CError::from_lalrpop(err)),
     }
 }
 
-pub fn parse_expr<'input, 'err,>(
-    // errors: &'err mut Vec<ErrorRecovery<usize, (usize, &'input str), ()>>,
-    input: &'input str,
-) -> Result<CExpr<'input>, CError>
-{
+pub fn parse_expr<'input, 'err,>(input: &'input str,) -> Result<CExpr<'input>, CError> {
     match parser::parse_Expr(&mut vec![], input) {
         Ok(x) => Ok(x),
         Err(err) => Err(CError::from_lalrpop(err)),
     }
 }
-
-// checker functions
 
 /// Check validity of AST
 ///
