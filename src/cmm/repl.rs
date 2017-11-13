@@ -6,6 +6,7 @@ pub struct Repl {
     enabled: bool,
     skip: usize,
     map: Vec<usize>,
+    last_line: usize,
 }
 
 impl<'a> Repl {
@@ -16,13 +17,20 @@ impl<'a> Repl {
         Repl {
             enabled: enabled,
             skip: 0,
-            map: map
+            map: map,
+            last_line: 0,
         }
     }
 
     pub fn show<'input>(&mut self, stmt: CStmt<'input>) {
         let loc = match stmt {
-            CStmt::Decl((l, _), ..) => Some(l),
+            CStmt::Decl((l, _), ..) |
+            CStmt::Assign((l, _), ..) |
+            CStmt::While((l, _), ..) |
+            CStmt::Call((l, _), ..) |
+            CStmt::Return((l, _), ..) |
+            CStmt::If((l, _), ..) |
+            CStmt::Print((l, _), ..) => Some(l),
             _ => None,
         };
         let opt = match loc {
@@ -30,15 +38,23 @@ impl<'a> Repl {
             None => None
         };
 
-        if let Some(line) = opt {
-            println!("repl ({}/{}): {:?}", line, loc.unwrap(), stmt);
+        println!("REPL ({:?}/{:?} skip: {}) {:?}", opt, loc, self.skip, stmt);
+
+        if let Some(line) = opt  {
+            if line == self.last_line {
+                return;
+            }
+
+            // TODO: fix blank lines
 
             if self.skip > 0 {
-                println!("repl: skip {}", self.skip);
+                println!("-> skip {}", self.skip);
                 self.skip -= 1
             } else {
-                println!("repl: run");
+                println!("-> run");
             }
+
+            self.last_line = line;
         }
     }
 }
