@@ -16,7 +16,7 @@ impl<'a> Repl {
     pub fn new(enabled: bool, program: &'a str) -> Repl {
         let lines: Vec<&'a str> = program.split('\n').collect();
         let map = lines.into_iter().map(|line| line.len() + 1).collect();
-        println!("map {:?}", map);
+
         Repl {
             enabled: enabled,
             skip: 0,
