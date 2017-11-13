@@ -18,9 +18,9 @@ fn main() {
     let program = args[0].clone();
 
     let mut opts = Options::new();
+    opts.optflag("i", "interactive", "run interactively");
     opts.optflag("v", "verbose", "print debug information");
     opts.optflag("h", "help", "print this help menu");
-    opts.optflag("i", "interactive", "run interactively");
 
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
@@ -31,6 +31,8 @@ fn main() {
         print_usage(&program, opts);
         return;
     }
+    // interactive
+    let interactive = matches.opt_present("i");
     // verbose
     let verbose = matches.opt_present("v");
     // program
@@ -55,7 +57,7 @@ fn main() {
     file.read_to_string(&mut prog).unwrap();
 
     // run
-    process::exit(match cmm::run(path, prog, verbose) {
+    process::exit(match cmm::run(path, prog, interactive, verbose) {
         Ok(_) => 0,
         Err(()) => 1
     });

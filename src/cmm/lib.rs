@@ -6,6 +6,8 @@ pub mod checker;
 pub mod env;
 pub mod engine;
 pub mod error;
+pub mod repl;
+pub mod util;
 
 use ast::{CProg, CProgElem, CFunc, CStmt, CExpr};
 use error::CError;
@@ -22,10 +24,16 @@ use error::CError;
 /// assert!(result.is_ok());
 /// assert_eq!(Some(SymVal::Int(0)), result.unwrap());
 /// ```
-pub fn run(filename: String, prog: String, verbose: bool) -> Result<Option<env::SymVal>, ()> {
-    let error_printer = error::ErrorPrinter::new(&filename, &prog);
+pub fn run(
+    filename: String,
+    program: String,
+    interactive: bool,
+    verbose: bool
+) -> Result<Option<env::SymVal>, ()>
+{
+    let error_printer = error::ErrorPrinter::new(&filename, &program);
 
-    let ast = match parse_prog(&prog) {
+    let ast = match parse_prog(&program) {
         Ok(ast) => {
             if verbose { println!("ast: {:#?}", &ast); }
             ast
@@ -36,7 +44,7 @@ pub fn run(filename: String, prog: String, verbose: bool) -> Result<Option<env::
         }
     };
 
-    match engine::run_prog(&ast) {
+    match engine::run_prog(&ast, &program, interactive) {
         Ok(ret) => {
             if verbose { println!("returned: {:?}", ret); }
             Ok(ret)
