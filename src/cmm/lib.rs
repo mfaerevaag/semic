@@ -44,7 +44,7 @@ pub fn run(
         }
     };
 
-    match engine::run_prog(&ast, &program, interactive) {
+    match engine::run_prog(&ast, &program, interactive, verbose) {
         Ok(ret) => {
             if verbose { println!("returned: {:?}", ret); }
             Ok(ret)
@@ -78,7 +78,7 @@ pub fn parse_func<'input, 'err,>(input: &'input str,) -> Result<CFunc<'input>, C
     match parser::parse_Func(&mut vec![], input) {
         Ok(ref x) => match x.first().unwrap() {
             &CProgElem::Func(_, ref f) => Ok(f.clone()),
-            x => panic!("unexpected prog elem '{:?}'", x),
+            x => Err(CError::UnknownError(format!("unexpected prog elem '{:?}'", x))),
         },
         Err(err) => Err(CError::from_lalrpop(err)),
     }

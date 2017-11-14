@@ -8,7 +8,8 @@ use repl::Repl;
 pub fn run_prog<'input>(
     ast: &'input CProg<'input>,
     program: &'input str,
-    interactive: bool
+    interactive: bool,
+    verbose: bool,
 ) -> Result<Option<SymVal>, CError>
 {
     // tables
@@ -54,7 +55,7 @@ pub fn run_prog<'input>(
                                  Some(SymVal::Array(argv))));
 
     // repl
-    let repl = Repl::new(interactive, program);
+    let repl = Repl::new(interactive, program, verbose);
 
     // run
     run_func(main, &vtab, global_symtab, local_symtab, repl)
@@ -90,7 +91,7 @@ pub fn run_stmt<'input>(
 ) -> Result<(SymTab<'input>, SymTab<'input>, Option<Option<SymVal>>, Repl), CError>
 {
     let mut tmp_repl = repl.clone();
-    tmp_repl.show(stmt.clone());
+    tmp_repl.show(stmt.clone())?;
 
     let mut tmp_global_symtab = global_symtab.clone();
     let mut tmp_symtab = local_symtab.clone();
@@ -210,7 +211,7 @@ pub fn run_stmt<'input>(
             println!("{:?}", val);
             None
         },
-        _ => panic!("unexpected stmt '{:?}' in ast", stmt)
+        _ => return Err(CError::UnknownError(format!("unexpected stmt '{:?}' in ast", stmt)))
     };
 
     Ok((tmp_global_symtab, tmp_symtab, res, tmp_repl))
@@ -440,7 +441,7 @@ pub fn run_expr<'input>(
             (*a[i as usize]).clone()
         },
 
-        _ => panic!("unexpected expr '{:?}' in ast", expr),
+        _ => return Err(CError::UnknownError(format!("unexpected expr '{:?}' in ast", expr)))
     };
 
     Ok(res)

@@ -2,23 +2,26 @@ use std::io;
 use std::io::Write;
 
 use ast::CStmt;
+use error::CError;
 use util;
 
 #[derive(Clone)]
 pub struct Repl {
     enabled: bool,
+    verbose: bool,
     skip: usize,
     map: Vec<usize>,
     last_line: usize,
 }
 
 impl<'a> Repl {
-    pub fn new(enabled: bool, program: &'a str) -> Repl {
+    pub fn new(enabled: bool, program: &'a str, verbose: bool) -> Repl {
         let lines: Vec<&'a str> = program.split('\n').collect();
         let map = lines.into_iter().map(|line| line.len() + 1).collect();
 
         Repl {
             enabled: enabled,
+            verbose: verbose,
             skip: 0,
             map: map,
             last_line: 0,
@@ -41,11 +44,13 @@ impl<'a> Repl {
             None => None
         };
 
-        println!("REPL ({:?}/{:?} skip: {}) {:?}", opt, loc, self.skip, stmt);
+        if self.verbose {
+            println!("REPL ({:?}/{:?} skip: {}) {:?}", opt, loc, self.skip, stmt);
+        }
 
         if let Some(line) = opt  {
             if line == self.last_line {
-                return;
+                return Ok(());
             }
 
             // blank lines counts when skipping
@@ -71,7 +76,7 @@ impl<'a> Repl {
                     // read input
                     let mut input = String::new();
                     let (command, arg) = match io::stdin().read_line(&mut input) {
-                        Err(error) => panic!("Error: {}", error),
+                        Err(error) => return Err(CError::UnknownError(format!("Error: {}", error))),
                         Ok(_) => {
                             let mut matches = input.split_whitespace();
                             (matches.next(), matches.next())
@@ -116,5 +121,7 @@ impl<'a> Repl {
 
             self.last_line = line;
         }
+
+        Ok(())
     }
 }

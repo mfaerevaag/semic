@@ -7,6 +7,7 @@ pub enum CError {
     ParseError(String, usize),
     RuntimeError(String, usize),
     CheckerError(Vec<(String, Option<usize>)>),
+    UnknownError(String),
 }
 
 impl<'input> CError {
@@ -18,7 +19,7 @@ impl<'input> CError {
                 CError::ParseError(format!("Unrecognized token {:?}. Expected either {:?}", tok, exp), loc),
             ParseError::ExtraToken { token: (loc, tok, _) } =>
                 CError::ParseError(format!("Extra token {:?}", tok), loc),
-            _ => panic!("unknown parse error: {:?}", err),
+            _ => CError::UnknownError(format!("unknown parse error: {:?}", err)),
         }
     }
 }
@@ -43,6 +44,7 @@ impl<'a> ErrorPrinter {
             CError::ParseError(msg, loc) => ("Syntax error", vec![(msg, Some(loc))]),
             CError::RuntimeError(msg, loc) => ("Run-time error", vec![(msg, Some(loc))]),
             CError::CheckerError(es) => ("Checker error", es),
+            CError::UnknownError(msg) => ("Error", vec![(msg, None)]),
         };
 
         for (msg, loc) in es {
