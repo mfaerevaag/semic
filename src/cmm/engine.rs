@@ -91,7 +91,7 @@ pub fn run_stmt<'input>(
 ) -> Result<(SymTab<'input>, SymTab<'input>, Option<Option<SymVal>>, Repl), CError>
 {
     let mut tmp_repl = repl.clone();
-    tmp_repl.show(stmt.clone())?;
+    tmp_repl.show(stmt, &global_symtab, &local_symtab)?;
 
     let mut tmp_global_symtab = global_symtab.clone();
     let mut tmp_symtab = local_symtab.clone();

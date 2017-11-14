@@ -3,6 +3,7 @@ use std::io::Write;
 
 use ast::CStmt;
 use error::CError;
+use env::SymTab;
 use util;
 
 #[derive(Clone)]
@@ -28,8 +29,14 @@ impl<'a> Repl {
         }
     }
 
-    pub fn show<'input>(&mut self, stmt: CStmt<'input>) -> Result<(), CError> {
-        let loc = match stmt {
+    pub fn show<'input>(
+        &mut self,
+        stmt: &'input CStmt<'input>,
+        global_symtab: &'input SymTab<'input>,
+        local_symtab: &'input SymTab<'input>,
+    ) -> Result<(), CError>
+    {
+        let loc = match *stmt {
             CStmt::Decl((l, _), ..) |
             CStmt::Assign((l, _), ..) |
             CStmt::While((l, _), ..) |
@@ -101,20 +108,63 @@ impl<'a> Repl {
                             // do nothing of zero
                             if n == 0 { continue; }
 
-                            println!("TODO: next {}", n);
+                            // skip, minus the current
+                            self.skip += n - 1;
+
                             break;
                         },
                         Some("print") => {
-                            println!("TODO: print");
-                            break;
+                            // get ident
+                            let id = match arg {
+                                Some(x) => x,
+                                None => {
+                                    println!("Incorrect command usage: try 'print <variable>");
+                                    continue;
+                                },
+                            };
+
+                            // get val
+                            let val = match local_symtab.get_val(id) {
+                                x @ Some(_) => x,
+                                _ => match global_symtab.get_val(id) {
+                                    x @ Some(_) => x,
+                                    _ => None,
+                                }
+                            };
+
+                            // print value
+                            match val {
+                                Some(v) => println!("{:?}", id, v),
+                                None => println!("N\\A"),
+                            };
                         },
                         Some("trace") => {
-                            println!("TODO: trace");
-                            break;
+                            // get ident
+                            let id = match arg {
+                                Some(x) => x,
+                                None => {
+                                    println!("Incorrect command usage: try 'trace <variable>");
+                                    continue;
+                                },
+                            };
+
+                            // get val
+                            let val = match local_symtab.get_val(id) {
+                                x @ Some(_) => x,
+                                _ => match global_symtab.get_val(id) {
+                                    x @ Some(_) => x,
+                                    _ => None,
+                                }
+                            };
+
+                            // print history
+                            match val {
+                                Some(v) => println!("{} = {:?}", id, v),
+                                None => println!("N\\A"),
+                            };
                         },
                         Some(x) => println!("Unknown command '{}'. Try again", x),
                         None => println!("No command given. Try again"),
-
                     };
                 }
             }
