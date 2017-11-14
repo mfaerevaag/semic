@@ -36,6 +36,8 @@ impl<'a> Repl {
         local_symtab: &'input SymTab<'input>,
     ) -> Result<(), CError>
     {
+        if !self.enabled { return Ok(()); }
+
         let loc = match *stmt {
             CStmt::Decl((l, _), ..) |
             CStmt::Assign((l, _), ..) |
@@ -134,7 +136,7 @@ impl<'a> Repl {
 
                             // print value
                             match val {
-                                Some(v) => println!("{:?}", id, v),
+                                Some(v) => println!("{:?}", v),
                                 None => println!("N\\A"),
                             };
                         },
@@ -149,19 +151,31 @@ impl<'a> Repl {
                             };
 
                             // get val
-                            let val = match local_symtab.get_val(id) {
-                                x @ Some(_) => x,
-                                _ => match global_symtab.get_val(id) {
-                                    x @ Some(_) => x,
-                                    _ => None,
+                            let trace = match local_symtab.get_trace(id) {
+                                Some(x) => x,
+                                _ => match global_symtab.get_trace(id) {
+                                    Some(x) => x,
+                                    _ => {
+                                        println!{"N\\A"};
+                                        continue;
+                                    }
                                 }
                             };
 
-                            // print history
-                            match val {
-                                Some(v) => println!("{} = {:?}", id, v),
-                                None => println!("N\\A"),
-                            };
+                            for (valo, loco) in trace {
+                                let locs = match loco {
+                                    Some(x) => format!("{}", x),
+                                    None => "N\\A".to_owned()
+                                };
+
+                                // print history
+                                let vals = match valo {
+                                    Some(v) => format!("{:?}", v),
+                                    None => format!("N\\A"),
+                                };
+
+                                println!("{} = {} at line {}", id, vals, locs);
+                            }
                         },
                         Some(x) => println!("Unknown command '{}'. Try again", x),
                         None => println!("No command given. Try again"),

@@ -20,13 +20,14 @@ use error::CError;
 /// use cmm::env::SymVal;
 /// let filename = "foo.cmm".to_owned();
 /// let program = r#"int main () { return 0; }"#.to_owned();
-/// let result = cmm::run(filename, program, false);
+/// let result = cmm::run(filename, program, vec![], false, false);
 /// assert!(result.is_ok());
 /// assert_eq!(Some(SymVal::Int(0)), result.unwrap());
 /// ```
 pub fn run(
     filename: String,
     program: String,
+    args: Vec<String>,
     interactive: bool,
     verbose: bool
 ) -> Result<Option<env::SymVal>, ()>
@@ -44,7 +45,7 @@ pub fn run(
         }
     };
 
-    match engine::run_prog(&ast, &program, interactive, verbose) {
+    match engine::run_prog(&ast, &program, &args, interactive, verbose) {
         Ok(ret) => {
             if verbose { println!("returned: {:?}", ret); }
             Ok(ret)

@@ -5,45 +5,47 @@ use cmm::env::SymVal;
 
 #[test]
 fn empty() {
-    let ast = cmm::parse_prog(r#"
-void main () {
+    let prog = r#"
+    void main () {
+    }
+    "#;
 
-}
-"#).unwrap();
+    let ast = cmm::parse_prog(prog).unwrap();
 
-    let actual = engine::run_prog(&ast).unwrap();
+    let actual = engine::run_prog(&ast, prog, &vec![], false, false);
+    assert!(actual.is_ok());
 
-    let expected = None;
-
-    assert_eq!(expected, actual);
+    assert_eq!(None, actual.unwrap());
 }
 
 #[test]
 fn int() {
-    let ast = cmm::parse_prog(r#"
-int main () {
-return 0;
-}
-"#).unwrap();
+    let prog =r#"
+    int main () {
+        return 0;
+    }
+    "#;
 
-    let actual = engine::run_prog(&ast).unwrap();
+    let ast = cmm::parse_prog(prog).unwrap();
 
-    let expected = Some(SymVal::Int(0));
+    let actual = engine::run_prog(&ast, prog, &vec![], false, false);
+    assert!(actual.is_ok());
 
-    assert_eq!(expected, actual);
+    assert_eq!(Some(SymVal::Int(0)), actual.unwrap());
 }
 
 #[test]
 fn argc() {
-    let ast = cmm::parse_prog(r#"
-int main (int argc, char argv[][]) {
-return argc;
-}
-"#).unwrap();
+    let prog = r#"
+    int main (int argc, char argv[][]) {
+        return argc;
+    }
+    "#;
 
-    let actual = engine::run_prog(&ast).unwrap();
+    let ast = cmm::parse_prog(prog).unwrap();
 
-    let expected = Some(SymVal::Int(0));
+    let actual = engine::run_prog(&ast, prog, &vec![], false, false);
+    assert!(actual.is_ok());
 
-    assert_eq!(expected, actual);
+    assert_eq!(Some(SymVal::Int(0)), actual.unwrap());
 }

@@ -16,8 +16,7 @@ pub fn analyze_prog<'input, 'err>(
     for elem in ast.iter() {
         match *elem {
             CProgElem::Decl((l, _), ref t, ref name, s) => {
-                let val = (t.clone(), s, None);
-                match symtab.insert(*name, val) {
+                match symtab.insert(*name, t.clone(), s, None, Some(l)) {
                     Some(_) => errors.push((format!("Variable '{}' already declared", name), Some(l))),
                     None => (),
                 };
@@ -26,9 +25,8 @@ pub fn analyze_prog<'input, 'err>(
             CProgElem::Func((l, _), ref func) => {
                 let CFunc { ref proto, .. } = *func;
                 let CProto { ref name, .. } = *proto;
-                let val = (proto, Some(func));
 
-                match vtab.insert(*name, val) {
+                match vtab.insert(*name, proto, Some(func)) {
                     Some((_, Some(_))) => errors.push((format!("Function '{}' already declared", name), Some(l))),
                     _ => (),
                 };
@@ -36,9 +34,8 @@ pub fn analyze_prog<'input, 'err>(
 
             CProgElem::Proto((l, _), ref proto) => {
                 let CProto { ref name, .. } = *proto;
-                let val = (proto, None);
 
-                match vtab.insert(*name, val) {
+                match vtab.insert(*name, proto, None) {
                     Some(_) => errors.push((format!("Function '{}' already defined", name), Some(l))),
                     None => (),
                 };

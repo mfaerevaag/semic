@@ -24,7 +24,7 @@ fn main() {
 
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
-        Err(f) => { panic!(f.to_string()) }
+        Err(e) => { panic!(e.to_string()) }
     };
     // help
     if matches.opt_present("h") {
@@ -42,6 +42,8 @@ fn main() {
         print_usage(&program, opts);
         process::exit(1);
     };
+    // args
+    let argv = matches.free[1..].to_vec();
 
     // try to get file
     let mut file = match File::open(path.clone()) {
@@ -57,7 +59,7 @@ fn main() {
     file.read_to_string(&mut prog).unwrap();
 
     // run
-    process::exit(match cmm::run(path, prog, interactive, verbose) {
+    process::exit(match cmm::run(path, prog, argv, interactive, verbose) {
         Ok(_) => 0,
         Err(()) => 1
     });

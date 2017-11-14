@@ -3,18 +3,20 @@ extern crate cmm;
 use cmm::engine;
 use cmm::ast::CType;
 use cmm::env::{FuncTab, SymTab, SymVal};
+use cmm::repl::Repl;
 
 #[test]
 fn assign_int() {
     let vtab = FuncTab::new();
     let global = SymTab::new();
     let mut local = SymTab::new();
+    let repl = Repl::new(false, "", false);
 
-    local.insert("i", (CType::Int, None, None));
+    local.insert("i", CType::Int, None, None, None);
 
     let ast = cmm::parse_stmt(r#" i = 7; "#).unwrap();
 
-    let (_, tab, actual) = engine::run_stmt(&ast, &vtab, global, local).unwrap();
+    let (_, tab, actual, _) = engine::run_stmt(&ast, &vtab, global, local, repl).unwrap();
     let expected = None;
     assert_eq!(expected, actual);
 
@@ -33,12 +35,13 @@ fn assign_array() {
     let vtab = FuncTab::new();
     let global = SymTab::new();
     let mut local = SymTab::new();
+    let repl = Repl::new(false, "", false);
 
-    local.insert("s", (CType::Char, Some(2), None));
+    local.insert("s", CType::Char, Some(2), None, None);
 
     let ast = cmm::parse_stmt(r#" s[1] = '\0'; "#).unwrap();
 
-    let (_, tab, actual) = engine::run_stmt(&ast, &vtab, global, local).unwrap();
+    let (_, tab, actual, _) = engine::run_stmt(&ast, &vtab, global, local, repl).unwrap();
     let expected = None;
     assert_eq!(expected, actual);
 
@@ -58,12 +61,13 @@ fn assign_string() {
     let vtab = FuncTab::new();
     let global = SymTab::new();
     let mut local = SymTab::new();
+    let repl = Repl::new(false, "", false);
 
-    local.insert("s", (CType::Char, Some(2), None));
+    local.insert("s", CType::Char, Some(2), None, None);
 
     let ast = cmm::parse_stmt(r#" s = "a"; "#).unwrap();
 
-    let (_, tab, actual) = engine::run_stmt(&ast, &vtab, global, local).unwrap();
+    let (_, tab, actual, _) = engine::run_stmt(&ast, &vtab, global, local, repl).unwrap();
     let expected = None;
     assert_eq!(expected, actual);
 

@@ -1,4 +1,3 @@
-use std::env;
 use ast::*;
 use env::{FuncTab, SymTab, SymVal};
 use checker;
@@ -8,23 +7,15 @@ use repl::Repl;
 pub fn run_prog<'input>(
     ast: &'input CProg<'input>,
     program: &'input str,
+    args: &'input Vec<String>,
     interactive: bool,
     verbose: bool,
 ) -> Result<Option<SymVal>, CError>
 {
-    // tables
-    let mut vtab = FuncTab::new();
-    let mut global_symtab = SymTab::new();
-
     // load global function and symbol table
-    match checker::analyze_prog(&ast) {
-        Ok((v, s)) => {
-            for (k, v) in v.iter() { vtab.insert(k, *v); }
-            for (k, v) in s.iter() { global_symtab.insert(k, v.clone()); }
-        },
-        Err(e) => {
-            return Err(e);
-        },
+    let (vtab, global_symtab) = match checker::analyze_prog(&ast) {
+        Ok(x) => x,
+        Err(e) => return Err(e),
     };
 
     // get main function
@@ -33,13 +24,11 @@ pub fn run_prog<'input>(
     // load command line args
     let mut local_symtab = SymTab::new();
     // argc
-    let argc = env::args().len() as i32 - 1;
-    local_symtab.insert("argc", (CType::Int, None, Some(SymVal::Int(argc))));
+    let argc = args.len() as i32;
+    local_symtab.insert("argc", CType::Int, None, Some(SymVal::Int(argc)), None);
     // argv
     let mut argv = vec![];
-    for (i, arg) in env::args().enumerate() {
-        if i < 1 { continue };
-
+    for arg in args.iter() {
         // create internal string
         let mut s = Vec::with_capacity(arg.len() + 1);
         for c in arg.chars() {
@@ -50,9 +39,11 @@ pub fn run_prog<'input>(
 
         argv.push(Box::new(SymVal::Array(s)));
     }
-    local_symtab.insert("argv", (CType::Ref(Box::new(CType::Ref(Box::new(CType::Char)))),
-                                 None,
-                                 Some(SymVal::Array(argv))));
+    local_symtab.insert("argv",
+                        CType::Ref(Box::new(CType::Ref(Box::new(CType::Char)))),
+                        None,
+                        Some(SymVal::Array(argv)),
+                        None);
 
     // repl
     let repl = Repl::new(interactive, program, verbose);
@@ -97,20 +88,20 @@ pub fn run_stmt<'input>(
     let mut tmp_symtab = local_symtab.clone();
 
     let res = match *stmt {
-        CStmt::Decl(_, ref t, id, s) => {
-            tmp_symtab.insert(id, (t.clone(), s, None));
+        CStmt::Decl((l, _), ref t, id, s) => {
+            tmp_symtab.insert(id, t.clone(), s, None, Some(l));
             None
         },
         CStmt::Assign((l, _), id, i, ref e) => {
             let val = try!(run_expr(e, vtab, &tmp_global_symtab, &tmp_symtab, &tmp_repl));
             match tmp_symtab.get_type(id) {
                 // set in global
-                Some(_) => match tmp_symtab.set_val(id, i, val) {
+                Some(_) => match tmp_symtab.set_val(id, i, val, Some(l)) {
                     Ok(()) => None,
                     Err(s) => return Err(CError::RuntimeError(s, l)),
                 },
                 // if not, assume global
-                None => match tmp_global_symtab.set_val(id, i, val) {
+                None => match tmp_global_symtab.set_val(id, i, val, Some(l)) {
                     Ok(()) => None,
                     Err(s) => return Err(CError::RuntimeError(s, l)),
                 }
@@ -132,7 +123,7 @@ pub fn run_stmt<'input>(
                     None => return Err(CError::RuntimeError(format!("Function '{}' missing param '{:?}'", id, p), l)),
                 };
                 let val = try!(run_expr(e, vtab, &tmp_global_symtab, &tmp_symtab, &tmp_repl));
-                tab.insert(pid, (t.clone(), None, Some(val)));
+                tab.insert(pid, t.clone(), None, Some(val), Some(l));
             }
 
             let _ = try!(run_func(&f, vtab, global_symtab, tab, repl));
@@ -405,7 +396,7 @@ pub fn run_expr<'input>(
                     None => return Err(CError::RuntimeError(format!("Function '{}' missing param '{:?}'", id, p), l)),
                 };
                 let val = try!(run_expr(e, vtab, global_symtab, local_symtab, repl));
-                tab.insert(pid, (t.clone(), None, Some(val)));
+                tab.insert(pid, t.clone(), None, Some(val), Some(l));
             }
 
             match try!(run_func(&f, vtab, global_symtab.clone(), tab, repl.clone())) {
