@@ -57,15 +57,15 @@ impl<'a> ErrorPrinter {
                 None => println!("{}: ({})", head, self.filename),
 
             };
-            println!(" -> {}", msg);
+            println!(" └ > {}", msg);
         }
     }
 
     fn print_at_loc(&self, loc: usize) {
         let (i, off) = self.get_line_with_off(loc).unwrap();
         let line = self.lines.get(i).unwrap();
-        println!(" | {}", line);
-        println!(" | {}^", String::from_utf8(vec![b' '; off]).unwrap());
+        println!(" │ {}", line);
+        println!(" │ {}^", String::from_utf8(vec![b' '; off]).unwrap());
     }
 
     fn get_line_with_off(&self, loc: usize) -> Option<(usize, usize)> {
