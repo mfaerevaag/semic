@@ -43,7 +43,7 @@ impl<'a> ErrorPrinter {
         let (head, es) = match err {
             CError::ParseError(msg, loc) => ("Syntax error", vec![(msg, Some(loc))]),
             CError::RuntimeError(msg, loc) => ("Run-time error", vec![(msg, Some(loc))]),
-            CError::CheckerError(es) => ("Checker error", es),
+            CError::CheckerError(es) => ("Type error", es),
             CError::UnknownError(msg) => ("Error", vec![(msg, None)]),
         };
 
