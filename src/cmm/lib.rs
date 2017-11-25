@@ -47,7 +47,7 @@ pub fn run(
 
     match engine::run_prog(&ast, &program, &args, interactive, verbose) {
         Ok(ret) => {
-            if verbose { println!("returned: {:?}", ret); }
+            println!("{:?}", ret);
             Ok(ret)
         }
         Err(err) => {
