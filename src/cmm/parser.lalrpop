@@ -279,7 +279,41 @@ StmtAssign: Box<CStmt<'input>> = {
     <l:@L> <i:VarArray> "=" <e:Expr> <r:@R> => {
         let (id, s) = i;
         Box::new(CStmt::Assign((l, r), id, s, e))
-    }
+    },
+
+    // inc / dec
+    <l:@L> <i:VarArray> "++" <r:@R> => {
+        let (id, s) = i;
+        Box::new(CStmt::Assign((l, r), id, s,
+                               CExpr::BinOp((l, r),
+                                            COp::Add,
+                                            Box::new(CExpr::Ident((l, r), id)),
+                                            Box::new(CExpr::Int((l, r), 1)))))
+    },
+    <l:@L> "++" <i:VarArray> <r:@R> => {
+        let (id, s) = i;
+        Box::new(CStmt::Assign((l, r), id, s,
+                               CExpr::BinOp((l, r),
+                                            COp::Add,
+                                            Box::new(CExpr::Ident((l, r), id)),
+                                            Box::new(CExpr::Int((l, r), 1)))))
+    },
+    <l:@L> <i:VarArray> "--" <r:@R> => {
+        let (id, s) = i;
+        Box::new(CStmt::Assign((l, r), id, s,
+                               CExpr::BinOp((l, r),
+                                            COp::Sub,
+                                            Box::new(CExpr::Ident((l, r), id)),
+                                            Box::new(CExpr::Int((l, r), 1)))))
+    },
+    <l:@L> "--" <i:VarArray> <r:@R> => {
+        let (id, s) = i;
+        Box::new(CStmt::Assign((l, r), id, s,
+                               CExpr::BinOp((l, r),
+                                            COp::Sub,
+                                            Box::new(CExpr::Ident((l, r), id)),
+                                            Box::new(CExpr::Int((l, r), 1)))))
+    },
 };
 
 // expression
