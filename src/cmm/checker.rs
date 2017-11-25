@@ -15,8 +15,8 @@ pub fn analyze_prog<'input, 'err>(
     // check each element
     for elem in ast.iter() {
         match *elem {
-            CProgElem::Decl((l, _), ref t, ref name, s) => {
-                match symtab.insert(*name, t.clone(), s, None, Some(l)) {
+            CProgElem::Decl((l, _), ref t, ref name, _) => {
+                match symtab.insert(*name, t.clone(), None, None, Some(l)) {
                     Some(_) => errors.push((format!("Variable '{}' already declared", name), Some(l))),
                     None => (),
                 };

@@ -88,20 +88,44 @@ pub fn run_stmt<'input>(
     let mut tmp_symtab = local_symtab.clone();
 
     let res = match *stmt {
-        CStmt::Decl((l, _), ref t, id, s) => {
-            tmp_symtab.insert(id, t.clone(), s, None, Some(l));
+        CStmt::Decl((l, _), ref t, id, ref eo) => {
+            // get index
+            let so = match *eo {
+                Some(ref e) => {
+                    // let ((l2, _), ) // TODO: get loc of expr
+                    let sym = try!(run_expr(e, vtab, &tmp_global_symtab, &tmp_symtab, &tmp_repl));
+                    match sym {
+                        SymVal::Int(i) => Some(i as usize),
+                        _ => return Err(CError::RuntimeError("Array index must be int".to_owned(), l))
+                    }
+                },
+                None => None
+            };
+            tmp_symtab.insert(id, t.clone(), so, None, Some(l));
             None
         },
-        CStmt::Assign((l, _), id, i, ref e) => {
+        CStmt::Assign((l, _), id, ref eo, ref e) => {
+            // get index
+            let so = match *eo {
+                Some(ref e) => {
+                    // let ((l2, _), ) // TODO: get loc of expr
+                    let sym = try!(run_expr(e, vtab, &tmp_global_symtab, &tmp_symtab, &tmp_repl));
+                    match sym {
+                        SymVal::Int(i) => Some(i as usize),
+                        _ => return Err(CError::RuntimeError("Array index must be int".to_owned(), l))
+                    }
+                },
+                None => None
+            };
             let val = try!(run_expr(e, vtab, &tmp_global_symtab, &tmp_symtab, &tmp_repl));
             match tmp_symtab.get_type(id) {
                 // set in global
-                Some(_) => match tmp_symtab.set_val(id, i, val, Some(l)) {
+                Some(_) => match tmp_symtab.set_val(id, so, val, Some(l)) {
                     Ok(()) => None,
                     Err(s) => return Err(CError::RuntimeError(s, l)),
                 },
                 // if not, assume global
-                None => match tmp_global_symtab.set_val(id, i, val, Some(l)) {
+                None => match tmp_global_symtab.set_val(id, so, val, Some(l)) {
                     Ok(()) => None,
                     Err(s) => return Err(CError::RuntimeError(s, l)),
                 }

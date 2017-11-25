@@ -52,8 +52,8 @@ pub Prog: CProg<'input> = <l:(<ProgElem>)*> => {
 ProgElem: Vec<CProgElem<'input>> = {
     // decl
     <l:@L> <t:Type> <m:VarArray> <mm:("," <VarArray>)*> ";" <r:@R> => {
-        vec![m].into_iter().chain(mm).map(|(id, s)| {
-            CProgElem::Decl((l, r), t.clone(), id, s)
+        vec![m].into_iter().chain(mm).map(|(id, so)| {
+            CProgElem::Decl((l, r), t.clone(), id, so)
         }).collect()
     },
 
@@ -249,7 +249,7 @@ StmtDecl: Box<CStmt<'input>> = {
             };
             let s = so.unwrap_or(None);
 
-            stmts.push(Box::new(CStmt::Decl((l, r), tt, id, s)));
+            stmts.push(Box::new(CStmt::Decl((l, r), tt, id, s.clone())));
             // also init?
             if let Some(e) = eo {
                 stmts.push(Box::new(CStmt::Assign((l, r), id, s, e)));
@@ -265,14 +265,14 @@ StmtDecl: Box<CStmt<'input>> = {
     },
 };
 
-StmtDecl2: (CIdent<'input>, Option<Option<usize>>, Option<CExpr<'input>>) = {
+StmtDecl2: (CIdent<'input>, Option<Option<CExpr<'input>>>, Option<CExpr<'input>>) = {
     <l:Ident> <eo:("=" <Expr>)?> => (l, None, eo),
-    <l:Ident> "[" <so:Size?> "]" <eo:("=" <Expr>)?> => (l, Some(so), eo),
+    <l:Ident> "[" <so:Expr?> "]" <eo:("=" <Expr>)?> => (l, Some(so), eo),
     "*" <l:Ident> <eo:("=" <Expr>)?> => (l, Some(None), None),
 };
 
-VarArray: (CIdent<'input>, Option<usize>) = {
-    <l:Ident> <so:("[" <Size> "]")?> => (l, so),
+VarArray: (CIdent<'input>, Option<CExpr<'input>>) = {
+    <l:Ident> <so:("[" <Expr> "]")?> => (l, so),
 };
 
 StmtAssign: Box<CStmt<'input>> = {

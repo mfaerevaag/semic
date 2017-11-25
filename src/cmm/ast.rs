@@ -6,7 +6,7 @@ pub type CProg<'input> = Vec<CProgElem<'input>>;
 
 #[derive(Clone)]
 pub enum CProgElem<'input> {
-    Decl(CLoc, CType, CIdent<'input>, Option<usize>),
+    Decl(CLoc, CType, CIdent<'input>, Option<CExpr<'input>>),
     Proto(CLoc, CProto<'input>),
     Func(CLoc, CFunc<'input>),
     Error,
@@ -27,8 +27,8 @@ pub struct CFunc<'input> {
 
 #[derive(Clone)]
 pub enum CStmt<'input> {
-    Decl(CLoc, CType, CIdent<'input>, Option<usize>),
-    Assign(CLoc, CIdent<'input>, Option<usize>, CExpr<'input>),
+    Decl(CLoc, CType, CIdent<'input>, Option<CExpr<'input>>),
+    Assign(CLoc, CIdent<'input>, Option<CExpr<'input>>, CExpr<'input>),
     Call(CLoc, CIdent<'input>, Vec<Box<CExpr<'input>>>),
     Return(CLoc, Option<CExpr<'input>>),
     Block(CLoc, Vec<Box<CStmt<'input>>>),
@@ -98,9 +98,9 @@ impl<'input> Debug for CProgElem<'input> {
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
         use self::CProgElem::*;
         match *self {
-            Decl(_, ref t, id, s) => match s {
-                Some(i) => write!(fmt, "{:?} {}[{}]", t, id, i),
-                None => write!(fmt, "{:?} {}", t, id),
+            Decl(_, ref t, id, ref eo) => match eo {
+                &Some(ref e) => write!(fmt, "{:?} {}[{:?}]", t, id, e),
+                &None => write!(fmt, "{:?} {}", t, id),
             },
             Proto(_, ref x) => write!(fmt, "{:?}", x),
             Func(_, ref x) => write!(fmt, "{:#?}", x),
@@ -113,12 +113,12 @@ impl<'input> Debug for CStmt<'input> {
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
         use self::CStmt::*;
         match *self {
-            Decl(_, ref t, id, s) => match s {
-                Some(i) => write!(fmt, "{:?} {}[{}]", t, id, i),
+            Decl(_, ref t, id, ref eo) => match *eo {
+                Some(ref e) => write!(fmt, "{:?} {}[{:?}]", t, id, e),
                 None => write!(fmt, "{:?} {}", t, id),
             },
-            Assign(_, ref l, i, ref r) => match i {
-                Some(i) => write!(fmt, "{}[{}] = {:?}", l, i, r),
+            Assign(_, ref l, ref eo, ref r) => match *eo {
+                Some(ref e) => write!(fmt, "{}[{:?}] = {:?}", l, e, r),
                 None => write!(fmt, "{} = {:?}", l, r),
             },
             Call(_, ref i, ref p) => {

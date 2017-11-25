@@ -42,7 +42,7 @@ impl<'a> FuncTab<'a> {
 
 // symbol table
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct SymTab<'a> {
     tab: HashMap<&'a str, SymEntry>
 }
