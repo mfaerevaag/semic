@@ -92,11 +92,11 @@ pub fn run_stmt<'input>(
             // get index
             let so = match *eo {
                 Some(ref e) => {
-                    // let ((l2, _), ) // TODO: get loc of expr
+                    let l2 = try!(loc_of_expr(e));
                     let sym = try!(run_expr(e, vtab, &tmp_global_symtab, &tmp_symtab, &tmp_repl));
                     match sym {
                         SymVal::Int(i) => Some(i as usize),
-                        _ => return Err(CError::RuntimeError("Array index must be int".to_owned(), l))
+                        _ => return Err(CError::RuntimeError("Array index must be int".to_owned(), l2))
                     }
                 },
                 None => None
@@ -108,11 +108,11 @@ pub fn run_stmt<'input>(
             // get index
             let so = match *eo {
                 Some(ref e) => {
-                    // let ((l2, _), ) // TODO: get loc of expr
+                    let l2 = try!(loc_of_expr(e));
                     let sym = try!(run_expr(e, vtab, &tmp_global_symtab, &tmp_symtab, &tmp_repl));
                     match sym {
                         SymVal::Int(i) => Some(i as usize),
-                        _ => return Err(CError::RuntimeError("Array index must be int".to_owned(), l))
+                        _ => return Err(CError::RuntimeError("Array index must be int".to_owned(), l2))
                     }
                 },
                 None => None
@@ -460,4 +460,19 @@ pub fn run_expr<'input>(
     };
 
     Ok(res)
+}
+
+fn loc_of_expr<'input>(expr: &'input CExpr) -> Result<usize, CError> {
+    match *expr {
+        CExpr::Int((l, _), ..) => Ok(l),
+        CExpr::Float((l, _), ..)  => Ok(l),
+        CExpr::Str((l, _), ..) => Ok(l),
+        CExpr::Char((l, _), ..) => Ok(l),
+        CExpr::Ident((l, _), ..) => Ok(l),
+        CExpr::UnOp((l, _), ..) => Ok(l),
+        CExpr::BinOp((l, _), ..) => Ok(l),
+        CExpr::Call((l, _), ..) => Ok(l),
+        CExpr::Index((l, _), ..) => Ok(l),
+        _ => Err(CError::UnknownError(format!("unexpected expr '{:?}'", expr)))
+    }
 }
