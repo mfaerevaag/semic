@@ -1,3 +1,5 @@
+use std::char;
+
 use ast::*;
 use env::{FuncTab, SymTab, SymVal};
 use checker;
@@ -118,16 +120,26 @@ pub fn run_stmt<'input>(
                 None => None
             };
             let val = try!(run_expr(e, vtab, &tmp_global_symtab, &tmp_symtab, &tmp_repl));
+            let l2 = try!(loc_of_expr(e));
             match tmp_symtab.get_type(id) {
                 // set in global
-                Some(_) => match tmp_symtab.set_val(id, so, val, Some(l)) {
-                    Ok(()) => None,
-                    Err(s) => return Err(CError::RuntimeError(s, l)),
+                Some((t, _)) => {
+                    let casted = try!(auto_cast(&val, l2, &t));
+                    match tmp_symtab.set_val(id, so, casted, Some(l)) {
+                        Ok(()) => None,
+                        Err(s) => return Err(CError::RuntimeError(s, l)),
+                    }
                 },
                 // if not, assume global
-                None => match tmp_global_symtab.set_val(id, so, val, Some(l)) {
-                    Ok(()) => None,
-                    Err(s) => return Err(CError::RuntimeError(s, l)),
+                None => match tmp_global_symtab.get_type(id) {
+                    Some((t, _)) => {
+                        let casted = try!(auto_cast(&val, l2, &t));
+                        match tmp_global_symtab.set_val(id, so, casted, Some(l)) {
+                            Ok(()) => None,
+                            Err(s) => return Err(CError::RuntimeError(s, l)),
+                        }
+                    },
+                    None => return Err(CError::RuntimeError(format!("Variable '{:?}' not declared", id), l))
                 }
             }
         },
@@ -474,5 +486,39 @@ fn loc_of_expr<'input>(expr: &'input CExpr) -> Result<usize, CError> {
         CExpr::Call((l, _), ..) => Ok(l),
         CExpr::Index((l, _), ..) => Ok(l),
         _ => Err(CError::UnknownError(format!("unexpected expr '{:?}'", expr)))
+    }
+}
+
+fn auto_cast<'input>(val: &'input SymVal, loc: usize, t: &'input CType) -> Result<SymVal, CError> {
+    match *t {
+        CType::Int => match *val {
+            SymVal::Int(_) => Ok(val.clone()),
+            SymVal::Float(f) => Ok(SymVal::Int(f as i32)),
+            SymVal::Char(c) => match c.to_digit(16) {
+                Some(i) => Ok(SymVal::Int(i as i32)),
+                None => Err(CError::RuntimeError("Failed to cast char type to int".to_owned(), loc))
+            },
+            SymVal::Bool(b) => Ok(SymVal::Int(if b { 1 } else { 0 })),
+            SymVal::Array(_) => Err(CError::RuntimeError("Cannot auto cast array type to int".to_owned(), loc)),
+        },
+        CType::Float => match *val {
+            SymVal::Int(i) => Ok(SymVal::Float(i as f32)),
+            SymVal::Float(_) => Ok(val.clone()),
+            SymVal::Char(_) => Err(CError::RuntimeError("Cannot auto cast char type to float".to_owned(), loc)),
+            SymVal::Bool(_) => Err(CError::RuntimeError("Cannot auto cast bool type to float".to_owned(), loc)),
+            SymVal::Array(_) => Err(CError::RuntimeError("Cannot auto cast array type to float".to_owned(), loc))
+        },
+        CType::Char => match *val {
+            SymVal::Int(i) => match char::from_digit(i as u32, 16) {
+                Some(c) => Ok(SymVal::Char(c)),
+                None => Err(CError::RuntimeError("Failed to cast int type to char".to_owned(), loc))
+            },
+            SymVal::Float(_) => Err(CError::RuntimeError("Cannot auto cast float type to char".to_owned(), loc)),
+            SymVal::Char(_) => Ok(val.clone()),
+            SymVal::Bool(_) => Err(CError::RuntimeError("Cannot auto cast bool type to char".to_owned(), loc)),
+            SymVal::Array(_) => Err(CError::RuntimeError("Cannot auto cast array type to char".to_owned(), loc))
+        },
+        CType::Ref(_) => Ok(val.clone()) // TODO: throw error
+        // Array(_) => Err(CError::RuntimeError("Cannot cast array type".to_owned(), loc))
     }
 }

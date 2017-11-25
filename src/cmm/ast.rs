@@ -76,8 +76,8 @@ pub enum COp {
 
 #[derive(PartialEq, Clone)]
 pub enum CType {
-    Char,
     Int,
+    Char,
     Float,
     Ref(Box<CType>),
 }
