@@ -1,3 +1,4 @@
+use std::process;
 use std::io;
 use std::io::Write;
 
@@ -77,7 +78,7 @@ impl<'a> Repl {
             if self.skip > 0 {
                 self.skip -= 1;
             } else {
-                self.read(global_symtab, local_symtab)?;
+                self.read(global_symtab, local_symtab, false)?;
             }
 
             self.last_line = line;
@@ -96,7 +97,7 @@ impl<'a> Repl {
 
         println!("End of program");
 
-        self.read(global_symtab, local_symtab)?;
+        self.read(global_symtab, local_symtab, true)?;
 
         Ok(())
     }
@@ -105,6 +106,7 @@ impl<'a> Repl {
         &mut self,
         global_symtab: &'input SymTab<'input>,
         local_symtab: &'input SymTab<'input>,
+        finished: bool
     ) -> Result<(), CError> {
         loop {
             print!(">> ");
@@ -205,6 +207,14 @@ impl<'a> Repl {
                             Some(line) => println!("{} = {} at line {}", id, val, line),
                             None => println!("{} = {}", id, val)
                         }
+                    }
+                },
+                Some("quit") => {
+                    println!("Bye, bye");
+                    if finished {
+                        break;
+                    } else {
+                        process::exit(0);
                     }
                 },
                 Some(x) => println!("Unknown command '{}'. Try again", x),
