@@ -429,7 +429,8 @@ pub fn run_expr<'input>(
             };
 
             // calc and add args to symtab
-            let mut tab = SymTab::new();
+            let mut tab = local_symtab.clone();
+            tab.push_frame();
             for (i, p) in f.proto.params.iter().enumerate() {
                 let (ref t, ref pid) = *p;
                 let e = match args.iter().nth(i) {
@@ -444,6 +445,7 @@ pub fn run_expr<'input>(
                 (Some(v), ..) => v,
                 _ => return Err(CError::RuntimeError(format!("Expression returned void"), l)),
             }
+            // tab.pop_frame()?;
         },
 
         CExpr::Index((l, _), id, ref e) => {

@@ -14,6 +14,7 @@ pub struct Repl {
     skip: usize,
     map: Vec<usize>,
     last_line: usize,
+
 }
 
 impl<'a> Repl {
@@ -115,7 +116,7 @@ impl<'a> Repl {
             // read input
             let mut input = String::new();
             let (command, arg) = match io::stdin().read_line(&mut input) {
-                Err(error) => return Err(CError::UnknownError(format!("Error: {}", error))),
+                Err(error) => return Err(CError::UnknownError(error.to_string())),
                 Ok(_) => {
                     let mut matches = input.split_whitespace();
                     (matches.next(), matches.next())
@@ -124,13 +125,13 @@ impl<'a> Repl {
 
             // match command
             match command {
-                Some("next") => {
+                Some("next") | Some("n") => {
                     // get number
                     let n: usize = match arg {
                         Some(x) => match x.parse() {
                             Ok(n) => n,
                             Err(_) => {
-                                println!( "Incorrect command usage: try 'next [lines]");
+                                println!(" Incorrect command usage: try 'next [lines]'");
                                 continue;
                             }
                         },
@@ -145,37 +146,39 @@ impl<'a> Repl {
 
                     break;
                 },
-                Some("print") => {
+                Some("print") | Some("p") => {
                     // get ident
                     let id = match arg {
                         Some(x) => x,
                         None => {
-                            println!( "Incorrect command usage: try 'print <variable>");
+                            println!(" Invalid typing of the variable name");
                             continue;
                         },
                     };
 
-                    // get val
-                    let val = match local_symtab.get_val(id) {
-                        x @ Some(_) => x,
-                        _ => match global_symtab.get_val(id) {
-                            x @ Some(_) => x,
-                            _ => None,
+                    match local_symtab.get_type(id) {
+                        Some(_) => match local_symtab.get_val(id) {
+                            Some(x) => println!(" {:?}", x),
+                            None => println!(" N\\A"),
+                        },
+                        None => match global_symtab.get_type(id) {
+                            Some(_) => match global_symtab.get_type(id) {
+                                Some(x) => println!(" {:?} (global)", x),
+                                None => println!(" N\\A (global)"),
+                            },
+                            None => match local_symtab.get_val_parent(id) {
+                                Some(x) => println!(" {:?} (invisible)", x),
+                                None => println!(" Not declared"),
+                            }
                         }
                     };
-
-                    // print value
-                    match val {
-                        Some(v) => println!(" {:?}", v),
-                        None => println!(" N\\A"),
-                    };
                 },
-                Some("trace") => {
+                Some("trace") | Some("t") => {
                     // get ident
                     let id = match arg {
                         Some(x) => x,
                         None => {
-                            println!(" Incorrect command usage: try 'trace <variable>");
+                            println!(" Invalid typing of the variable name");
                             continue;
                         },
                     };
@@ -209,7 +212,7 @@ impl<'a> Repl {
                         }
                     }
                 },
-                Some("quit") => {
+                Some("quit") | Some("q") => {
                     println!(" Bye, bye");
                     if finished {
                         break;

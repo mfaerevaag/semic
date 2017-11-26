@@ -84,6 +84,20 @@ impl<'a> SymTab<'a> {
         }
     }
 
+    pub fn get_val_parent(&self, key: &'a str) -> Option<SymVal> {
+        for i in (1..self.stack.len()).rev() {
+            let tab = self.stack.get(i - 1).unwrap();
+            match tab.get(key) {
+                Some(&(_, _, ref v)) => match v.last() {
+                    Some(&(ref v, _)) => return v.clone(),
+                    _ => ()
+                },
+                _ => ()
+            }
+        }
+        None
+    }
+
     pub fn get_trace(&self, key: &'a str) -> Option<Vec<(Option<SymVal>, Option<usize>)>> {
         let tab = self.stack.last().unwrap();
         match tab.get(key) {
