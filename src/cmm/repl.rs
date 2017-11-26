@@ -48,16 +48,16 @@ impl<'a> Repl {
             CStmt::Print((l, _), ..) => Some(l),
             _ => None,
         };
-        let opt = match loc {
+        let lineo = match loc {
             Some(x) => util::line_from(x, &self.map),
             None => None
         };
 
         if self.verbose {
-            println!("REPL ({:?}/{:?} skip: {}) {:?}", opt, loc, self.skip, stmt);
+            println!("REPL ({:?}/{:?} skip: {}) {:?}", lineo, loc, self.skip, stmt);
         }
 
-        if let Some(line) = opt  {
+        if let Some(line) = lineo  {
             if line == self.last_line {
                 return Ok(());
             }
@@ -75,7 +75,6 @@ impl<'a> Repl {
 
             // check if should skip
             if self.skip > 0 {
-                println!("-> skip {}", self.skip);
                 self.skip -= 1;
             } else {
                 self.read(global_symtab, local_symtab)?;
@@ -192,18 +191,20 @@ impl<'a> Repl {
                     };
 
                     for (valo, loco) in trace {
-                        let locs = match loco {
-                            Some(x) => format!("{}", x),
-                            None => "N\\A".to_owned()
-                        };
-
-                        // print history
-                        let vals = match valo {
+                        let val = match valo {
                             Some(v) => format!("{:?}", v),
                             None => format!("N\\A"),
                         };
 
-                        println!("{} = {} at line {}", id, vals, locs);
+                        let lineo = match loco {
+                            Some(x) => util::line_from(x, &self.map),
+                            None => None
+                        };
+
+                        match lineo {
+                            Some(line) => println!("{} = {} at line {}", id, val, line),
+                            None => println!("{} = {}", id, val)
+                        }
                     }
                 },
                 Some(x) => println!("Unknown command '{}'. Try again", x),
