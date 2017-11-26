@@ -16,7 +16,7 @@ fn assign_int() {
 
     let ast = cmm::parse_stmt(r#" i = 7; "#).unwrap();
 
-    let (_, tab, actual, _) = engine::run_stmt(&ast, &vtab, global, local, repl).unwrap();
+    let (actual, _, tab, _) = engine::run_stmt(&ast, &vtab, global, local, repl).unwrap();
     let expected = None;
     assert_eq!(expected, actual);
 
@@ -41,7 +41,7 @@ fn assign_array() {
 
     let ast = cmm::parse_stmt(r#" s[1] = '\0'; "#).unwrap();
 
-    let (_, tab, actual, _) = engine::run_stmt(&ast, &vtab, global, local, repl).unwrap();
+    let (actual, _, tab, _) = engine::run_stmt(&ast, &vtab, global, local, repl).unwrap();
     let expected = None;
     assert_eq!(expected, actual);
 
@@ -63,11 +63,11 @@ fn assign_string() {
     let mut local = SymTab::new();
     let repl = Repl::new(false, "", false);
 
-    local.insert("s", CType::Char, Some(2), None, None);
+    local.insert("s", CType::Ref(Box::new(CType::Char)), Some(2), None, None);
 
     let ast = cmm::parse_stmt(r#" s = "a"; "#).unwrap();
 
-    let (_, tab, actual, _) = engine::run_stmt(&ast, &vtab, global, local, repl).unwrap();
+    let (actual, _, tab, _) = engine::run_stmt(&ast, &vtab, global, local, repl).unwrap();
     let expected = None;
     assert_eq!(expected, actual);
 
@@ -76,7 +76,7 @@ fn assign_string() {
 
     let (t, s) = meta.unwrap();
     let val = tab.get_val("s");
-    assert_eq!(CType::Char, t);
+    assert_eq!(CType::Ref(Box::new(CType::Char)), t);
     assert_eq!(Some(2), s);
     assert_eq!(Some(SymVal::Array(vec![Box::new(SymVal::Char('a')),
                                        Box::new(SymVal::Char('\0'))])), val);

@@ -18,7 +18,7 @@ fn func_empty() {
             name: "main",
             params: vec![],
         },
-        stmts: vec![],
+        body: CStmt::Block((0,0), vec![]),
     };
 
     assert!(actual.is_ok());
@@ -39,7 +39,7 @@ fn func_return_type() {
             name: "main",
             params: vec![],
         },
-        stmts: vec![],
+        body: CStmt::Block((0,0), vec![]),
     };
 
     assert!(actual.is_ok());
@@ -58,7 +58,7 @@ fn func_param_type_single() {
             name: "main",
             params: vec![(CType::Int, "a")],
         },
-        stmts: vec![],
+        body: CStmt::Block((0,0), vec![]),
     };
 
     assert!(actual.is_ok());
@@ -77,7 +77,7 @@ fn func_param_type_mult() {
             name: "main",
             params: vec![(CType::Int, "a"), (CType::Char, "b")],
         },
-        stmts: vec![],
+        body: CStmt::Block((0,0), vec![]),
     };
 
     assert!(actual.is_ok());
@@ -98,7 +98,7 @@ fn func_decl_single_type_single_ident() {
             name: "main",
             params: vec![],
         },
-        stmts: vec![CStmt::Decl((0,0), CType::Int, "x", None)],
+        body: CStmt::Block((0,0), vec![Box::new(CStmt::Decl((0,0), CType::Int, "x", None))]),
     };
 
     assert!(actual.is_ok());
@@ -119,7 +119,9 @@ fn func_decl_single_type_single_array() {
             name: "main",
             params: vec![],
         },
-        stmts: vec![CStmt::Decl((0,0), CType::Ref(Box::new(CType::Int)), "x", Some(7))],
+        body: CStmt::Block((0,0), vec![
+            Box::new(CStmt::Decl((0,0), CType::Ref(Box::new(CType::Int)), "x", Some(CExpr::Int((0,0), 7))))
+        ]),
     };
 
     assert!(actual.is_ok());
@@ -140,8 +142,10 @@ fn func_decl_single_type_mult_ident() {
             name: "main",
             params: vec![],
         },
-        stmts: vec![CStmt::Decl((0,0), CType::Int, "x", None),
-                    CStmt::Decl((0,0), CType::Int, "y", None)],
+        body: CStmt::Block((0,0), vec![
+            Box::new(CStmt::Decl((0,0), CType::Int, "x", None)),
+            Box::new(CStmt::Decl((0,0), CType::Int, "y", None))
+        ]),
     };
 
     assert!(actual.is_ok());
@@ -162,8 +166,10 @@ fn func_decl_single_type_mult_array() {
             name: "main",
             params: vec![],
         },
-        stmts: vec![CStmt::Decl((0,0), CType::Ref(Box::new(CType::Int)), "x", Some(7)),
-                    CStmt::Decl((0,0), CType::Ref(Box::new(CType::Int)), "y", Some(8))],
+        body: CStmt::Block((0,0), vec![
+            Box::new(CStmt::Decl((0,0), CType::Ref(Box::new(CType::Int)), "x", Some(CExpr::Int((0,0), 7)))),
+            Box::new(CStmt::Decl((0,0), CType::Ref(Box::new(CType::Int)), "y", Some(CExpr::Int((0,0), 8))))
+        ]),
     };
 
     assert!(actual.is_ok());
@@ -185,8 +191,10 @@ fn func_decl_mult_type_single_ident() {
             name: "main",
             params: vec![],
         },
-        stmts: vec![CStmt::Decl((0,0), CType::Int, "x", None),
-                    CStmt::Decl((0,0), CType::Char, "y", None)],
+        body: CStmt::Block((0,0), vec![
+            Box::new(CStmt::Decl((0,0), CType::Int, "x", None)),
+            Box::new(CStmt::Decl((0,0), CType::Char, "y", None))
+        ]),
     };
 
     assert!(actual.is_ok());
@@ -208,12 +216,12 @@ fn func_decl_mult_type_mult_ident() {
             name: "main",
             params: vec![],
         },
-        stmts: vec![
-            CStmt::Decl((0,0), CType::Int, "x", None),
-            CStmt::Decl((0,0), CType::Int, "y", None),
-            CStmt::Decl((0,0), CType::Char, "a", None),
-            CStmt::Decl((0,0), CType::Char, "b", None)
-        ],
+        body: CStmt::Block((0,0), vec![
+            Box::new(CStmt::Decl((0,0), CType::Int, "x", None)),
+            Box::new(CStmt::Decl((0,0), CType::Int, "y", None)),
+            Box::new(CStmt::Decl((0,0), CType::Char, "a", None)),
+            Box::new(CStmt::Decl((0,0), CType::Char, "b", None))
+        ]),
     };
 
     assert!(actual.is_ok());
@@ -236,11 +244,11 @@ fn func_decl_after_stmt() {
             name: "main",
             params: vec![],
         },
-        stmts: vec![
-            CStmt::Return((0,0), None),
-            CStmt::Decl((0,0), CType::Char, "a", None),
-            CStmt::Return((0,0), None),
-        ],
+        body: CStmt::Block((0,0), vec![
+            Box::new(CStmt::Return((0,0), None)),
+            Box::new(CStmt::Decl((0,0), CType::Char, "a", None)),
+            Box::new(CStmt::Return((0,0), None)),
+        ]),
     };
 
     assert!(actual.is_ok());
@@ -261,10 +269,10 @@ fn func_decl_imm_init() {
             name: "main",
             params: vec![],
         },
-        stmts: vec![
-            CStmt::Decl((0,0), CType::Char, "a", None),
-            CStmt::Assign((0,0), "a", None, CExpr::Char((0,0), 'a')),
-        ],
+        body: CStmt::Block((0,0), vec![
+            Box::new(CStmt::Decl((0,0), CType::Char, "a", None)),
+            Box::new(CStmt::Assign((0,0), "a", None, CExpr::Char((0,0), 'a'))),
+        ]),
     };
 
     assert!(actual.is_ok());
@@ -285,10 +293,10 @@ fn func_decl_imm_init_string() {
             name: "main",
             params: vec![],
         },
-        stmts: vec![
-            CStmt::Decl((0,0), CType::Ref(Box::new(CType::Char)), "a", None),
-            CStmt::Assign((0,0), "a", None, CExpr::Str((0,0), "foobar".chars())),
-        ],
+        body: CStmt::Block((0,0), vec![
+            Box::new(CStmt::Decl((0,0), CType::Ref(Box::new(CType::Char)), "a", None)),
+            Box::new(CStmt::Assign((0,0), "a", None, CExpr::Str((0,0), "foobar".chars()))),
+        ]),
     };
 
     assert!(actual.is_ok());
@@ -309,7 +317,9 @@ fn func_no_decl_single_stmt() {
             name: "main",
             params: vec![],
         },
-        stmts: vec![CStmt::Return((0,0), Some(CExpr::Int((0,0), 0)))],
+        body: CStmt::Block((0,0), vec![
+            Box::new(CStmt::Return((0,0), Some(CExpr::Int((0,0), 0))))
+        ]),
     };
 
     assert!(actual.is_ok());
@@ -331,10 +341,10 @@ fn func_single_decl_single_stmt() {
             name: "main",
             params: vec![],
         },
-        stmts: vec![
-            CStmt::Decl((0,0), CType::Int, "x", None),
-            CStmt::Assign((0,0), "x", None, CExpr::Int((0,0), 1))
-        ],
+        body: CStmt::Block((0,0), vec![
+            Box::new(CStmt::Decl((0,0), CType::Int, "x", None)),
+            Box::new(CStmt::Assign((0,0), "x", None, CExpr::Int((0,0), 1)))
+        ]),
     };
 
     assert!(actual.is_ok());
@@ -356,9 +366,9 @@ fn func_single_array_single_stmt() {
             name: "main",
             params: vec![],
         },
-        stmts: vec![
-            CStmt::Decl((0,0), CType::Ref(Box::new(CType::Char)), "x", Some(7)),
-            CStmt::Assign((0,0), "x", Some(6), CExpr::Char((0,0), '\0'))],
+        body: CStmt::Block((0,0), vec![
+            Box::new(CStmt::Decl((0,0), CType::Ref(Box::new(CType::Char)), "x", Some(CExpr::Int((0,0), 7)))),
+            Box::new(CStmt::Assign((0,0), "x", Some(CExpr::Int((0,0), 6)), CExpr::Char((0,0), '\0')))]),
     };
 
     assert!(actual.is_ok());
@@ -382,17 +392,16 @@ fn func_stmt_mult() {
             name: "main",
             params: vec![],
         },
-        stmts: vec![
-            CStmt::Decl((0,0), CType::Int, "x", None),
-            CStmt::Decl((0,0), CType::Int, "y", None),
-            CStmt::Assign((0,0), "x", None, CExpr::Int((0,0), 1)),
-            CStmt::Assign((0,0), "y", None, CExpr::Int((0,0), 2)),
-            CStmt::Return((0,0), Some(CExpr::BinOp(
-                (0,0),
+        body: CStmt::Block((0,0), vec![
+            Box::new(CStmt::Decl((0,0), CType::Int, "x", None)),
+            Box::new(CStmt::Decl((0,0), CType::Int, "y", None)),
+            Box::new(CStmt::Assign((0,0), "x", None, CExpr::Int((0,0), 1))),
+            Box::new(CStmt::Assign((0,0), "y", None, CExpr::Int((0,0), 2))),
+            Box::new(CStmt::Return((0,0), Some(CExpr::BinOp((0,0),
                 COp::Add,
                 Box::new(CExpr::Ident((0,0), "x")),
-                Box::new(CExpr::Ident((0,0), "y")))))
-        ],
+                Box::new(CExpr::Ident((0,0), "y"))))))
+        ]),
     };
 
     assert!(actual.is_ok());
