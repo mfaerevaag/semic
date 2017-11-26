@@ -22,7 +22,7 @@ pub struct CProto<'input> {
 #[derive(Clone, Debug)]
 pub struct CFunc<'input> {
     pub proto: CProto<'input>,
-    pub stmts: Vec<CStmt<'input>>,
+    pub body: CStmt<'input>,
 }
 
 #[derive(Clone)]

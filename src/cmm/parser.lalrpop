@@ -90,7 +90,7 @@ Proto: Vec<CProgElem<'input>> = {
 };
 
 pub Func: Vec<CProgElem<'input>> = {
-    <l:@L> "void" <d:FuncDecl> "{" <stmt:(<Stmt>)*> "}" <r:@R> => {
+    <l:@L> "void" <d:FuncDecl> <s:FuncBody> <r:@R> => {
         let (id, param) = d;
         vec![CProgElem::Func((l, r), CFunc {
             proto: CProto {
@@ -98,15 +98,10 @@ pub Func: Vec<CProgElem<'input>> = {
                 name: id,
                 params: param,
             },
-            stmts: stmt.into_iter().flat_map(|x| match x {
-                CStmt::Block(_, ss) => {
-                    ss.into_iter().map(|b| *b).collect()
-                },
-                x => vec![x]
-            }).collect(),
+            body: s,
         })]
     },
-    <l:@L> <t:Type> <p:("*")?> <d:FuncDecl> "{" <stmt:(<Stmt>)*> "}" <r:@R> => {
+    <l:@L> <t:Type> <p:("*")?> <d:FuncDecl> <s:FuncBody> <r:@R> => {
         let tt = match p {
             None => Some(t.clone()),
             _ => Some(CType::Ref(Box::new(t.clone()))),
@@ -118,12 +113,7 @@ pub Func: Vec<CProgElem<'input>> = {
                 name: id,
                 params: param,
             },
-            stmts: stmt.into_iter().flat_map(|x| match x {
-                CStmt::Block(_, ss) => {
-                    ss.into_iter().map(|b| *b).collect()
-                },
-                x => vec![x]
-            }).collect(),
+            body: s,
         })]
     },
 };
@@ -138,13 +128,21 @@ FuncParam: Vec<(CType, CIdent<'input>)> = {
 };
 
 Param: (CType, CIdent<'input>) = {
-    <t:Type> <r:Ident> <s:("[" "]")*> => {
+    <t:Type> <p:("*")*> <r:Ident> <s:("[" "]")*> => {
         let mut tt = t;
-        for i in 0..s.len() {
+        for i in 0..(p.len() + s.len()) {
             tt = CType::Ref(Box::new(tt));
         }
         (tt, r)
     }
+};
+
+FuncBody: CStmt<'input> = {
+    <l:@L> "{" <stmt:(<Stmt>)*> "}" <r:@R> =>
+        CStmt::Block((l, r), stmt.into_iter().flat_map(|x| match x {
+            CStmt::Block(_, ss) => ss,
+            x => vec![Box::new(x)]
+        }).collect())
 };
 
 // statements
