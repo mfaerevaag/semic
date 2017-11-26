@@ -153,7 +153,8 @@ pub fn run_stmt<'input>(
             };
 
             // calc and add args to symtab
-            let mut tab = SymTab::new();
+            let mut tab = tmp_symtab.clone();
+            tab.push_frame();
             for (i, p) in f.proto.params.iter().enumerate() {
                 let (ref t, ref pid) = *p;
                 let e = match args.iter().nth(i) {
@@ -164,7 +165,9 @@ pub fn run_stmt<'input>(
                 tab.insert(pid, t.clone(), None, Some(val), Some(l));
             }
 
-            let _ = try!(run_func(&f, vtab, global_symtab, tab, repl));
+            let (_, _, mut tab2) = try!(run_func(&f, vtab, global_symtab, tab, repl));
+            tab2.pop_frame()?;
+            tmp_symtab = tab2;
             None
         },
         CStmt::Return(_, ref s) => match s {

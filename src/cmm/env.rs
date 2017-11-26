@@ -1,6 +1,8 @@
 use std::fmt::{Debug, Formatter, Error};
 use std::collections::HashMap;
+
 use ast::*;
+use error::CError;
 
 // function table
 
@@ -44,7 +46,7 @@ impl<'a> FuncTab<'a> {
 
 #[derive(Debug, Clone)]
 pub struct SymTab<'a> {
-    tab: HashMap<&'a str, SymEntry>
+    stack: Vec<HashMap<&'a str, SymEntry>>
 }
 
 pub type SymEntry = (CType, Option<usize>, Vec<(Option<SymVal>, Option<usize>)>);
@@ -60,18 +62,20 @@ pub enum SymVal {
 
 impl<'a> SymTab<'a> {
     pub fn new() -> SymTab<'a> {
-        SymTab { tab: HashMap::new() }
+        SymTab { stack: vec![HashMap::new()] }
     }
 
     pub fn get_type(&self, key: &'a str) -> Option<(CType, Option<usize>)> {
-        match self.tab.get(key) {
+        let tab = self.stack.last().unwrap();
+        match tab.get(key) {
             Some(&(ref t, s, _)) => Some((t.clone(), s)),
             _ => None,
         }
     }
 
     pub fn get_val(&self, key: &'a str) -> Option<SymVal> {
-        match self.tab.get(key) {
+        let tab = self.stack.last().unwrap();
+        match tab.get(key) {
             Some(&(_, _, ref v)) => match v.last() {
                 Some(&(ref v, _)) => v.clone(),
                 _ => None
@@ -81,7 +85,8 @@ impl<'a> SymTab<'a> {
     }
 
     pub fn get_trace(&self, key: &'a str) -> Option<Vec<(Option<SymVal>, Option<usize>)>> {
-        match self.tab.get(key) {
+        let tab = self.stack.last().unwrap();
+        match tab.get(key) {
             Some(&(_, _, ref v)) => Some(v.clone()),
             _ => None
         }
@@ -95,45 +100,51 @@ impl<'a> SymTab<'a> {
         loc: Option<usize>
     ) -> Result <(), String>
     {
-        let clone = self.tab.clone();
+        let mut tab = self.stack.last_mut().unwrap();
+        let clone = tab.clone();
         let &(ref t, s, ref prev) = match clone.get(key) {
             Some(v) => v,
             _ => return Err(format!("Variable '{}' not declared", key)),
         };
 
-        if let Some(i) = i {
-            let mut vec = prev.clone();
-            let (last_val, _) = prev.last().unwrap().clone();
-            let new = match last_val {
-                // set in existing array
-                Some(SymVal::Array(ref a)) => {
-                    let mut a = a.clone();
-                    a.remove(i); // remove old val
-                    a.insert(i, Box::new(val)); // set new val
-                    SymVal::Array(a)
-                },
-                Some(x) => return Err(format!("Expected array, got {:?}", x)),
-                // create init array
-                None => {
-                    let mut a = Vec::new();
-                    let size = s.unwrap();
-                    for j in 0..size {
-                        if j == i {
-                            a.push(Box::new(val.clone()));
-                        } else {
-                            a.push(Box::new(SymVal::Int(0)));
+        match i {
+            // set array
+            Some(i) => {
+                let mut vec = prev.clone();
+                let (last_val, _) = prev.last().unwrap().clone();
+                let new = match last_val {
+                    // set in existing array
+                    Some(SymVal::Array(ref a)) => {
+                        let mut a = a.clone();
+                        a.remove(i); // remove old val
+                        a.insert(i, Box::new(val)); // set new val
+                        SymVal::Array(a)
+                    },
+                    Some(x) => return Err(format!("Expected array, got {:?}", x)),
+                    // create init array
+                    None => {
+                        let mut a = Vec::new();
+                        let size = s.unwrap();
+                        for j in 0..size {
+                            if j == i {
+                                a.push(Box::new(val.clone()));
+                            } else {
+                                a.push(Box::new(SymVal::Int(0)));
+                            }
                         }
-                    }
-                    SymVal::Array(a)
-                },
-            };
-            vec.push((Some(new), loc));
-            self.tab.insert(key, (t.clone(), s, vec));
-        } else {
+                        SymVal::Array(a)
+                    },
+                };
+
+                vec.push((Some(new), loc));
+                tab.insert(key, (t.clone(), s, vec));
+            },
             // set var
-            let mut vec = prev.clone();
-            vec.push((Some(val), loc));
-            self.tab.insert(key, (t.clone(), s, vec));
+            None => {
+                let mut vec = prev.clone();
+                vec.push((Some(val), loc));
+                tab.insert(key, (t.clone(), s, vec));
+            }
         }
 
         Ok(())
@@ -148,8 +159,20 @@ impl<'a> SymTab<'a> {
         loc: Option<usize>
     ) -> Option<SymEntry>
     {
+        let mut tab = self.stack.last_mut().unwrap();
         let vec = vec![(val, loc)];
-        self.tab.insert(key, (t, s, vec))
+        tab.insert(key, (t, s, vec))
+    }
+
+    pub fn push_frame(&mut self) {
+        self.stack.push(HashMap::new())
+    }
+
+    pub fn pop_frame(&mut self) -> Result<(), CError> {
+        match self.stack.pop() {
+            Some(_) => Ok(()),
+            None => Err(CError::UnknownError("Cannot pop frame of empty symbol table".to_owned()))
+        }
     }
 }
 
