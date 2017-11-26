@@ -1,4 +1,4 @@
-extern crate cmm;
+extern crate semic;
 
 pub mod parser;
 pub mod checker;

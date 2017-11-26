@@ -1,7 +1,7 @@
-extern crate cmm;
+extern crate semic;
 
-use cmm::ast::CType;
-use cmm::env::{SymTab, SymVal};
+use semic::ast::CType;
+use semic::env::{SymTab, SymVal};
 
 #[test]
 fn get_type() {

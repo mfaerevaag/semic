@@ -1,7 +1,7 @@
-extern crate cmm;
+extern crate semic;
 
-use cmm::engine;
-use cmm::env::SymVal;
+use semic::engine;
+use semic::env::SymVal;
 
 #[test]
 fn empty() {
@@ -10,7 +10,7 @@ fn empty() {
     }
     "#;
 
-    let ast = cmm::parse_prog(prog).unwrap();
+    let ast = semic::parse_prog(prog).unwrap();
 
     let actual = engine::run_prog(&ast, prog, &vec![], false, false);
     assert!(actual.is_ok());
@@ -26,7 +26,7 @@ fn int() {
     }
     "#;
 
-    let ast = cmm::parse_prog(prog).unwrap();
+    let ast = semic::parse_prog(prog).unwrap();
 
     let actual = engine::run_prog(&ast, prog, &vec![], false, false);
     assert!(actual.is_ok());
@@ -42,7 +42,7 @@ fn argc() {
     }
     "#;
 
-    let ast = cmm::parse_prog(prog).unwrap();
+    let ast = semic::parse_prog(prog).unwrap();
 
     let actual = engine::run_prog(&ast, prog, &vec![], false, false);
     assert!(actual.is_ok());

@@ -1,10 +1,10 @@
-extern crate cmm;
+extern crate semic;
 
-use cmm::ast::*;
+use semic::ast::*;
 
 #[test]
 fn prog_empty() {
-    let actual = cmm::parse_prog(r#""#);
+    let actual = semic::parse_prog(r#""#);
 
     assert!(actual.is_ok());
     assert_eq!(format!("[]"), format!("{:?}", actual.unwrap()));
@@ -12,11 +12,11 @@ fn prog_empty() {
 
 #[test]
 fn prog_proto_void() {
-    let actual = cmm::parse_prog(r#"
+    let actual = semic::parse_prog(r#"
         void foo (void);
     "#);
 
-    let actual2 = cmm::parse_prog(r#"
+    let actual2 = semic::parse_prog(r#"
         void foo ();
     "#);
 
@@ -34,7 +34,7 @@ fn prog_proto_void() {
 
 #[test]
 fn prog_proto_types() {
-    let actual = cmm::parse_prog(r#"
+    let actual = semic::parse_prog(r#"
         int foo (int a, char b);
     "#);
 
@@ -50,11 +50,11 @@ fn prog_proto_types() {
 
 #[test]
 fn prog_proto_names_good() {
-    let actual = cmm::parse_prog(r#"
+    let actual = semic::parse_prog(r#"
         int foo42 ();
     "#);
 
-    let actual2 = cmm::parse_prog(r#"
+    let actual2 = semic::parse_prog(r#"
         int foo_42 ();
     "#);
 
@@ -78,11 +78,11 @@ fn prog_proto_names_good() {
 
 #[test]
 fn prog_proto_names_bad() {
-    let actual = cmm::parse_prog(r#"
+    let actual = semic::parse_prog(r#"
         int 42foo42 ();
     "#);
 
-    let actual2 = cmm::parse_prog(r#"
+    let actual2 = semic::parse_prog(r#"
         int _foo_42 ();
     "#);
 
@@ -92,7 +92,7 @@ fn prog_proto_names_bad() {
 
 #[test]
 fn prog_proto_mult() {
-    let actual = cmm::parse_prog(r#"
+    let actual = semic::parse_prog(r#"
         int foo(int a), bar(char b);
     "#);
 

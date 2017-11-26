@@ -1,15 +1,15 @@
 [package]
-name = "cmm-interp"
+name = "semic-interp"
 version = "0.1.0"
 authors = ["Markus Faerevaag <m@frv.ag>"]
 build = "build.rs"
 
 [lib]
-name = "cmm"
-path = "src/cmm/lib.rs"
+name = "semic"
+path = "src/semic/lib.rs"
 
 [[bin]]
-name = "cmm-interp"
+name = "semic-interp"
 path = "src/main.rs"
 
 [build-dependencies]

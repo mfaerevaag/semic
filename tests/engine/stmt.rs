@@ -1,9 +1,9 @@
-extern crate cmm;
+extern crate semic;
 
-use cmm::engine;
-use cmm::ast::CType;
-use cmm::env::{FuncTab, SymTab, SymVal};
-use cmm::repl::Repl;
+use semic::engine;
+use semic::ast::CType;
+use semic::env::{FuncTab, SymTab, SymVal};
+use semic::repl::Repl;
 
 #[test]
 fn assign_int() {
@@ -14,7 +14,7 @@ fn assign_int() {
 
     local.insert("i", CType::Int, None, None, None);
 
-    let ast = cmm::parse_stmt(r#" i = 7; "#).unwrap();
+    let ast = semic::parse_stmt(r#" i = 7; "#).unwrap();
 
     let (actual, _, tab, _) = engine::run_stmt(&ast, &vtab, global, local, repl).unwrap();
     let expected = None;
@@ -39,7 +39,7 @@ fn assign_array() {
 
     local.insert("s", CType::Char, Some(2), None, None);
 
-    let ast = cmm::parse_stmt(r#" s[1] = '\0'; "#).unwrap();
+    let ast = semic::parse_stmt(r#" s[1] = '\0'; "#).unwrap();
 
     let (actual, _, tab, _) = engine::run_stmt(&ast, &vtab, global, local, repl).unwrap();
     let expected = None;
@@ -65,7 +65,7 @@ fn assign_string() {
 
     local.insert("s", CType::Ref(Box::new(CType::Char)), Some(2), None, None);
 
-    let ast = cmm::parse_stmt(r#" s = "a"; "#).unwrap();
+    let ast = semic::parse_stmt(r#" s = "a"; "#).unwrap();
 
     let (actual, _, tab, _) = engine::run_stmt(&ast, &vtab, global, local, repl).unwrap();
     let expected = None;

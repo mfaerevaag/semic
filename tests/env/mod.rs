@@ -1,3 +1,3 @@
-extern crate cmm;
+extern crate semic;
 
 mod symtab;

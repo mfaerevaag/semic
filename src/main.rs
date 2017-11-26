@@ -1,5 +1,5 @@
 extern crate getopts;
-extern crate cmm;
+extern crate semic;
 
 use getopts::Options;
 use std::env;
@@ -8,7 +8,7 @@ use std::fs::File;
 use std::io::prelude::*;
 
 fn print_usage(program: &str, opts: Options) {
-    let brief = format!("Usage: {} [options] <prog.cmm>", program);
+    let brief = format!("Usage: {} [options] <prog.semic>", program);
     print!("{}", opts.usage(&brief));
 }
 
@@ -59,7 +59,7 @@ fn main() {
     file.read_to_string(&mut prog).unwrap();
 
     // run
-    process::exit(match cmm::run(path, prog, argv, interactive, verbose) {
+    process::exit(match semic::run(path, prog, argv, interactive, verbose) {
         Ok(_) => 0,
         Err(()) => 1
     });

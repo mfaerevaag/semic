@@ -1,10 +1,10 @@
-extern crate cmm;
+extern crate semic;
 
-use cmm::ast::*;
+use semic::ast::*;
 
 #[test]
 fn stmt_return_empty() {
-    let actual = cmm::parse_stmt(r#"return;"#);
+    let actual = semic::parse_stmt(r#"return;"#);
 
     let expected = CStmt::Return((0,0), None);
 
@@ -14,7 +14,7 @@ fn stmt_return_empty() {
 
 #[test]
 fn stmt_return_expr() {
-    let actual = cmm::parse_stmt(r#"return 1 + - 2;"#);
+    let actual = semic::parse_stmt(r#"return 1 + - 2;"#);
 
     let expected = CStmt::Return
         ((0,0),
@@ -29,7 +29,7 @@ fn stmt_return_expr() {
 
 #[test]
 fn stmt_if_single() {
-    let actual = cmm::parse_stmt(r#"if (1) return;"#);
+    let actual = semic::parse_stmt(r#"if (1) return;"#);
 
     let expected = CStmt::If((0,0),
                              CExpr::Int((0,0), 1),
@@ -42,7 +42,7 @@ fn stmt_if_single() {
 
 #[test]
 fn stmt_if_block() {
-    let actual = cmm::parse_stmt(r#"if (1) { return; }"#);
+    let actual = semic::parse_stmt(r#"if (1) { return; }"#);
 
     let expected = CStmt::If((0,0),
                              CExpr::Int((0,0), 1),
@@ -57,7 +57,7 @@ fn stmt_if_block() {
 
 #[test]
 fn stmt_if_else_single() {
-    let actual = cmm::parse_stmt(r#"if (1) return; else return;"#);
+    let actual = semic::parse_stmt(r#"if (1) return; else return;"#);
 
     let expected = CStmt::If((0,0),
                              CExpr::Int((0,0), 1),
@@ -70,7 +70,7 @@ fn stmt_if_else_single() {
 
 #[test]
 fn stmt_if_else_block() {
-    let actual = cmm::parse_stmt(r#"if (1) { return; } else { return; }"#);
+    let actual = semic::parse_stmt(r#"if (1) { return; } else { return; }"#);
 
     let expected = CStmt::If((0,0),
                              CExpr::Int((0,0), 1),
@@ -87,8 +87,8 @@ fn stmt_if_else_block() {
 
 #[test]
 fn stmt_if_else_mixed() {
-    let actual = cmm::parse_stmt(r#"if (1) return; else { return; }"#);
-    let actual2 = cmm::parse_stmt(r#"if (1) { return; } else return;"#);
+    let actual = semic::parse_stmt(r#"if (1) return; else { return; }"#);
+    let actual2 = semic::parse_stmt(r#"if (1) { return; } else return;"#);
 
     let expected = CStmt::If((0,0),
                              CExpr::Int((0,0), 1),
@@ -112,7 +112,7 @@ fn stmt_if_else_mixed() {
 
 #[test]
 fn stmt_if_else_nested() {
-    let actual = cmm::parse_stmt(r#"if (1) { if (1) return; else return; }"#);
+    let actual = semic::parse_stmt(r#"if (1) { if (1) return; else return; }"#);
 
     let expected = CStmt::If((0,0),
                              CExpr::Int((0,0), 1),
@@ -130,7 +130,7 @@ fn stmt_if_else_nested() {
 
 #[test]
 fn stmt_else_single() {
-    let actual = cmm::parse_stmt(r#"while (1) return;"#);
+    let actual = semic::parse_stmt(r#"while (1) return;"#);
 
     let expected = CStmt::While((0,0),
                                 CExpr::Int((0,0), 1),
@@ -142,7 +142,7 @@ fn stmt_else_single() {
 
 #[test]
 fn stmt_else_block() {
-    let actual = cmm::parse_stmt(r#"while (1) { return; }"#);
+    let actual = semic::parse_stmt(r#"while (1) { return; }"#);
 
     let expected = CStmt::While((0,0),
                                 CExpr::Int((0,0), 1),
@@ -156,7 +156,7 @@ fn stmt_else_block() {
 
 #[test]
 fn stmt_for_single() {
-    let actual = cmm::parse_stmt(r#"for (;;) return;"#);
+    let actual = semic::parse_stmt(r#"for (;;) return;"#);
 
     let mut top = vec![];
     // init
@@ -174,7 +174,7 @@ fn stmt_for_single() {
 
 #[test]
 fn stmt_for_block() {
-    let actual = cmm::parse_stmt(r#"for (;;) { return; }"#);
+    let actual = semic::parse_stmt(r#"for (;;) { return; }"#);
 
     let mut top = vec![];
     // init
@@ -192,7 +192,7 @@ fn stmt_for_block() {
 
 #[test]
 fn stmt_for_init() {
-    let actual = cmm::parse_stmt(r#"for (i = 0;;) return;"#);
+    let actual = semic::parse_stmt(r#"for (i = 0;;) return;"#);
 
     let mut top = vec![];
     // init
@@ -211,7 +211,7 @@ fn stmt_for_init() {
 
 #[test]
 fn stmt_for_cond() {
-    let actual = cmm::parse_stmt(r#"for (;1;) return;"#);
+    let actual = semic::parse_stmt(r#"for (;1;) return;"#);
 
     let mut top = vec![];
     // init
@@ -229,7 +229,7 @@ fn stmt_for_cond() {
 
 #[test]
 fn stmt_for_inc() {
-    let actual = cmm::parse_stmt(r#"for (;;i = i + 1) return;"#);
+    let actual = semic::parse_stmt(r#"for (;;i = i + 1) return;"#);
 
     let mut top = vec![];
     // init
@@ -253,7 +253,7 @@ fn stmt_for_inc() {
 
 #[test]
 fn stmt_for_all() {
-    let actual = cmm::parse_stmt(r#"for (i = 0;1;i = i + 1) return;"#);
+    let actual = semic::parse_stmt(r#"for (i = 0;1;i = i + 1) return;"#);
 
     let mut top = vec![];
     // init

@@ -1,8 +1,8 @@
-extern crate cmm;
+extern crate semic;
 
-use cmm::engine;
-use cmm::env::{FuncTab, SymTab, SymVal};
-use cmm::repl::Repl;
+use semic::engine;
+use semic::env::{FuncTab, SymTab, SymVal};
+use semic::repl::Repl;
 
 #[test]
 fn bin_op_int() {
@@ -11,7 +11,7 @@ fn bin_op_int() {
     let local = SymTab::new();
     let repl = Repl::new(false, "", false);
 
-    let ast = cmm::parse_expr(r#" 1 + 1 "#).unwrap();
+    let ast = semic::parse_expr(r#" 1 + 1 "#).unwrap();
 
     let actual = engine::run_expr(&ast, &vtab, &global, &local, &repl);
 
@@ -28,7 +28,7 @@ fn bin_op_float() {
     let local = SymTab::new();
     let repl = Repl::new(false, "", false);
 
-    let ast = cmm::parse_expr(r#" 1.0 + 0.1 "#).unwrap();
+    let ast = semic::parse_expr(r#" 1.0 + 0.1 "#).unwrap();
 
     let actual = engine::run_expr(&ast, &vtab, &global, &local, &repl);
 
@@ -45,7 +45,7 @@ fn rel_op() {
     let local = SymTab::new();
     let repl = Repl::new(false, "", false);
 
-    let ast = cmm::parse_expr(r#" 1 == 1 "#).unwrap();
+    let ast = semic::parse_expr(r#" 1 == 1 "#).unwrap();
 
     let actual = engine::run_expr(&ast, &vtab, &global, &local, &repl);
 
@@ -62,7 +62,7 @@ fn log_op() {
     let local = SymTab::new();
     let repl = Repl::new(false, "", false);
 
-    let ast = cmm::parse_expr(r#" (1 == 1) && (1 != 0) "#).unwrap();
+    let ast = semic::parse_expr(r#" (1 == 1) && (1 != 0) "#).unwrap();
 
     let actual = engine::run_expr(&ast, &vtab, &global, &local, &repl);
 

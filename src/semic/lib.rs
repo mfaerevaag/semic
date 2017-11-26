@@ -17,10 +17,10 @@ use error::CError;
 /// # Examples
 ///
 /// ```
-/// use cmm::env::SymVal;
-/// let filename = "foo.cmm".to_owned();
+/// use semic::env::SymVal;
+/// let filename = "foo.semic".to_owned();
 /// let program = r#"int main () { return 0; }"#.to_owned();
-/// let result = cmm::run(filename, program, vec![], false, false);
+/// let result = semic::run(filename, program, vec![], false, false);
 /// assert!(result.is_ok());
 /// assert_eq!(Some(SymVal::Int(0)), result.unwrap());
 /// ```
@@ -62,11 +62,11 @@ pub fn run(
 /// # Examples
 ///
 /// ```
-/// assert!(cmm::parse_prog(r#"int main () { return 0; }"#).is_ok());
+/// assert!(semic::parse_prog(r#"int main () { return 0; }"#).is_ok());
 /// ```
 ///
 /// ```
-/// assert!(cmm::parse_prog(r#"main () {}"#).is_err());
+/// assert!(semic::parse_prog(r#"main () {}"#).is_err());
 /// ```
 pub fn parse_prog<'input, 'err,>(input: &'input str) -> Result<CProg<'input>, CError> {
     match parser::parse_Prog(&mut vec![], input) {
@@ -104,13 +104,13 @@ pub fn parse_expr<'input, 'err,>(input: &'input str,) -> Result<CExpr<'input>, C
 /// # Examples
 ///
 /// ```
-/// let ast = cmm::parse_prog(r#"void main () {}"#).unwrap();
-/// assert!(cmm::check_prog(&ast).is_ok());
+/// let ast = semic::parse_prog(r#"void main () {}"#).unwrap();
+/// assert!(semic::check_prog(&ast).is_ok());
 /// ```
 ///
 /// ```
-/// let ast = cmm::parse_prog(r#"int x, x;"#).unwrap();
-/// assert!(cmm::check_prog(&ast).is_err()); // main missing
+/// let ast = semic::parse_prog(r#"int x, x;"#).unwrap();
+/// assert!(semic::check_prog(&ast).is_err()); // main missing
 /// ```
 pub fn check_prog<'input, 'err>(
     ast: &'input CProg

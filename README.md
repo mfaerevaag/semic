@@ -1,7 +1,6 @@
-C-- Interpreter
+Semi-C Interpreter
 ===============
 
-Following the [grammar](https://www2.cs.arizona.edu/~debray/Teaching/CSc453/DOCS/cminusminusspec.html) defined by Prof. Debray at Univ. of Arizona.
 
 
 ## Running

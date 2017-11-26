@@ -1,14 +1,14 @@
-extern crate cmm;
+extern crate semic;
 
-use cmm::ast::*;
+use semic::ast::*;
 
 #[test]
 fn func_empty() {
-    let actual = cmm::parse_func(r#"
+    let actual = semic::parse_func(r#"
         void main (void) {}
     "#);
 
-    let actual2 = cmm::parse_func(r#"
+    let actual2 = semic::parse_func(r#"
         void main () {}
     "#);
 
@@ -29,7 +29,7 @@ fn func_empty() {
 
 #[test]
 fn func_return_type() {
-    let actual = cmm::parse_func(r#"
+    let actual = semic::parse_func(r#"
         int main (void) {}
     "#);
 
@@ -48,7 +48,7 @@ fn func_return_type() {
 
 #[test]
 fn func_param_type_single() {
-    let actual = cmm::parse_func(r#"
+    let actual = semic::parse_func(r#"
         int main (int a) {}
     "#);
 
@@ -67,7 +67,7 @@ fn func_param_type_single() {
 
 #[test]
 fn func_param_type_mult() {
-    let actual = cmm::parse_func(r#"
+    let actual = semic::parse_func(r#"
         int main (int a, char b) {}
     "#);
 
@@ -86,7 +86,7 @@ fn func_param_type_mult() {
 
 #[test]
 fn func_decl_single_type_single_ident() {
-    let actual = cmm::parse_func(r#"
+    let actual = semic::parse_func(r#"
         int main (void) {
             int x;
         }
@@ -107,7 +107,7 @@ fn func_decl_single_type_single_ident() {
 
 #[test]
 fn func_decl_single_type_single_array() {
-    let actual = cmm::parse_func(r#"
+    let actual = semic::parse_func(r#"
         int main (void) {
             int x[7];
         }
@@ -130,7 +130,7 @@ fn func_decl_single_type_single_array() {
 
 #[test]
 fn func_decl_single_type_mult_ident() {
-    let actual = cmm::parse_func(r#"
+    let actual = semic::parse_func(r#"
         int main (void) {
             int x, y;
         }
@@ -154,7 +154,7 @@ fn func_decl_single_type_mult_ident() {
 
 #[test]
 fn func_decl_single_type_mult_array() {
-    let actual = cmm::parse_func(r#"
+    let actual = semic::parse_func(r#"
         int main (void) {
             int x[7], y[8];
         }
@@ -178,7 +178,7 @@ fn func_decl_single_type_mult_array() {
 
 #[test]
 fn func_decl_mult_type_single_ident() {
-    let actual = cmm::parse_func(r#"
+    let actual = semic::parse_func(r#"
         int main (void) {
             int x;
             char y;
@@ -203,7 +203,7 @@ fn func_decl_mult_type_single_ident() {
 
 #[test]
 fn func_decl_mult_type_mult_ident() {
-    let actual = cmm::parse_func(r#"
+    let actual = semic::parse_func(r#"
         int main (void) {
             int x, y;
             char a, b;
@@ -230,7 +230,7 @@ fn func_decl_mult_type_mult_ident() {
 
 #[test]
 fn func_decl_after_stmt() {
-    let actual = cmm::parse_func(r#"
+    let actual = semic::parse_func(r#"
         void main (void) {
             return;
             char a;
@@ -257,7 +257,7 @@ fn func_decl_after_stmt() {
 
 #[test]
 fn func_decl_imm_init() {
-    let actual = cmm::parse_func(r#"
+    let actual = semic::parse_func(r#"
         void main (void) {
             char a = 'a';
         }
@@ -281,7 +281,7 @@ fn func_decl_imm_init() {
 
 #[test]
 fn func_decl_imm_init_string() {
-    let actual = cmm::parse_func(r#"
+    let actual = semic::parse_func(r#"
         void main (void) {
             char a[] = "foobar";
         }
@@ -305,7 +305,7 @@ fn func_decl_imm_init_string() {
 
 #[test]
 fn func_no_decl_single_stmt() {
-    let actual = cmm::parse_func(r#"
+    let actual = semic::parse_func(r#"
         int main (void) {
             return 0;
         }
@@ -328,7 +328,7 @@ fn func_no_decl_single_stmt() {
 
 #[test]
 fn func_single_decl_single_stmt() {
-    let actual = cmm::parse_func(r#"
+    let actual = semic::parse_func(r#"
         int main (void) {
             int x;
             x = 1;
@@ -353,7 +353,7 @@ fn func_single_decl_single_stmt() {
 
 #[test]
 fn func_single_array_single_stmt() {
-    let actual = cmm::parse_func(r#"
+    let actual = semic::parse_func(r#"
         int main (void) {
             char x[7];
             x[6] = '\0';
@@ -377,7 +377,7 @@ fn func_single_array_single_stmt() {
 
 #[test]
 fn func_stmt_mult() {
-    let actual = cmm::parse_func(r#"
+    let actual = semic::parse_func(r#"
         int main (void) {
             int x, y;
             x = 1;

@@ -1,4 +1,4 @@
-extern crate cmm;
+extern crate semic;
 
 mod prog;
 mod func;
