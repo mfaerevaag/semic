@@ -237,7 +237,7 @@ pub fn run_stmt<'input>(
         },
         CStmt::Print(_, ref e) => {
             let val = try!(run_expr(e, vtab, &tmp_global_symtab, &tmp_symtab, &tmp_repl));
-            println!("{:?}", val);
+            println!(" {:?}", val);
             None
         },
         _ => return Err(CError::UnknownError(format!("unexpected stmt '{:?}' in ast", stmt)))

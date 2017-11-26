@@ -55,7 +55,7 @@ impl<'a> Repl {
         };
 
         if self.verbose {
-            println!("REPL ({:?}/{:?} skip: {}) {:?}", lineo, loc, self.skip, stmt);
+            println!(" REPL ({:?}/{:?} skip: {}) {:?}", lineo, loc, self.skip, stmt);
         }
 
         if let Some(line) = lineo  {
@@ -95,7 +95,7 @@ impl<'a> Repl {
     {
         if !self.enabled { return Ok(()); }
 
-        println!("End of program");
+        println!(" End of program");
 
         self.read(global_symtab, local_symtab, true)?;
 
@@ -130,7 +130,7 @@ impl<'a> Repl {
                         Some(x) => match x.parse() {
                             Ok(n) => n,
                             Err(_) => {
-                                println!("Incorrect command usage: try 'next [lines]");
+                                println!( "Incorrect command usage: try 'next [lines]");
                                 continue;
                             }
                         },
@@ -150,7 +150,7 @@ impl<'a> Repl {
                     let id = match arg {
                         Some(x) => x,
                         None => {
-                            println!("Incorrect command usage: try 'print <variable>");
+                            println!( "Incorrect command usage: try 'print <variable>");
                             continue;
                         },
                     };
@@ -166,8 +166,8 @@ impl<'a> Repl {
 
                     // print value
                     match val {
-                        Some(v) => println!("{:?}", v),
-                        None => println!("N\\A"),
+                        Some(v) => println!(" {:?}", v),
+                        None => println!(" N\\A"),
                     };
                 },
                 Some("trace") => {
@@ -175,7 +175,7 @@ impl<'a> Repl {
                     let id = match arg {
                         Some(x) => x,
                         None => {
-                            println!("Incorrect command usage: try 'trace <variable>");
+                            println!(" Incorrect command usage: try 'trace <variable>");
                             continue;
                         },
                     };
@@ -186,7 +186,7 @@ impl<'a> Repl {
                         _ => match global_symtab.get_trace(id) {
                             Some(x) => x,
                             _ => {
-                                println!{"N\\A"};
+                                println!{" N\\A"};
                                 continue;
                             }
                         }
@@ -204,21 +204,21 @@ impl<'a> Repl {
                         };
 
                         match lineo {
-                            Some(line) => println!("{} = {} at line {}", id, val, line),
-                            None => println!("{} = {}", id, val)
+                            Some(line) => println!(" {} = {} at line {}", id, val, line),
+                            None => println!(" {} = {}", id, val)
                         }
                     }
                 },
                 Some("quit") => {
-                    println!("Bye, bye");
+                    println!(" Bye, bye");
                     if finished {
                         break;
                     } else {
                         process::exit(0);
                     }
                 },
-                Some(x) => println!("Unknown command '{}'. Try again", x),
-                None => println!("No command given. Try again"),
+                Some(x) => println!(" Unknown command '{}'. Try again", x),
+                None => println!(" No command given. Try again"),
             };
         }
 
