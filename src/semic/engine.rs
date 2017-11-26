@@ -10,7 +10,7 @@ pub fn run_prog<'input>(
     ast: &'input CProg<'input>,
     program: &'input str,
     args: &'input Vec<String>,
-    interactive: bool,
+    debug: bool,
     verbose: bool,
 ) -> Result<Option<SymVal>, CError>
 {
@@ -48,13 +48,18 @@ pub fn run_prog<'input>(
                         None);
 
     // repl
-    let mut repl = Repl::new(interactive, program, verbose);
+    let mut repl = match debug {
+        true => Some(Repl::new(program, verbose)),
+        false => None
+    };
 
     // run
     let (ret, res_sym_tab, res_glob_tab) = try!(run_func(main, &vtab, global_symtab.clone(), local_symtab.clone(), repl.clone()));
 
     // show repl
-    repl.finished(&res_sym_tab, &res_glob_tab)?;
+    if let Some(ref mut x) = repl {
+        x.finished(&res_sym_tab, &res_glob_tab)?;
+    }
 
     Ok(ret)
 }
@@ -64,7 +69,7 @@ pub fn run_func<'input>(
     vtab: &'input FuncTab<'input>,
     global_symtab: SymTab<'input>,
     local_symtab: SymTab<'input>,
-    repl: Repl,
+    repl: Option<Repl>,
 ) -> Result<(Option<SymVal>, SymTab<'input>, SymTab<'input>), CError>
 {
     // run block
@@ -82,11 +87,13 @@ pub fn run_stmt<'input>(
     vtab: &'input FuncTab<'input>,
     global_symtab: SymTab<'input>,
     local_symtab: SymTab<'input>,
-    repl: Repl
-) -> Result<(Option<Option<SymVal>>, SymTab<'input>, SymTab<'input>, Repl), CError>
+    repl: Option<Repl>
+) -> Result<(Option<Option<SymVal>>, SymTab<'input>, SymTab<'input>, Option<Repl>), CError>
 {
     let mut tmp_repl = repl.clone();
-    tmp_repl.show(stmt, &global_symtab, &local_symtab)?;
+    if let Some(ref mut x) = tmp_repl {
+        x.show(stmt, &global_symtab, &local_symtab)?;
+    }
 
     let mut tmp_global_symtab = global_symtab.clone();
     let mut tmp_symtab = local_symtab.clone();
@@ -254,7 +261,7 @@ pub fn run_expr<'input>(
     vtab: &'input FuncTab<'input>,
     global_symtab: &'input SymTab<'input>,
     local_symtab: &'input SymTab<'input>,
-    repl: &'input Repl
+    repl: &'input Option<Repl>
 ) -> Result<SymVal, CError>
 {
     let res = match *expr {

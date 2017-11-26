@@ -9,7 +9,6 @@ use util;
 
 #[derive(Clone)]
 pub struct Repl {
-    enabled: bool,
     verbose: bool,
     skip: usize,
     map: Vec<usize>,
@@ -18,12 +17,11 @@ pub struct Repl {
 }
 
 impl<'a> Repl {
-    pub fn new(enabled: bool, program: &'a str, verbose: bool) -> Repl {
+    pub fn new(program: &'a str, verbose: bool) -> Repl {
         let lines: Vec<&'a str> = program.split('\n').collect();
         let map = lines.into_iter().map(|line| line.len() + 1).collect();
 
         Repl {
-            enabled: enabled,
             verbose: verbose,
             skip: 0,
             map: map,
@@ -38,8 +36,6 @@ impl<'a> Repl {
         local_symtab: &'input SymTab<'input>,
     ) -> Result<(), CError>
     {
-        if !self.enabled { return Ok(()); }
-
         let loc = match *stmt {
             CStmt::Decl((l, _), ..) |
             CStmt::Assign((l, _), ..) |
@@ -94,8 +90,6 @@ impl<'a> Repl {
         local_symtab: &'input SymTab<'input>,
     ) -> Result<(), CError>
     {
-        if !self.enabled { return Ok(()); }
-
         println!(" End of program");
 
         self.read(global_symtab, local_symtab, true)?;

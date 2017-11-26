@@ -18,7 +18,7 @@ fn main() {
     let program = args[0].clone();
 
     let mut opts = Options::new();
-    opts.optflag("i", "interactive", "run interactively");
+    opts.optflag("d", "debug", "interactive debug");
     opts.optflag("v", "verbose", "print debug information");
     opts.optflag("h", "help", "print this help menu");
 
@@ -31,8 +31,8 @@ fn main() {
         print_usage(&program, opts);
         return;
     }
-    // interactive
-    let interactive = matches.opt_present("i");
+    // debug
+    let debug = matches.opt_present("d");
     // verbose
     let verbose = matches.opt_present("v");
     // program
@@ -59,7 +59,7 @@ fn main() {
     file.read_to_string(&mut prog).unwrap();
 
     // run
-    process::exit(match semic::run(path, prog, argv, interactive, verbose) {
+    process::exit(match semic::run(path, prog, argv, debug, verbose) {
         Ok(_) => 0,
         Err(()) => 1
     });

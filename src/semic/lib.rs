@@ -28,7 +28,7 @@ pub fn run(
     filename: String,
     program: String,
     args: Vec<String>,
-    interactive: bool,
+    debug: bool,
     verbose: bool
 ) -> Result<Option<env::SymVal>, ()>
 {
@@ -45,7 +45,7 @@ pub fn run(
         }
     };
 
-    match engine::run_prog(&ast, &program, &args, interactive, verbose) {
+    match engine::run_prog(&ast, &program, &args, debug, verbose) {
         Ok(ret) => {
             if verbose { println!("returned: {:?}", ret); }
             Ok(ret)
