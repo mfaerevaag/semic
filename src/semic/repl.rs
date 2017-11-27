@@ -156,7 +156,7 @@ impl<'a> Repl {
                             None => println!(" N\\A"),
                         },
                         None => match global_symtab.get_type(id) {
-                            Some(_) => match global_symtab.get_type(id) {
+                            Some(_) => match global_symtab.get_val(id) {
                                 Some(x) => println!(" {:?} (global)", x),
                                 None => println!(" N\\A (global)"),
                             },
