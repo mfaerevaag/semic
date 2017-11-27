@@ -198,7 +198,23 @@ impl Debug for SymVal {
             Float(f) => write!(fmt, "{:.5}", f),
             Char(c) => write!(fmt, "'{}'", c),
             Bool(b) => write!(fmt, "{}", b),
-            Array(ref a) => write!(fmt, "{:?}", a),
+            Array(ref a) => {
+                if let Some(ref x) = a.last() {
+                    match ***x {
+                        Char(_) => {
+                            let cs: Vec<char> = a.iter().map(|v: &Box<SymVal>| match **v {
+                                SymVal::Char(c) => c,
+                                _ => panic!("Expected array of chars")}
+                            ).collect();
+                            let s: String = cs.into_iter().collect();
+                            return write!(fmt, "{}", s);
+                        },
+                        _ => ()
+                    }
+                }
+
+                write!(fmt, "{:?}", a)
+            }
         }
     }
 }
