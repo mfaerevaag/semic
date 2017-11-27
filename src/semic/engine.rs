@@ -48,16 +48,16 @@ pub fn run_prog<'input>(
                         None);
 
     // repl
-    let mut repl = match debug {
+    let repl = match debug {
         true => Some(Repl::new(program, verbose)),
         false => None
     };
 
     // run
-    let (ret, res_sym_tab, res_glob_tab) = try!(run_func(main, &vtab, global_symtab.clone(), local_symtab.clone(), repl.clone()));
+    let (ret, res_sym_tab, res_glob_tab, mut res_repl) = try!(run_func(main, &vtab, global_symtab.clone(), local_symtab.clone(), repl.clone()));
 
     // show repl
-    if let Some(ref mut x) = repl {
+    if let Some(ref mut x) = res_repl {
         x.finished(&res_sym_tab, &res_glob_tab)?;
     }
 
@@ -70,16 +70,13 @@ pub fn run_func<'input>(
     global_symtab: SymTab<'input>,
     local_symtab: SymTab<'input>,
     repl: Option<Repl>,
-) -> Result<(Option<SymVal>, SymTab<'input>, SymTab<'input>), CError>
+) -> Result<(Option<SymVal>, SymTab<'input>, SymTab<'input>, Option<Repl>), CError>
 {
     // run block
-    let (ret, local_symtab, global_symtab, _) = try!(run_stmt(&func.body, vtab, global_symtab, local_symtab, repl));
+    let (ret, local_symtab, global_symtab, repl) = try!(run_stmt(&func.body, vtab, global_symtab, local_symtab, repl));
 
     // unwrap return val
-    match ret {
-        Some(x) => Ok((x, local_symtab, global_symtab)),
-        None => Ok((None, local_symtab, global_symtab)),
-    }
+    Ok((ret.unwrap_or(None), local_symtab, global_symtab, repl))
 }
 
 pub fn run_stmt<'input>(
@@ -172,9 +169,10 @@ pub fn run_stmt<'input>(
                 tab.insert(pid, t.clone(), None, Some(val), Some(l));
             }
 
-            let (_, _, mut tab2) = try!(run_func(&f, vtab, global_symtab, tab, repl));
+            let (_, _, mut tab2, repl) = try!(run_func(&f, vtab, global_symtab, tab, repl));
             tab2.pop_frame()?;
             tmp_symtab = tab2;
+            tmp_repl = repl;
             None
         },
         CStmt::Return(_, ref s) => match s {
