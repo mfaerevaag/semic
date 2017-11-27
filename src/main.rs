@@ -23,8 +23,11 @@ fn main() {
     opts.optflag("h", "help", "print this help menu");
 
     let matches = match opts.parse(&args[1..]) {
-        Ok(m) => { m }
-        Err(e) => { panic!(e.to_string()) }
+        Ok(m) => m,
+        Err(e) => {
+            println!("{}", e.to_string());
+            process::exit(1);
+        }
     };
     // help
     if matches.opt_present("h") {
