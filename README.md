@@ -99,18 +99,16 @@ The invisible scope is used when a variable is in the symbol table, but not acce
 ```c
 int a;
 
-int foo(void) {
+void foo(void) {
     int c = 3;
 
-    printf(c);
+    return;
 }
 
 int main(void) {
     a = 1;
-    printf(a);
 
     int b = 2;
-    printf(b);
 
     foo();
 
@@ -118,13 +116,21 @@ int main(void) {
 }
 ```
 
-This can be tested by running the `examples/scopes.semic` program
-
-    $ target/release/semic-interp examples/scopes.semic
+This can be tested by interactively running the `examples/scopes.semic` program
+```sh
+$ target/release/semic-interp -d examples/scopes.semic
+>> next 7
+>> print a
+ 1 (global)
+>> print b
+ 2 (invisible)
+>> print c
+ 3
+```
 
 ### Commands and options
 
-### Arrays
+### Arrays and pointers
 
 ### Optional curly braces
 As with C, keywords like `if`, `for` and `while`, can take a single argument or a several surrounded by curly braces
