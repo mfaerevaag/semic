@@ -34,8 +34,8 @@ match {
 } else {
     r"[0-9]+" => TInt,
     r"[0-9]+\.[0-9]+" => TFloat,
-    r#""\w*""# => TString,
-    r#"('(.|([\\]0|([\\]n)))')"# => TChar,
+    r#""(.|([\\]0|([\\]n)|([\\]t)))*""# => TString,
+    r#"('(.|([\\]0|([\\]n)|([\\]t)))')"# => TChar,
 
 } else {
     r"[a-zA-Z][a-zA-Z0-9_]*" => TIdent,
@@ -266,7 +266,7 @@ StmtDecl: Box<CStmt<'input>> = {
 StmtDecl2: (CIdent<'input>, Option<Option<CExpr<'input>>>, Option<CExpr<'input>>) = {
     <l:Ident> <eo:("=" <Expr>)?> => (l, None, eo),
     <l:Ident> "[" <so:Expr?> "]" <eo:("=" <Expr>)?> => (l, Some(so), eo),
-    "*" <l:Ident> <eo:("=" <Expr>)?> => (l, Some(None), None),
+    "*" <l:Ident> <eo:("=" <Expr>)?> => (l, Some(None), eo),
 };
 
 VarArray: (CIdent<'input>, Option<CExpr<'input>>) = {
