@@ -1,0 +1,11 @@
+int main(void) {
+    char *s = "asdf with new line\n";
+    char *s2 = "asdf without new line";
+    int i = 42;
+    float f = 42.0;
+
+    printf(s);
+    printf("%s\n", s2);
+    printf("int:\t%d\n", i);
+    printf("float:\t%f\n", f);
+}

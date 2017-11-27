@@ -243,9 +243,45 @@ pub fn run_stmt<'input>(
                 None
             }
         },
-        CStmt::Print(_, ref e) => {
+        CStmt::Print((l, _), ref fmto, ref e) => {
             let val = try!(run_expr(e, vtab, &tmp_global_symtab, &tmp_symtab, &tmp_repl));
-            println!(" {:?}", val);
+            let val_ws = format!("{:?}", val).replace("\u{0}", "") // remove null char
+                .replace("\\n", "\n").replace("\\t", "\t");        // unescape ws
+
+            let mut acc = String::new();
+            match *fmto {
+                Some(ref fmt) => {
+                    let mut fmt = fmt.clone();
+                    let fmts: String = fmt.clone().collect();
+
+                    loop {
+                        match fmt.next() {
+                            Some('%') => {
+                                match fmt.next() {
+                                    Some(_) => acc.push_str(val_ws.as_str()),
+                                    _ => return Err(CError::RuntimeError(format!("Bad string formatter '{}'", fmts), l))
+                                }
+                            },
+                            Some('\\') => {
+                                match fmt.next() {
+                                    Some('n') => acc.push('\n'),
+                                    Some('t') => acc.push('\t'),
+                                    Some('0') => acc.push('\0'),
+                                    _ => return Err(CError::RuntimeError(format!("Bad string formatter '{}'", fmts), l))
+                                }
+                            },
+                            Some(x) => acc.push(x),
+                            None => break // end of string
+                        }
+                    }
+                },
+                None => {
+                    acc.push_str(val_ws.as_str());
+                }
+            }
+
+            print!("{}", acc);
+
             None
         },
         _ => return Err(CError::UnknownError(format!("unexpected stmt '{:?}' in ast", stmt)))

@@ -230,8 +230,8 @@ StmtOther: Box<CStmt<'input>> = {
     },
 
     // print
-    <l:@L> "printf" "(" <e:Expr> ")" ";" <r:@R> =>
-        Box::new(CStmt::Print((l, r), e)),
+    <l:@L> "printf" "(" <fmt:(<Str> ",")?> <e:Expr> ")" ";" <r:@R> =>
+        Box::new(CStmt::Print((l, r), fmt, e)),
 
     // error
     // ! => { errors.push(<>); Box::new(CStmt::Error) },
