@@ -1,18 +1,20 @@
 Semi-C Interpreter
 ===============
 
-TODO
+This is an interpreter for a subset of C, featuring a debug option to step through programs line for line.
 
-## Build
-Requires rust stable.
+## Usage
+
+### Building
+Requires rust stable and cargo installed.
 
 Build with (takes a couple of minutes due to parser generator)
 
     cargo build --release
 
-Binary then found in `target/release/semic-interp`.
+Binary can then be found in `target/release/semic-interp`.
 
-To run interactively, use the `--debug` option
+To run interactively, where you can step through the program and print variables, use the `--debug` option. For **TA**, this will be the desired behavior so always use this!
 
     target/release/semic-interp --debug <program.semic>
 
@@ -22,8 +24,7 @@ To test the program given in the assignment, run
 
 See the `examples/` directory for other programs to test.
 
-
-## Testing
+### Testing
 The interpreter is heavily tested through unit and integration tests, found in the `tests` directory.
 
 Run with

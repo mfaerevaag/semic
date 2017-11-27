@@ -6,6 +6,7 @@ int main(void) {
 
     printf(s);
     printf("%s\n", s2);
+
     printf("int:\t%d\n", i);
     printf("float:\t%f\n", f);
 }
