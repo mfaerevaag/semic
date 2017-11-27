@@ -128,9 +128,26 @@ $ target/release/semic-interp -d examples/scopes.semic
  3
 ```
 
-### Commands and options
-
 ### Arrays and pointers
+Functions can return pointers, as below
+```c
+char *str(char a, char b) {
+    char s[3];
+    s[0] = a;
+    s[1] = b;
+    s[2] = '\0';
+    return s;
+}
+
+int main(void) {
+    printf(str('a', 'b'));
+    return 0;
+}
+```
+
+This can be tested by running the `examples/ptr.semic` program
+
+    $ target/release/semic-interp examples/ptr.semic
 
 ### Optional curly braces
 As with C, keywords like `if`, `for` and `while`, can take a single argument or a several surrounded by curly braces
@@ -138,10 +155,15 @@ As with C, keywords like `if`, `for` and `while`, can take a single argument or 
 int main(void) {
     if (1)
         return 0;
-    else
+    else {
         return 1;
+    }
 }
 ```
+
+This can be tested by running the `examples/blocks.semic` program
+
+    $ target/release/semic-interp examples/blocks.semic
 
 ### Error handling
 The interpreter handles a variety of errors and prints where the error occurs, when possible.
@@ -174,3 +196,19 @@ Run-time error: line 8:8 (examples/runtime_error.semic)
  |         ^
    > Function 'foo' missing param '(int, "a")'
 ```
+
+### Recursion
+The interpreter supports recursion, which can be demonstrated by implemented the Fibonacci function
+```c
+int fib(int n) {
+    if (n <= 1) {
+        return n;
+    } else {
+        return fib(n - 1) + fib(n - 2);
+    }
+}
+```
+
+This can be tested by running the `examples/fib.semic` program
+
+    $ target/release/semic-interp examples/fib.semic
