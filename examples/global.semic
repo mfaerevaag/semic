@@ -3,11 +3,11 @@ int a;
 int main() {
     a = 7;
 
-    printf(a);
+    printf("%d\n", a);
 
     int a = 42;
 
-    printf(a);
+    printf("%d\n", a);
 
     return 0;
 }

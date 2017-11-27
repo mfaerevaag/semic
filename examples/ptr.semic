@@ -7,6 +7,6 @@ char *str(char a, char b) {
 }
 
 int main(void) {
-    printf(str('a', 'b'));
+    printf("%s\n", str('a', 'b'));
     return 0;
 }
