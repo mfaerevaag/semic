@@ -1,0 +1,13 @@
+int a;
+
+int main() {
+    a = 7;
+
+    printf(a);
+
+    int a = 42;
+
+    printf(a);
+
+    return 0;
+}
